@@ -1328,9 +1328,35 @@ cfRunCell[97, Hold[
 gCanonical = cfSimp[frameCanonical . \[Eta]4488 . Transpose[frameCanonical]];
 coframeCanonical = cfSimp[Inverse[frameCanonical]];
 gInvCanonical = cfSimp[Inverse[gCanonical]];
-cfAssert["frame . coframe == ID8", cfZeroArrayQ[frameCanonical . coframeCanonical - ID8]];
-cfAssert["g == frame . eta4488 . Transpose[frame]   (the bridge [d])",
+(* Grading these honestly, because the obvious one is a tautology.                          *)
+(* gCanonical was DEFINED one line above as frame . eta . Transpose[frame], so asserting    *)
+(* that it equals frame . eta . Transpose[frame] restates the definition and cannot fail.   *)
+(* It is kept because it puts the bridge [d] on screen next to the metric, but it is        *)
+(* labelled for what it is.  The check with content is the one after it: that the frame     *)
+(* the ORIGINAL notebook recorded reproduces exactly the line element stated in the text     *)
+(* above.  A mistranscribed frame entry would fail that and pass the tautology.             *)
+cfAssert["CANONICAL [structural]: frame . coframe == ID8  (certifies only that the frame is invertible)",
+  cfZeroArrayQ[frameCanonical . coframeCanonical - ID8]];
+cfAssert["CANONICAL [definition]: g == frame . eta4488 . Transpose[frame]  (bridge [d]; this IS how g was defined, so it cannot fail)",
   cfZeroArrayQ[gCanonical - frameCanonical . \[Eta]4488 . Transpose[frameCanonical]]];
+cfAssert["CANONICAL [has content]: g == diag(Tan[6 H x0]^2, q^2, q^2, q^2, -1, -p^2, -p^2, -p^2), the stated line element",
+  cfZeroArrayQ[gCanonical - DiagonalMatrix[{Tan[6 H x0]^2,
+     cfQminus^2, cfQminus^2, cfQminus^2, -1, -cfQplus^2, -cfQplus^2, -cfQplus^2}]]];
+(* Signature.  Because the frame is diagonal, g[[i,i]] == eta[[i,i]] frame[[i,i]]^2 exactly, *)
+(* which is Sylvester's law of inertia made explicit: g inherits eta's signature from any    *)
+(* real invertible frame.  That identity needs no assumption at all.                          *)
+cfAssert["CANONICAL [has content]: Diagonal[g] == Diagonal[eta4488] * Diagonal[frame]^2 exactly",
+  cfZeroArrayQ[Diagonal[gCanonical] - Diagonal[\[Eta]4488] Diagonal[frameCanonical]^2]];
+(* Turning that into "four plus, four minus" needs two things the notebook cannot derive,     *)
+(* because a4 is deliberately left undefined: that a4 is REAL-valued, and that 6 H x0 lies    *)
+(* in the first quadrant so that Tan[6 H x0] > 0.  Both are stated here rather than assumed   *)
+(* silently.  Without them Mathematica cannot decide the sign of Exp[a4[H x4]] and is right   *)
+(* not to.                                                                                    *)
+ClearAll[cfSignatureAssume];
+cfSignatureAssume = cfGeomAssume && Element[a4[H x4], Reals] && 0 < 6 H x0 < Pi/2;
+cfAssert["CANONICAL [has content]: g has signature (4,4), GIVEN a4 real and 0 < 6 H x0 < Pi/2",
+  Module[{s = Simplify[# > 0, cfSignatureAssume] & /@ Diagonal[gCanonical]},
+    {Count[s, True] === 4, Count[s, False] === 4}]];
 cfAssert["Inverse[g] == Transpose[coframe] . eta4488 . coframe",
   cfZeroArrayQ[gInvCanonical - Transpose[coframeCanonical] . \[Eta]4488 . coframeCanonical]];
 cfAssert["g is symmetric", cfZeroArrayQ[gCanonical - Transpose[gCanonical]]];

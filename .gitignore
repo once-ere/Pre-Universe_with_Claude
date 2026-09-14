@@ -14,9 +14,12 @@
 #  and rescuing them by name would mean every new one is dropped in silence.
 #  Scratch is named instead.  See section 3 for the full reasoning.
 #
-#  One rule of gitignore worth stating, because section 1 relies on it:
-#  a "!" rule cannot rescue a file whose PARENT DIRECTORY is excluded, which is
-#  why claude-fable/ is never excluded as a directory.
+#  One rule of gitignore worth knowing, because the superseded design depended on
+#  it entirely: a "!" rule cannot rescue a file whose PARENT DIRECTORY is
+#  excluded.  The shipped design does not depend on it.  Its only negations are
+#  !.env.example and !.env.sample in section 1, which negate the FILE pattern
+#  .env.* rather than any directory, so nothing here is at the mercy of
+#  directory ordering.
 # =============================================================================
 
 
@@ -143,6 +146,9 @@ backups/
 #         *.log
 #         !Pre.txt
 #         !Pre-00.txt
+#         !README*.txt
+#         !LICENSE*.txt
+#         !CHANGELOG*.txt
 #         !claude-fable/**/*.log
 #         !claude-fable/**/*.txt
 #
@@ -193,7 +199,7 @@ Untitled*
 # LaTeX is the one tool that would argue for *.log, since it writes <doc>.log
 # beside <doc>.tex.  Section 2 covers its other products (*.aux, *.toc, *.out and
 # the rest) but NOT its log, precisely because *.log cannot be scoped by
-# extension without catching the 30 provenance logs.  There are no .tex sources
+# extension without catching the 29 provenance logs.  There are no .tex sources
 # in this repository, so nothing writes a LaTeX log today.  If one is ever added,
 # scope the rule to it by name, for example
 #

@@ -26,8 +26,13 @@ Print["Det[g]  : ", InputForm[detgCanonical]];
 Print["Sqrt[Abs[Det[g]]] : ", InputForm[sqrtDetgCanonical]];
 
 line["[d] THE BRIDGE  g == e . eta . Transpose[e]"];
-Print["residual identically zero? ",
+Print["residual (DEFINITION, cannot fail): ",
   cfZeroArrayQ[gCanonical - frameCanonical . \[Eta]4488 . Transpose[frameCanonical]]];
+Print["g equals the STATED line element (has content): ",
+  cfZeroArrayQ[gCanonical - DiagonalMatrix[{Tan[6 H x0]^2,
+     cfQminus^2, cfQminus^2, cfQminus^2, -1, -cfQplus^2, -cfQplus^2, -cfQplus^2}]]];
+Print["Diagonal[g] == Diagonal[eta] * Diagonal[frame]^2, exactly: ",
+  cfZeroArrayQ[Diagonal[gCanonical] - Diagonal[\[Eta]4488] Diagonal[frameCanonical]^2]];
 
 line["THE FLAT MINKOWSKI METRIC  eta[a,b]"];
 Print[MatrixForm[\[Eta]4488]];

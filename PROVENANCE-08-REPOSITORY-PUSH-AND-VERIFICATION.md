@@ -177,12 +177,14 @@ the ignore file at all.
 
 The one case that argues for a blanket `*.log` is LaTeX, which writes `<doc>.log` beside
 `<doc>.tex`. Section 2 covers LaTeX's other products but deliberately not its log, because
-`*.log` cannot be scoped by extension without catching the 30 provenance logs. There are no
+`*.log` cannot be scoped by extension without catching the 29 provenance logs. There are no
 `.tex` sources in this repository, so nothing writes one today; if one is ever added, the rule
 should name it rather than reintroduce a blanket.
 
-Section 1 still relies on one property of gitignore: a `!` rule cannot rescue a file whose parent
-directory is excluded, which is why `claude-fable/` is never excluded as a directory.
+One property of gitignore is worth knowing here, because the superseded design depended on it
+entirely: a `!` rule cannot rescue a file whose parent directory is excluded. The shipped design
+does not depend on it. Its only negations are `!.env.example` and `!.env.sample`, which negate
+the file pattern `.env.*` rather than any directory.
 
 Check that no tracked file is caught by any rule:
 
@@ -199,7 +201,7 @@ for f in Pre.txt Pre-00.txt claude-fable/run8.log claude-fable/final_run.log    
   printf '  %-48s ' "$f"
   if git check-ignore --no-index -q "$f"; then echo "IGNORED  <-- WRONG"; else echo "kept"; fi
 done
-for f in "EtoExp - Copy.wl" "EtoExp copy 2.wl" "backups/x" ".claude/x"          "scratch.log" "notes.txt" ".env" "id_rsa" "mathpass" "server.key"; do
+for f in "EtoExp - Copy.wl" "EtoExp copy 2.wl" "backups/x" ".claude/x"          "scratch.log" "tmp-notes.txt" ".env" "id_rsa" "mathpass" "server.key"; do
   printf '  %-48s ' "$f"
   if git check-ignore --no-index -q "$f"; then echo "ignored"; else echo "NOT ignored <-- check"; fi
 done
@@ -210,13 +212,18 @@ Every deliverable prints `kept`; every piece of litter and every credential-shap
 
 ```bash
 cd "C:/Users/nsh/Documents/8-dim/Pre-Universe_14SEP26-77"
-for f in claude-fable/brand_new_run.log PROVENANCE-09-SOMETHING.md NewSpec.txt; do
+for f in claude-fable/brand_new_run.log PROVENANCE-09-SOMETHING.md NewSpec.txt notes.txt; do
   printf '  %-32s ' "$f"
   if git check-ignore --no-index -q "$f"; then echo "IGNORED <-- trap"; else echo "kept (correct)"; fi
 done
 ```
 
-All three print `kept (correct)`, which is the property the first design lacked.
+All four print `kept (correct)`, which is the property the first design lacked.
+
+`notes.txt` is in that second list deliberately. Under the superseded blanket it printed
+`ignored`; under the shipped design it is kept, which is exactly the behaviour described above,
+a stray text file becoming visible in `git status` rather than vanishing. An earlier revision of
+this page still listed it among the litter, which contradicted its own prose.
 
 A warning about reading these results. `git check-ignore -v` prints the matching line even when
 that line is a NEGATION, so the printed line does not tell you the verdict and a `!Pre.txt` in

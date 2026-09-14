@@ -13,7 +13,9 @@ Det[g]  : InputForm[Sec[6*H*x0]^2]
 Sqrt[Abs[Det[g]]] : InputForm[Abs[Sec[6*H*x0]]]
 
 ================ [d] THE BRIDGE  g == e . eta . Transpose[e] ================
-residual identically zero? True
+residual (DEFINITION, cannot fail): True
+g equals the STATED line element (has content): True
+Diagonal[g] == Diagonal[eta] * Diagonal[frame]^2, exactly: True
 
 ================ THE FLAT MINKOWSKI METRIC  eta[a,b] ================
 MatrixForm[{{1, 0, 0, 0, 0, 0, 0, 0}, {0, 1, 0, 0, 0, 0, 0, 0}, {0, 0, 1, 0, 0, 0, 0, 0}, {0, 0, 0, 1, 0, 0, 0, 0}, {0, 0, 0, 0, -1, 0, 0, 0}, {0, 0, 0, 0, 0, -1, 0, 0}, {0, 0, 0, 0, 0, 0, -1, 0}, {0, 0, 0, 0, 0, 0, 0, -1}}]

@@ -239,8 +239,8 @@ cells w/ msgs   : 0
   cell 86   8.921 s
   ...
 ==================== ASSERTIONS ====================
-assertions run  : 175
-passed          : 175
+assertions run  : 178
+passed          : 178
 FAILED          : 0
 ====================================================
 ```
@@ -249,7 +249,7 @@ The three numbers that matter:
 
 - **`cells evaluated : 139`** — every Input cell ran.
 - **`cells w/ msgs : 0`** — the notebook raises no errors and no warnings.
-- **`assertions run : 175  passed : 175  FAILED : 0`** — every identity the notebook claims was
+- **`assertions run : 178  passed : 178  FAILED : 0`** — every identity the notebook claims was
   checked and holds.
 
 Wall-clock time is roughly 140 s on this machine; it will vary.
@@ -258,7 +258,7 @@ To see the individual assertion verdicts:
 
 ```bash
 cd "C:/Users/nsh/Documents/8-dim/Pre-Universe_14SEP26-77/claude-fable"
-grep -c 'PASS' run_from_nb.log       # 175
+grep -c 'PASS' run_from_nb.log       # 178
 grep    'FAIL' run_from_nb.log       # only the "FAILED : 0" summary line
 grep -n 'MESSAGES' run_from_nb.log   # no hits
 ```
@@ -288,8 +288,25 @@ cd "C:/Users/nsh/Documents/8-dim/Pre-Universe_14SEP26-77/claude-fable"
 grep 'numerical certificates used' run_from_nb.log
 ```
 
-which prints `numerical certificates used: 6`. So 169 of the 175 assertions are settled purely
-symbolically and only 6 need the numerical certificate.
+which prints `numerical certificates used: 6`. That counter records `cfZeroQ`/`cfZeroArrayQ`
+calls that fall through to stage 3, not assertions, and the six break down as one plus five:
+
+- **one** comes from the worked example at the end of the cell that defines the test,
+  `cfZeroQ[x0 - x4]`. That is a demonstration of the three stages, not an assertion.
+- **five** come from assertions, and every one of them is a NEGATIVE test, written
+  `! TrueQ[cfZeroQ[...]]` or `! TrueQ[cfZeroArrayQ[...]]`: that the metric is non-degenerate,
+  that `Lambda` is a genuine boost and not a rotation, that Bridge 3's torsion is non-zero for
+  non-zero lambda, that the triality Dirac matrices really differ from the vector-frame ones,
+  and that the extra spinor coupling is non-zero for non-zero lambda.
+
+So **no positive identity in this notebook rests on the numerical probe.** In all five cases the
+probe is used to REFUTE an identity by exhibiting a non-zero value at rational sample points,
+which is a sound refutation rather than a numerical stand-in for a proof. To confirm the five:
+
+```bash
+cd "C:/Users/nsh/Documents/8-dim/Pre-Universe_14SEP26-77/claude-fable"
+grep -n '! TrueQ\[cfZero' cells_part*.wl
+```
 
 `N::meprec` is suppressed inside stage 3, and only there. Evaluating an expression that is
 identically zero in arbitrary precision always ends by raising it, because no amount of working

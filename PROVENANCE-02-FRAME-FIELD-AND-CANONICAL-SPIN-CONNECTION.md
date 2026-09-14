@@ -124,8 +124,13 @@ Print["Det[g]  : ", InputForm[detgCanonical]];
 Print["Sqrt[Abs[Det[g]]] : ", InputForm[sqrtDetgCanonical]];
 
 line["[d] THE BRIDGE  g == e . eta . Transpose[e]"];
-Print["residual identically zero? ",
+Print["residual (DEFINITION, cannot fail): ",
   cfZeroArrayQ[gCanonical - frameCanonical . \[Eta]4488 . Transpose[frameCanonical]]];
+Print["g equals the STATED line element (has content): ",
+  cfZeroArrayQ[gCanonical - DiagonalMatrix[{Tan[6 H x0]^2,
+     cfQminus^2, cfQminus^2, cfQminus^2, -1, -cfQplus^2, -cfQplus^2, -cfQplus^2}]]];
+Print["Diagonal[g] == Diagonal[eta] * Diagonal[frame]^2, exactly: ",
+  cfZeroArrayQ[Diagonal[gCanonical] - Diagonal[\[Eta]4488] Diagonal[frameCanonical]^2]];
 
 line["THE FLAT MINKOWSKI METRIC  eta[a,b]"];
 Print[MatrixForm[\[Eta]4488]];
@@ -272,7 +277,14 @@ form.
 ## 6. What this proves
 
 - A local flat 4+4 Minkowski coordinate system exists at every point, and `frameCanonical`
-  installs it: `g == frame . eta . Transpose[frame]` holds identically.
+  installs it. State that carefully: in this notebook `g` is **defined** as
+  `frame . eta . Transpose[frame]`, so asserting the bridge `[d]` restates the definition and
+  cannot fail. The notebook labels that assertion `[definition]` for exactly this reason. What
+  carries content, and is asserted separately, is that the frame the ORIGINAL notebook recorded
+  reproduces the line element stated above, that `Diagonal[g] == Diagonal[eta] * Diagonal[frame]^2`
+  exactly, which is Sylvester's law made explicit, and that the signature is (4,4) given that
+  `a4` is real-valued and `0 < 6 H x0 < Pi/2`. A mistranscribed frame entry would fail those and
+  pass the tautology.
 - The frame is pseudo-orthogonal with respect to `eta4488` of signature (4,4), not orthogonal:
   the tangent metric has four plus signs and four minus signs.
 - The canonical spin connection follows from the zero-torsion vielbein postulate alone, with no

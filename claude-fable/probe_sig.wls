@@ -1,0 +1,11 @@
+ssX = H > 0 && x0 > 0 && x4 > 0 && 6 H x0 > 0 && 2 la[x4] > 0 && Cot[6 H x0] > 0 && Sin[6 H x0] > 0;
+q = Exp[-a4[H x4]]/Sin[6 H x0]^(1/6);
+p = Exp[+a4[H x4]]/Sin[6 H x0]^(1/6);
+d = {Tan[6 H x0]^2, q^2, q^2, q^2, -1, -p^2, -p^2, -p^2};
+Print["my broken form: ", Quiet@Check[Count[Sign[d] /. Sign[x_] :> Simplify[Sign[x], ssX], 1], "ERROR"]];
+s1 = Simplify[Sign[#], ssX] & /@ d;
+Print["Simplify[Sign[#], ssX]& /@ d = ", s1];
+Print["  positives: ", Count[s1, 1], "   negatives: ", Count[s1, -1]];
+s2 = (Simplify[# > 0, ssX] & /@ d);
+Print["Simplify[# > 0, ssX]& /@ d   = ", s2];
+Print["  True: ", Count[s2, True], "   False: ", Count[s2, False]];
