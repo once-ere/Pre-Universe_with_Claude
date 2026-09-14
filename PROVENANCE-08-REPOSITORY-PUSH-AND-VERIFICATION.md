@@ -28,17 +28,45 @@ Before the push the last command returned `This repository is empty. (HTTP 404)`
 
 ## 2. What was and was not committed
 
-Three changes were already present in the working tree when this work started, and they are
-**not mine**, so they were deliberately left uncommitted:
+Several changes were already present in the working tree when this work started. They are
+**not mine**, so the first push left them alone; a later push committed them, and what each one
+actually is was checked first rather than assumed:
 
-| path | pre-existing state |
+| path | pre-existing change |
 |---|---|
-| `EtoExp.wl` | modified (a whole-file line-ending change) |
-| `Pre-gravity_Pre-Big_Bang_M6=3-Generations_of_Einstein-Rosen-2-Planes.nb` | deleted from the working tree, still in `HEAD` |
-| `Pre-gravity_Pre-Big_Bang_M6=3-Generations_of_Einstein-Rosen-2-Planes.nb.pdf` | modified (19.4 MB → 13.7 MB) |
+| `EtoExp.wl` | the author rewrote it as a proper Wolfram package: `BeginPackage`, two `::usage` strings, `Begin["\`Private\`"]`, and a matching `End[]` / `EndPackage[]`. 21 added lines, nothing removed. |
+| `Pre.txt` | the task specification, grown from 16 KB to 50 KB |
+| `Pre-gravity_Pre-Big_Bang_M6=3-Generations_of_Einstein-Rosen-2-Planes.nb.pdf` | rebuilt, 19.4 MB → 13.7 MB |
+| `Pre-gravity_Pre-Big_Bang_M6=3-Generations_of_Einstein-Rosen-2-Planes.nb` | deleted from the working tree by the author before this work began |
+| `2026-02-20-Pre-U-mmM4p.nb` and its two `.mx` files | a separate 25 MB working notebook, untracked |
 
-Three unrelated large files were also left alone: `2026-02-20-Pre-U-mmM4p.nb` and its two `.mx`
-files, plus two scratch copies of `EtoExp.wl`.
+The first of those matters to this project, because the notebook's section 10 loads `EtoExp.wl`.
+All three copies of the file that the notebook can find already carry the package form, so
+nothing needed syncing:
+
+```bash
+cd "C:/Users/nsh/Documents/8-dim/Pre-Universe_14SEP26-77"
+for f in "EtoExp.wl" "claude-fable/EtoExp.wl" "C:/Users/nsh/Documents/8-dim/EtoExp.wl"; do
+  printf '%-52s ' "$f"
+  stat -c '%s bytes  ' "$f" | tr -d '
+'
+  grep -qc 'BeginPackage' "$f" && echo "package form" || echo "OLD flat form"
+done
+```
+
+prints `8801 bytes  package form` three times.
+
+An earlier revision of this page described the `EtoExp.wl` change as "a whole-file line-ending
+change". That was wrong. Comparing with carriage returns stripped shows 21 genuinely added
+lines:
+
+```bash
+cd "C:/Users/nsh/Documents/8-dim/Pre-Universe_14SEP26-77"
+git show HEAD:EtoExp.wl > /tmp/old_etoexp.wl
+diff <(tr -d '
+' < /tmp/old_etoexp.wl) <(tr -d '
+' < EtoExp.wl)
+```
 
 To see exactly this split:
 
@@ -96,6 +124,77 @@ wolframscript -code '
 
 which prints `identical: True`. `backups/` is excluded by `.gitignore` because it is a 24 MB
 duplicate of the source.
+
+## 2a. The .gitignore, and the secret scan
+
+The ignore file was refactored into three commented sections: secrets, litter, and bulk text
+with the deliverables rescued from it. The third section is the one that needed care.
+
+**The defect it fixes.** A bare `*.txt` and `*.log` match 32 files that are deliverables here:
+the 30 provenance run logs under `claude-fable/`, the plain-text extraction of the original
+notebook, and the two task specifications `Pre.txt` and `Pre-00.txt`. Git never re-ignores a file
+that is already tracked, so nothing appears to be wrong. The damage only shows up later, when a
+NEW provenance log is produced and silently fails to be added. The refactored file therefore ends
+with explicit `!` rules, and it relies on two properties of gitignore: later patterns win, and a
+`!` rule cannot rescue a file whose parent directory is excluded, which is why `claude-fable/` is
+never excluded as a directory.
+
+Check that no tracked file is caught by any rule:
+
+```bash
+cd "C:/Users/nsh/Documents/8-dim/Pre-Universe_14SEP26-77"
+git ls-files -z | xargs -0 git check-ignore --no-index
+```
+
+Empty output means every tracked file survives. Then spot-check both directions:
+
+```bash
+cd "C:/Users/nsh/Documents/8-dim/Pre-Universe_14SEP26-77"
+for f in Pre.txt Pre-00.txt claude-fable/run8.log claude-fable/final_run.log          claude-fable/extract/cells_dump.txt claude-fable/extract/cells_index.txt; do
+  printf '  %-48s ' "$f"
+  if git check-ignore --no-index -q "$f"; then echo "IGNORED  <-- WRONG"; else echo "kept"; fi
+done
+for f in "EtoExp - Copy.wl" "EtoExp copy 2.wl" "backups/x" ".claude/x"          "scratch.log" "notes.txt" ".env" "id_rsa" "mathpass" "server.key"; do
+  printf '  %-48s ' "$f"
+  if git check-ignore --no-index -q "$f"; then echo "ignored"; else echo "NOT ignored <-- check"; fi
+done
+```
+
+Every deliverable prints `kept`; every piece of litter and every credential-shaped name prints
+`ignored`.
+
+**The secret scan.** Nothing matching a credential pattern exists in the tracked tree, in the
+untracked files, inside the multi-megabyte binaries, or in the nine commits that were pushed.
+The commands, all of which return nothing:
+
+```bash
+cd "C:/Users/nsh/Documents/8-dim/Pre-Universe_14SEP26-77"
+
+# tracked text files
+git grep -n -I -E 'ghp_[A-Za-z0-9]{20,}|gho_[A-Za-z0-9]{20,}|github_pat_[A-Za-z0-9_]{20,}|sk-[A-Za-z0-9]{20,}|sk-ant-[A-Za-z0-9-]{20,}|AKIA[0-9A-Z]{16}|ASIA[0-9A-Z]{16}|xox[baprs]-[A-Za-z0-9-]{10,}|AIza[0-9A-Za-z_-]{35}|-----BEGIN [A-Z ]*PRIVATE KEY-----|glpat-[A-Za-z0-9_-]{20,}' -- .
+
+# untracked text files
+grep -rIn -E 'ghp_|gho_|github_pat_|sk-ant-|AKIA[0-9A-Z]{16}|-----BEGIN [A-Z ]*PRIVATE KEY-----'      --exclude-dir=.git --exclude-dir=backups .
+
+# Wolfram licensing material, which is the credential class this repository could plausibly leak
+git grep -n -I -E '\$ActivationKey|ActivationKey|mathpass|\$LicenseID|LicenseID|\$MachineID|MathID|PasswordFile' -- .
+
+# credential-shaped filenames anywhere in the tree
+find . -path ./.git -prune -o -path ./backups -prune -o -type f      \( -name '.env*' -o -name '*.pem' -o -name '*.key' -o -name '*.p12' -o -name '*.pfx'         -o -name 'id_rsa*' -o -name 'id_ed25519*' -o -name '*credential*' -o -name '*secret*'         -o -name 'mathpass' -o -name '.netrc' -o -name '_netrc' \) -print
+
+# the binaries, which git grep -I skips
+for f in $(git ls-files | grep -Ei '\.(nb|pdf|mx)$'); do
+  n=$(grep -a -c -E 'ghp_|gho_|github_pat_|sk-ant-|AKIA[0-9A-Z]{16}|BEGIN [A-Z ]*PRIVATE KEY|ActivationKey|mathpass' "$f" 2>/dev/null)
+  [ "$n" != "0" ] && echo "HIT($n) $f"
+done
+
+# nothing ignored is tracked
+git ls-files | grep -E '^\.claude/|^backups/|__pycache__'
+```
+
+Note on the last two. The binary loop reports a spurious `HIT()` with an empty count for any file
+that is deleted from the working tree but still in `HEAD`; read such a file out of git instead,
+`git cat-file -p HEAD:<path> | grep -a -c -E ...`, which returns `0` here.
 
 ## 3. The commit and the push
 

@@ -9,6 +9,14 @@
 (* use at your own risk; this probably does not work correctly                  *)
 (* blame: PLN and friends (VS code invoking GPT-5.3-Codex)                      *)
 (* ====================================================================== *)
+BeginPackage["EtoExp`"];
+(* Public symbols *)
+
+EtoExp::usage = "EtoExp[expression] replaces E^arg and Power[E,arg] with Exp[arg] with returns; used to generalize Maple string;e.g., EtoExp[in]/.{Exp->QF}  ";
+EtoExpValue::usage = "Activate[EtoExp[input]];";
+
+Begin["`Private`"];
+
 ClearAll[
     EtoExp,
     EtoExpValue,
@@ -210,5 +218,18 @@ runEtoExpSelfTests[] := Module[{report},
 
     report
 ];
+
+(* ========================================================================== *)
+(*  Export Public Symbols                                                     *)
+(* ========================================================================== *)
+
+End[]; (* `Private` *)
+
+EndPackage[];
+(* ========================================================================== *)
+(*  END OF PACKAGE                                                            *)
+(* ========================================================================== *)
+
+
 
 Print["EtoExp.wl loaded.  BUT, WARNING:  DO NOT USE IF YOU WANT A CORRECT RESULT!"];

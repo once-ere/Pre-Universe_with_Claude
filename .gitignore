@@ -1,5 +1,163 @@
-# local backups made before modifying anything
-backups/
-# python bytecode
+# =============================================================================
+#  Pre-Universe_with_Claude  --  .gitignore
+#
+#  Three jobs, in order of importance:
+#
+#    1. no credential ever enters the history;
+#    2. editor, OS, language and build litter stays out;
+#    3. this project's own deliverables stay IN, even when they share an
+#       extension with the litter in job 2.
+#
+#  Job 3 is why the last section has explicit "!" rules.  A bare "*.log" and
+#  "*.txt" match 32 files that are deliverables here: the provenance run logs
+#  under claude-fable/, the extracted cell dump, and the two task-specification
+#  files Pre.txt and Pre-00.txt.  Git never re-ignores a file that is already
+#  tracked, so without the "!" rules nothing would appear to be wrong until
+#  someone produced a NEW provenance log and it silently failed to be added.
+#
+#  Two rules of gitignore that this file depends on:
+#    - later patterns win over earlier ones, so the "!" rules come last;
+#    - a "!" rule cannot rescue a file whose PARENT DIRECTORY is excluded,
+#      which is why claude-fable/ is never excluded as a directory.
+# =============================================================================
+
+
+# -----------------------------------------------------------------------------
+# 1.  SECRETS
+#
+#     Nothing matching these may ever be committed.  Nothing matching them is
+#     present today; these patterns are here so that it stays that way.
+# -----------------------------------------------------------------------------
+
+# environment and dotfile credential stores
+.env
+.env.*
+!.env.example
+!.env.sample
+.netrc
+_netrc
+.npmrc
+.pypirc
+.htpasswd
+
+# keys and certificates
+*.pem
+*.key
+*.p12
+*.pfx
+*.jks
+*.keystore
+*.asc
+*.gpg
+id_rsa*
+id_dsa*
+id_ecdsa*
+id_ed25519*
+*.ppk
+
+# anything that names itself a credential
+*credential*
+*credentials*
+*.secret
+*.secrets
+secrets.*
+*token*.json
+*_token
+*.token
+
+# Wolfram and Mathematica licensing material.  A mathpass file holds licence
+# passwords and an activation key is a credential in exactly the way an API
+# token is.  Neither belongs in a public repository.
+mathpass
+*.mathpass
+ActivationKey*
+*activation-key*
+*activation_key*
+
+# tool and agent state, which can carry tokens or conversation transcripts
+.claude/
+.vscode/
+.idea/
+*.code-workspace
+
+
+# -----------------------------------------------------------------------------
+# 2.  LITTER
+#
+#     Editor swap files, OS metadata, language caches, build products, and the
+#     duplicate files this project accumulates while the author works.
+# -----------------------------------------------------------------------------
+
+# operating system
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+Thumbs.db
+ehthumbs.db
+desktop.ini
+
+# editors
+*.swp
+*.swo
+*.swn
+*~
+.*.sw[a-z]
+
+# Python, used here only by the notebook build tool
 __pycache__/
-*.pyc
+*.py[cod]
+.pytest_cache/
+
+# LaTeX build products, which is what *.aux, *.toc and *.out were added for
+*.aux
+*.toc
+*.out
+*.lof
+*.lot
+*.synctex.gz
+*.fls
+*.fdb_latexmk
+*.bbl
+*.blg
+
+# Wolfram front-end scratch
+*.nb.bak
+.MathematicaHistory
+
+# hand-made duplicates: "EtoExp - Copy.wl", "EtoExp copy 2.wl" and friends
+*[Cc]opy*.wl
+*[Cc]opy*.nb
+*[Cc]opy*.mx
+
+# local backups taken before modifying a file.  These are multi-megabyte
+# duplicates of files that are already in the repository.
+backups/
+
+
+# -----------------------------------------------------------------------------
+# 3.  BULK TEXT AND LOGS, AND THE DELIVERABLES RESCUED FROM THEM
+#
+#     Plain text and log files are ignored by default, because most of them in
+#     a directory like this one are scratch.  The exceptions below are real
+#     deliverables and are listed explicitly, so that the set of things this
+#     repository keeps is stated rather than accidental.
+# -----------------------------------------------------------------------------
+
+*.txt
+*.log
+
+# the task specifications
+!Pre.txt
+!Pre-00.txt
+
+# conventional repository files, should they ever be added in text form
+!README*.txt
+!LICENSE*.txt
+!CHANGELOG*.txt
+
+# every provenance artefact: the run logs that record exactly what the notebook
+# printed, and the plain-text extraction of the original 24 MB notebook
+!claude-fable/**/*.log
+!claude-fable/**/*.txt
