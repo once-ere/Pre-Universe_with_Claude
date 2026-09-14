@@ -196,6 +196,52 @@ Note on the last two. The binary loop reports a spurious `HIT()` with an empty c
 that is deleted from the working tree but still in `HEAD`; read such a file out of git instead,
 `git cat-file -p HEAD:<path> | grep -a -c -E ...`, which returns `0` here.
 
+**One false positive, and why it is one.** Scanning the published clone, the Google-API-key
+pattern `AIza[0-9A-Za-z_-]{35}` matches once, inside `2026-02-20-Pre-U-mmM4p.nb`:
+
+```
+2026-02-20-Pre-U-mmM4p.nb:217269:Q4cO9XejEG9s2bKFtEYAIza0LVWsdu3a9negqDwHN9CrabKZzFILtehtX2b4
+```
+
+It is not a key. Three independent checks say so:
+
+```bash
+cd <the clone>
+
+# 1. it is spliced into a 60-character base64 line at offset 19 and runs off the end.
+#    A real AIza key is a standalone 39-character token.
+L=$(sed -n '217269p' 2026-02-20-Pre-U-mmM4p.nb)
+echo "line length ${#L}, AIza at offset $(awk -v s="$L" 'BEGIN{print index(s,"AIza")-1}')"
+
+# 2. no standalone key-shaped token exists anywhere in the file
+grep -a -o -E '(^|[^0-9A-Za-z_-])AIza[0-9A-Za-z_-]{35}([^0-9A-Za-z_-]|$)' 2026-02-20-Pre-U-mmM4p.nb
+
+# 3. the enclosing construct is a pasted image, not a data store
+awk 'NR<=217269 && /CompressedData|GraphicsData|RasterBox/ {n=NR; t=$0} END{print n": "substr(t,1,100)}'     2026-02-20-Pre-U-mmM4p.nb
+```
+
+Check 1 prints `line length 60, AIza at offset 19`. Check 2 prints nothing. Check 3 prints
+`214471:    TagBox[RasterBox[CompressedData["`. The match is four characters of base64 inside a
+compressed raster image that happen to spell `AIza`.
+
+The other hits any rerun will show are self-matches: the credential patterns written into
+`.gitignore`, and the scan commands quoted on this page.
+
+**Verification that the ignore file was respected.** After cloning, the ignored things must be
+absent and the rescued deliverables present:
+
+```bash
+V=<the clone>
+for p in "EtoExp - Copy.wl" "EtoExp copy 2.wl" "backups" ".claude" "__pycache__"; do
+  printf '  %-28s ' "$p"; [ -e "$V/$p" ] && echo "PRESENT <-- not respected" || echo "absent (correct)"
+done
+for p in "Pre.txt" "Pre-00.txt" "claude-fable/run8.log" "claude-fable/final_run.log"          "claude-fable/extract/cells_dump.txt" "claude-fable/extract/cells_index.txt"; do
+  printf '  %-40s ' "$p"; [ -f "$V/$p" ] && echo "present (correct)" || echo "MISSING <-- rule failed"
+done
+```
+
+All five ignored paths print `absent (correct)`; all six deliverables print `present (correct)`.
+
 ## 3. The commit and the push
 
 ```bash
