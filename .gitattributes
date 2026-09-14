@@ -1,0 +1,4 @@
+# Store and check out every file byte-for-byte.  Mathematica .nb and .mx files, and the
+# provenance logs that record exact program output, must not have their line endings
+# rewritten on checkout: that changes their bytes and breaks hash comparisons.
+* -text
