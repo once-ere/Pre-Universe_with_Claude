@@ -1,0 +1,89 @@
+
+================ THE CONSTANT NULL ROTATION U ================
+U = 
+MatrixForm[{{1/Sqrt[2], 0, 0, 0, 1/Sqrt[2], 0, 0, 0}, {0, 1/Sqrt[2], 0, 0, 0, 1/Sqrt[2], 0, 0}, {0, 0, 1/Sqrt[2], 0, 0, 0, 1/Sqrt[2], 0}, {0, 0, 0, 1/Sqrt[2], 0, 0, 0, 1/Sqrt[2]}, {1/Sqrt[2], 0, 0, 0, -(1/Sqrt[2]), 0, 0, 0}, {0, 1/Sqrt[2], 0, 0, 0, -(1/Sqrt[2]), 0, 0}, {0, 0, 1/Sqrt[2], 0, 0, 0, -(1/Sqrt[2]), 0}, {0, 0, 0, 1/Sqrt[2], 0, 0, 0, -(1/Sqrt[2])}}]
+U == Transpose[U]  : True
+U . U == ID8       : True
+U is constant      : True
+
+================ THE NEW FLAT TANGENT METRIC ================
+etaNull = Transpose[U] . eta4488 . U = 
+MatrixForm[{{0, 0, 0, 0, 1, 0, 0, 0}, {0, 0, 0, 0, 0, 1, 0, 0}, {0, 0, 0, 0, 0, 0, 1, 0}, {0, 0, 0, 0, 0, 0, 0, 1}, {1, 0, 0, 0, 0, 0, 0, 0}, {0, 1, 0, 0, 0, 0, 0, 0}, {0, 0, 1, 0, 0, 0, 0, 0}, {0, 0, 0, 1, 0, 0, 0, 0}}]
+etaNull == sigma, the split-octonion SPINOR metric : True
+diagonal of etaNull (all frame directions are null) : {0, 0, 0, 0, 0, 0, 0, 0}
+etaNull . etaNull == ID8 : True
+
+================ THE NEW FRAME FIELD ================
+frameNull = frameCanonical . U = 
+MatrixForm[{{Tan[6*H*x0]/Sqrt[2], 0, 0, 0, Tan[6*H*x0]/Sqrt[2], 0, 0, 0}, {0, 1/(Sqrt[2]*E^a4[H*x4]*Sin[6*H*x0]^(1/6)), 0, 0, 0, 1/(Sqrt[2]*E^a4[H*x4]*Sin[6*H*x0]^(1/6)), 0, 0}, {0, 0, 1/(Sqrt[2]*E^a4[H*x4]*Sin[6*H*x0]^(1/6)), 0, 0, 0, 1/(Sqrt[2]*E^a4[H*x4]*Sin[6*H*x0]^(1/6)), 0}, {0, 0, 0, 1/(Sqrt[2]*E^a4[H*x4]*Sin[6*H*x0]^(1/6)), 0, 0, 0, 1/(Sqrt[2]*E^a4[H*x4]*Sin[6*H*x0]^(1/6))}, {1/Sqrt[2], 0, 0, 0, -(1/Sqrt[2]), 0, 0, 0}, {0, E^a4[H*x4]/(Sqrt[2]*Sin[6*H*x0]^(1/6)), 0, 0, 0, -(E^a4[H*x4]/(Sqrt[2]*Sin[6*H*x0]^(1/6))), 0, 0}, {0, 0, E^a4[H*x4]/(Sqrt[2]*Sin[6*H*x0]^(1/6)), 0, 0, 0, -(E^a4[H*x4]/(Sqrt[2]*Sin[6*H*x0]^(1/6))), 0}, {0, 0, 0, E^a4[H*x4]/(Sqrt[2]*Sin[6*H*x0]^(1/6)), 0, 0, 0, -(E^a4[H*x4]/(Sqrt[2]*Sin[6*H*x0]^(1/6)))}}]
+it gives the SAME curved metric g : True
+
+================ THE NEW SPIN CONNECTION ================
+non-zero components of omegaNull : 48
+   (canonical had 24)
+vielbein postulate holds identically : True
+omega[mu,a,b] == -omega[mu,b,a] with indices lowered by etaNull : True
+torsion vanishes : True
+
+================ COMPARISON WITH THE CANONICAL SPIN CONNECTION ================
+omegaNull == U . omegaCanonical . U  exactly : True
+the inhomogeneous gauge term D[U,x_mu].Inverse[U] is identically ZERO : True
+so the difference Delta2 has 0 non-zero components; its distinct entries are {0}
+
+================ THE NON-ZERO COMPONENTS OF omegaNull ================
+  omegaNull[1;0,1] = InputForm[(H*(Cos[6*H*x0]^2 + Sin[6*H*x0]^2*Derivative[1][a4][H*x4]))/(2*E^a4[H*x4]*Sin[6*H*x0]^(13/6))]
+  omegaNull[1;0,5] = InputForm[(H*(Cos[6*H*x0]^2 + Sin[6*H*x0]^2*Derivative[1][a4][H*x4]))/(2*E^a4[H*x4]*Sin[6*H*x0]^(13/6))]
+  omegaNull[1;1,0] = InputForm[-1/2*(H*(Cos[6*H*x0]^2 + Sin[6*H*x0]^2*Derivative[1][a4][H*x4]))/(E^a4[H*x4]*Sin[6*H*x0]^(13/6))]
+  omegaNull[1;1,4] = InputForm[(H*(-Cos[6*H*x0]^2 + Sin[6*H*x0]^2*Derivative[1][a4][H*x4]))/(2*E^a4[H*x4]*Sin[6*H*x0]^(13/6))]
+  omegaNull[1;4,1] = InputForm[(H*(Cos[6*H*x0]^2 - Sin[6*H*x0]^2*Derivative[1][a4][H*x4]))/(2*E^a4[H*x4]*Sin[6*H*x0]^(13/6))]
+  omegaNull[1;4,5] = InputForm[(H*(Cos[6*H*x0]^2 - Sin[6*H*x0]^2*Derivative[1][a4][H*x4]))/(2*E^a4[H*x4]*Sin[6*H*x0]^(13/6))]
+  omegaNull[1;5,0] = InputForm[-1/2*(H*(Cos[6*H*x0]^2 + Sin[6*H*x0]^2*Derivative[1][a4][H*x4]))/(E^a4[H*x4]*Sin[6*H*x0]^(13/6))]
+  omegaNull[1;5,4] = InputForm[(H*(-Cos[6*H*x0]^2 + Sin[6*H*x0]^2*Derivative[1][a4][H*x4]))/(2*E^a4[H*x4]*Sin[6*H*x0]^(13/6))]
+  omegaNull[2;0,2] = InputForm[(H*(Cos[6*H*x0]^2 + Sin[6*H*x0]^2*Derivative[1][a4][H*x4]))/(2*E^a4[H*x4]*Sin[6*H*x0]^(13/6))]
+  omegaNull[2;0,6] = InputForm[(H*(Cos[6*H*x0]^2 + Sin[6*H*x0]^2*Derivative[1][a4][H*x4]))/(2*E^a4[H*x4]*Sin[6*H*x0]^(13/6))]
+  omegaNull[2;2,0] = InputForm[-1/2*(H*(Cos[6*H*x0]^2 + Sin[6*H*x0]^2*Derivative[1][a4][H*x4]))/(E^a4[H*x4]*Sin[6*H*x0]^(13/6))]
+  omegaNull[2;2,4] = InputForm[(H*(-Cos[6*H*x0]^2 + Sin[6*H*x0]^2*Derivative[1][a4][H*x4]))/(2*E^a4[H*x4]*Sin[6*H*x0]^(13/6))]
+  omegaNull[2;4,2] = InputForm[(H*(Cos[6*H*x0]^2 - Sin[6*H*x0]^2*Derivative[1][a4][H*x4]))/(2*E^a4[H*x4]*Sin[6*H*x0]^(13/6))]
+  omegaNull[2;4,6] = InputForm[(H*(Cos[6*H*x0]^2 - Sin[6*H*x0]^2*Derivative[1][a4][H*x4]))/(2*E^a4[H*x4]*Sin[6*H*x0]^(13/6))]
+  omegaNull[2;6,0] = InputForm[-1/2*(H*(Cos[6*H*x0]^2 + Sin[6*H*x0]^2*Derivative[1][a4][H*x4]))/(E^a4[H*x4]*Sin[6*H*x0]^(13/6))]
+  omegaNull[2;6,4] = InputForm[(H*(-Cos[6*H*x0]^2 + Sin[6*H*x0]^2*Derivative[1][a4][H*x4]))/(2*E^a4[H*x4]*Sin[6*H*x0]^(13/6))]
+  omegaNull[3;0,3] = InputForm[(H*(Cos[6*H*x0]^2 + Sin[6*H*x0]^2*Derivative[1][a4][H*x4]))/(2*E^a4[H*x4]*Sin[6*H*x0]^(13/6))]
+  omegaNull[3;0,7] = InputForm[(H*(Cos[6*H*x0]^2 + Sin[6*H*x0]^2*Derivative[1][a4][H*x4]))/(2*E^a4[H*x4]*Sin[6*H*x0]^(13/6))]
+  omegaNull[3;3,0] = InputForm[-1/2*(H*(Cos[6*H*x0]^2 + Sin[6*H*x0]^2*Derivative[1][a4][H*x4]))/(E^a4[H*x4]*Sin[6*H*x0]^(13/6))]
+  omegaNull[3;3,4] = InputForm[(H*(-Cos[6*H*x0]^2 + Sin[6*H*x0]^2*Derivative[1][a4][H*x4]))/(2*E^a4[H*x4]*Sin[6*H*x0]^(13/6))]
+  omegaNull[3;4,3] = InputForm[(H*(Cos[6*H*x0]^2 - Sin[6*H*x0]^2*Derivative[1][a4][H*x4]))/(2*E^a4[H*x4]*Sin[6*H*x0]^(13/6))]
+  omegaNull[3;4,7] = InputForm[(H*(Cos[6*H*x0]^2 - Sin[6*H*x0]^2*Derivative[1][a4][H*x4]))/(2*E^a4[H*x4]*Sin[6*H*x0]^(13/6))]
+  omegaNull[3;7,0] = InputForm[-1/2*(H*(Cos[6*H*x0]^2 + Sin[6*H*x0]^2*Derivative[1][a4][H*x4]))/(E^a4[H*x4]*Sin[6*H*x0]^(13/6))]
+  omegaNull[3;7,4] = InputForm[(H*(-Cos[6*H*x0]^2 + Sin[6*H*x0]^2*Derivative[1][a4][H*x4]))/(2*E^a4[H*x4]*Sin[6*H*x0]^(13/6))]
+  omegaNull[5;0,1] = InputForm[(E^a4[H*x4]*H*(-Cos[6*H*x0]^2 + Sin[6*H*x0]^2*Derivative[1][a4][H*x4]))/(2*Sin[6*H*x0]^(13/6))]
+  omegaNull[5;0,5] = InputForm[(E^a4[H*x4]*H*(Cos[6*H*x0]^2 - Sin[6*H*x0]^2*Derivative[1][a4][H*x4]))/(2*Sin[6*H*x0]^(13/6))]
+  omegaNull[5;1,0] = InputForm[(E^a4[H*x4]*H*(Cos[6*H*x0]^2 - Sin[6*H*x0]^2*Derivative[1][a4][H*x4]))/(2*Sin[6*H*x0]^(13/6))]
+  omegaNull[5;1,4] = InputForm[(E^a4[H*x4]*H*(Cos[6*H*x0]^2 + Sin[6*H*x0]^2*Derivative[1][a4][H*x4]))/(2*Sin[6*H*x0]^(13/6))]
+  omegaNull[5;4,1] = InputForm[-1/2*(E^a4[H*x4]*H*(Cos[6*H*x0]^2 + Sin[6*H*x0]^2*Derivative[1][a4][H*x4]))/Sin[6*H*x0]^(13/6)]
+  omegaNull[5;4,5] = InputForm[(E^a4[H*x4]*H*(Cos[6*H*x0]^2 + Sin[6*H*x0]^2*Derivative[1][a4][H*x4]))/(2*Sin[6*H*x0]^(13/6))]
+  omegaNull[5;5,0] = InputForm[(E^a4[H*x4]*H*(-Cos[6*H*x0]^2 + Sin[6*H*x0]^2*Derivative[1][a4][H*x4]))/(2*Sin[6*H*x0]^(13/6))]
+  omegaNull[5;5,4] = InputForm[-1/2*(E^a4[H*x4]*H*(Cos[6*H*x0]^2 + Sin[6*H*x0]^2*Derivative[1][a4][H*x4]))/Sin[6*H*x0]^(13/6)]
+  omegaNull[6;0,2] = InputForm[(E^a4[H*x4]*H*(-Cos[6*H*x0]^2 + Sin[6*H*x0]^2*Derivative[1][a4][H*x4]))/(2*Sin[6*H*x0]^(13/6))]
+  omegaNull[6;0,6] = InputForm[(E^a4[H*x4]*H*(Cos[6*H*x0]^2 - Sin[6*H*x0]^2*Derivative[1][a4][H*x4]))/(2*Sin[6*H*x0]^(13/6))]
+  omegaNull[6;2,0] = InputForm[(E^a4[H*x4]*H*(Cos[6*H*x0]^2 - Sin[6*H*x0]^2*Derivative[1][a4][H*x4]))/(2*Sin[6*H*x0]^(13/6))]
+  omegaNull[6;2,4] = InputForm[(E^a4[H*x4]*H*(Cos[6*H*x0]^2 + Sin[6*H*x0]^2*Derivative[1][a4][H*x4]))/(2*Sin[6*H*x0]^(13/6))]
+  omegaNull[6;4,2] = InputForm[-1/2*(E^a4[H*x4]*H*(Cos[6*H*x0]^2 + Sin[6*H*x0]^2*Derivative[1][a4][H*x4]))/Sin[6*H*x0]^(13/6)]
+  omegaNull[6;4,6] = InputForm[(E^a4[H*x4]*H*(Cos[6*H*x0]^2 + Sin[6*H*x0]^2*Derivative[1][a4][H*x4]))/(2*Sin[6*H*x0]^(13/6))]
+  omegaNull[6;6,0] = InputForm[(E^a4[H*x4]*H*(-Cos[6*H*x0]^2 + Sin[6*H*x0]^2*Derivative[1][a4][H*x4]))/(2*Sin[6*H*x0]^(13/6))]
+  omegaNull[6;6,4] = InputForm[-1/2*(E^a4[H*x4]*H*(Cos[6*H*x0]^2 + Sin[6*H*x0]^2*Derivative[1][a4][H*x4]))/Sin[6*H*x0]^(13/6)]
+  omegaNull[7;0,3] = InputForm[(E^a4[H*x4]*H*(-Cos[6*H*x0]^2 + Sin[6*H*x0]^2*Derivative[1][a4][H*x4]))/(2*Sin[6*H*x0]^(13/6))]
+  omegaNull[7;0,7] = InputForm[(E^a4[H*x4]*H*(Cos[6*H*x0]^2 - Sin[6*H*x0]^2*Derivative[1][a4][H*x4]))/(2*Sin[6*H*x0]^(13/6))]
+  omegaNull[7;3,0] = InputForm[(E^a4[H*x4]*H*(Cos[6*H*x0]^2 - Sin[6*H*x0]^2*Derivative[1][a4][H*x4]))/(2*Sin[6*H*x0]^(13/6))]
+  omegaNull[7;3,4] = InputForm[(E^a4[H*x4]*H*(Cos[6*H*x0]^2 + Sin[6*H*x0]^2*Derivative[1][a4][H*x4]))/(2*Sin[6*H*x0]^(13/6))]
+  omegaNull[7;4,3] = InputForm[-1/2*(E^a4[H*x4]*H*(Cos[6*H*x0]^2 + Sin[6*H*x0]^2*Derivative[1][a4][H*x4]))/Sin[6*H*x0]^(13/6)]
+  omegaNull[7;4,7] = InputForm[(E^a4[H*x4]*H*(Cos[6*H*x0]^2 + Sin[6*H*x0]^2*Derivative[1][a4][H*x4]))/(2*Sin[6*H*x0]^(13/6))]
+  omegaNull[7;7,0] = InputForm[(E^a4[H*x4]*H*(-Cos[6*H*x0]^2 + Sin[6*H*x0]^2*Derivative[1][a4][H*x4]))/(2*Sin[6*H*x0]^(13/6))]
+  omegaNull[7;7,4] = InputForm[-1/2*(E^a4[H*x4]*H*(Cos[6*H*x0]^2 + Sin[6*H*x0]^2*Derivative[1][a4][H*x4]))/Sin[6*H*x0]^(13/6)]
+
+================ THE GEOMETRY IS THE SAME: CURVATURE AND RICCI SCALAR ================
+R_null == U R_canonical U : True
+Ricci scalar, canonical : InputForm[-3*H^2*((55 + 7*Cos[12*H*x0])*Cot[6*H*x0]^2*Csc[6*H*x0]^2 - 2*Derivative[1][a4][H*x4]^2)]
+Ricci scalar, bridge 2  : InputForm[-3*H^2*((55 + 7*Cos[12*H*x0])*Cot[6*H*x0]^2*Csc[6*H*x0]^2 - 2*Derivative[1][a4][H*x4]^2)]
+they are equal          : True
+
+================ DONE ================

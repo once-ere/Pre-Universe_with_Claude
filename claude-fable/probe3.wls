@@ -1,0 +1,11 @@
+Get["run_all_12.wls"];
+P = triVecToSpin; Q = triSpinToVec;
+Print["P.Transpose[P] = ", MatrixForm[Simplify[P.Transpose[P]]]];
+Print["Transpose[P] == Inverse[P] ? ", Simplify[Transpose[P] - Inverse[P]] === Zero8];
+Print["Transpose[P].P = ", MatrixForm[Simplify[Transpose[P].P]]];
+Print["Inverse[P] = ", MatrixForm[Simplify[Inverse[P]]]];
+Print["Transpose[P] = ", MatrixForm[Simplify[Transpose[P]]]];
+Print["sigma.Transpose[P].eta == Inverse[P] ? ", Simplify[\[Sigma].Transpose[P].\[Eta]4488 - Inverse[P]]===Zero8];
+Print["U checks:"];
+U = (1/Sqrt[2]) ArrayFlatten[{{ID4,ID4},{ID4,-ID4}}];
+Print["U == Transpose[U] ? ", U === Transpose[U], "   U.U == ID8 ? ", FullSimplify[U.U]===ID8];

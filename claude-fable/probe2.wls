@@ -1,0 +1,11 @@
+Get["run_all.wls"];
+Print["==== PROBE ===="];
+Print["sigma16.SAB antisymmetric? ", Union@Flatten@Table[\[Sigma]16 . SAB[[A1,B1]] === -Transpose[\[Sigma]16 . SAB[[A1,B1]]], {A1,1,8},{B1,1,8}]];
+Print["sigma16.SAB symmetric?     ", Union@Flatten@Table[\[Sigma]16 . SAB[[A1,B1]] ===  Transpose[\[Sigma]16 . SAB[[A1,B1]]], {A1,1,8},{B1,1,8}]];
+Print["sigma16 symmetric?         ", \[Sigma]16 === Transpose[\[Sigma]16]];
+Print["sigma16.sigma16 == ID16?   ", \[Sigma]16 . \[Sigma]16 === ID16];
+Print["etaTri == sigma?           ", \[Eta]Tri === \[Sigma]];
+Print["etaTri == -sigma?          ", \[Eta]Tri === -\[Sigma]];
+Print["etaTri = ", MatrixForm[\[Eta]Tri]];
+Print["P.etaTri.P^T - eta == 0?   ", Simplify[triVecToSpin . \[Eta]Tri . Transpose[triVecToSpin] - \[Eta]4488] === Zero8];
+Print["P^T.eta.P                  = ", MatrixForm[Simplify[Transpose[triVecToSpin] . \[Eta]4488 . triVecToSpin]]];

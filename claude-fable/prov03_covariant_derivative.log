@@ -1,0 +1,41 @@
+
+================ THE 16x16 DIRAC MATRICES gamma[a] = T16[a] ================
+dimensions of each: {16, 16}
+Clifford relation {gamma^a,gamma^b} == 2 eta^{ab} ID16 : {True}
+chirality T16[8] squares to ID16 : True
+sigma16 == ArrayFlatten[{{-sigma,0},{0,sigma}}] : True
+gamma[0] = 
+MatrixForm[{{0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0}, {0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0}, {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0}, {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0}, {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0}, {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0}, {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0}, {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1}, {1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, {0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, {0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, {0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, {0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, {0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, {0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0}, {0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0}}]
+
+================ EVERY PRODUCT OF TWO GAMMAS IS BLOCK DIAGONAL ================
+{True}
+
+================ THE 16x16 SPIN-CONNECTION MATRIX Gamma^spin[mu] ================
+dimensions: {8, 16, 16}
+(1/8) omega [gamma^a,gamma^b] == (1/2) omega SAB : True
+block diagonal (type-1 never mixes with type-2) : True
+directions mu where Gamma^spin[mu] is non-zero : {1, 2, 3, 5, 6, 7}
+  Gamma^spin[1] has 32 non-zero entries
+  Gamma^spin[2] has 32 non-zero entries
+  Gamma^spin[3] has 32 non-zero entries
+  Gamma^spin[5] has 32 non-zero entries
+  Gamma^spin[6] has 32 non-zero entries
+  Gamma^spin[7] has 32 non-zero entries
+
+================ THE TYPE-1 BLOCK, WRITTEN IN tau AND taubar ================
+type-1 block == (1/8) omega (taubar^a tau^b - taubar^b tau^a) : True
+type-2 block == (1/8) omega (tau^a taubar^b - tau^b taubar^a) : True
+the type-1 connection matrix in direction mu = 1:
+MatrixForm[{{0, 0, -1/2*(H*Derivative[1][a4][H*x4])/(E^a4[H*x4]*Sin[6*H*x0]^(1/6)), 0, 0, 0, 0, (H*Cos[6*H*x0]^2)/(2*E^a4[H*x4]*Sin[6*H*x0]^(13/6))}, {0, 0, 0, (H*Derivative[1][a4][H*x4])/(2*E^a4[H*x4]*Sin[6*H*x0]^(1/6)), 0, 0, (H*Cos[6*H*x0]^2)/(2*E^a4[H*x4]*Sin[6*H*x0]^(13/6)), 0}, {-1/2*(H*Derivative[1][a4][H*x4])/(E^a4[H*x4]*Sin[6*H*x0]^(1/6)), 0, 0, 0, 0, -1/2*(H*Cos[6*H*x0]^2)/(E^a4[H*x4]*Sin[6*H*x0]^(13/6)), 0, 0}, {0, (H*Derivative[1][a4][H*x4])/(2*E^a4[H*x4]*Sin[6*H*x0]^(1/6)), 0, 0, -1/2*(H*Cos[6*H*x0]^2)/(E^a4[H*x4]*Sin[6*H*x0]^(13/6)), 0, 0, 0}, {0, 0, 0, (H*Cos[6*H*x0]^2)/(2*E^a4[H*x4]*Sin[6*H*x0]^(13/6)), 0, 0, (H*Derivative[1][a4][H*x4])/(2*E^a4[H*x4]*Sin[6*H*x0]^(1/6)), 0}, {0, 0, (H*Cos[6*H*x0]^2)/(2*E^a4[H*x4]*Sin[6*H*x0]^(13/6)), 0, 0, 0, 0, -1/2*(H*Derivative[1][a4][H*x4])/(E^a4[H*x4]*Sin[6*H*x0]^(1/6))}, {0, -1/2*(H*Cos[6*H*x0]^2)/(E^a4[H*x4]*Sin[6*H*x0]^(13/6)), 0, 0, (H*Derivative[1][a4][H*x4])/(2*E^a4[H*x4]*Sin[6*H*x0]^(1/6)), 0, 0, 0}, {-1/2*(H*Cos[6*H*x0]^2)/(E^a4[H*x4]*Sin[6*H*x0]^(13/6)), 0, 0, 0, 0, -1/2*(H*Derivative[1][a4][H*x4])/(E^a4[H*x4]*Sin[6*H*x0]^(1/6)), 0, 0}}]
+
+================ THE COVARIANT DERIVATIVE ON A GENERIC SPINOR ================
+Dcov16 on the direct sum == direct sum of Dcov1 and Dcov2 : True
+Dcov on a TYPE-1 split-octonion spinor, direction mu = 1, first two components:
+Column[{(H*Cos[6*H*x0]^2*cfPsi[7][x0, x1, x2, x3, x4, x5, x6, x7])/(2*E^a4[H*x4]*Sin[6*H*x0]^(13/6)) - (H*cfPsi[2][x0, x1, x2, x3, x4, x5, x6, x7]*Derivative[1][a4][H*x4])/(2*E^a4[H*x4]*Sin[6*H*x0]^(1/6)) + Derivative[0, 1, 0, 0, 0, 0, 0, 0][cfPsi[0]][x0, x1, x2, x3, x4, x5, x6, x7], (H*Cos[6*H*x0]^2*cfPsi[6][x0, x1, x2, x3, x4, x5, x6, x7])/(2*E^a4[H*x4]*Sin[6*H*x0]^(13/6)) + (H*cfPsi[3][x0, x1, x2, x3, x4, x5, x6, x7]*Derivative[1][a4][H*x4])/(2*E^a4[H*x4]*Sin[6*H*x0]^(1/6)) + Derivative[0, 1, 0, 0, 0, 0, 0, 0][cfPsi[1]][x0, x1, x2, x3, x4, x5, x6, x7]}]
+
+================ THE CURVED-SPACE DIRAC OPERATOR ================
+gammaCurved[mu] = coframe[[a,mu]] gamma^a
+{gammaCurved[mu],gammaCurved[nu]} == 2 g^{mu nu} ID16 : True
+dimensions of the curved gamma list : {8, 16, 16}
+
+================ DONE ================

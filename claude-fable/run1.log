@@ -1,0 +1,71 @@
+CopyRight (C) 2022, Patrick L. Nash, under the General Public License.
+Please cite this work, and this web page, if you use it.
+Refactored for claude-fable_Einstein-Rosen-2-Planes.nb; Wolfram Language 15.0.1 for Microsoft Windows (64-bit) (July 2, 2026)
+CELL 1  t=0.000 s
+CELL 2  t=0.000 s
+CELL 3  t=          -6
+1.500 × 10 s
+CELL 4  t=          -6
+7.000 × 10 s
+CELL 5  t=          -6
+6.900 × 10 s
+CELL 6  t=          -6
+3.800 × 10 s
+CELL 7  t=          -6
+2.600 × 10 s
+CELL 8  t=0.001 s
+  PASS  eta4488 . eta4488 == ID8
+  PASS  eta4488 is symmetric
+  PASS  signature of eta4488 is (4,4)
+CELL 9  t=0.000 s
+CELL 10  t=0.001 s
+CELL 11  t=0.000 s
+CELL 12  t=0.006 s
+CELL 13  t=0.000 s
+  PASS  s4by4 is self-dual
+  PASS  t4by4 is anti-self-dual
+  PASS  s4by4 and t4by4 are antisymmetric
+  PASS  the two su(2) factors commute
+CELL 14  t=0.001 s
+  PASS  st[J,K] is symmetric
+CELL 15  t=0.000 s
+  PASS  sigma . sigma == ID8
+  PASS  sigma is symmetric
+  PASS  Tr[sigma] == 0
+CELL 16  t=0.000 s
+  PASS  blocks 1-3 (built from s4by4) are antisymmetric
+  PASS  blocks 4-6 (built from t4by4) are symmetric
+CELL 17  t=0.000 s
+CELL 18  t=0.000 s
+  PASS  (1/2)(tau[A].taubar[B] + tau[B].taubar[A]) == eta4488[[A+1,B+1]] ID8
+CELL 19  t=0.001 s
+  PASS  sigma == tau[1].tau[2].tau[3]
+  PASS  sigma == tau[4].tau[5].tau[6].tau[7]
+  PASS  tau[1]...tau[7] == tau[0] == ID8
+  PASS  sigma . taubar[A] == Transpose[sigma . tau[A]]
+  PASS  -eta4488[[A+1,A+1]] tau[A] == Transpose[tau[A]] for A = 1..7
+CELL 20  t=0.000 s
+  PASS  Omega == tau[4].tau[5].tau[6]
+CELL 21  t=0.000 s
+==================== RUN SUMMARY ====================
+cells evaluated : 21
+total seconds   : 0.010
+cells w/ msgs   : 0
+---- slowest cells ----
+  cell 12  0.006 s
+  cell 8  0.001 s
+  cell 14  0.001 s
+  cell 19  0.001 s
+  cell 10  0.001 s
+  cell 13  0.000 s
+  cell 17  0.000 s
+  cell 20  0.000 s
+  cell 1  0.000 s
+  cell 9  0.000 s
+  cell 15  0.000 s
+  cell 18  0.000 s
+==================== ASSERTIONS ====================
+assertions run  : 20
+passed          : 20
+FAILED          : 0
+====================================================

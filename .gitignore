@@ -1,0 +1,5 @@
+# local backups made before modifying anything
+backups/
+# python bytecode
+__pycache__/
+*.pyc

@@ -1,0 +1,15 @@
+Get["run_all_12.wls"];
+g3 = DiagonalMatrix[{1,1,-1}];
+Do[Gr[h,k] = t4by4[h].s4by4[k] (-g3[[h,h]] g3[[k,k]]), {h,1,3},{k,1,3}];
+g4 = {Gr[1,1],Gr[1,2],Gr[1,3],t4by4[2]};
+AppendTo[g4, -g4[[1]].g4[[2]].g4[[3]].g4[[4]]];
+eps = t4by4[2];
+Print["eps antisym? ", Transpose[eps] === -eps];
+Print["eps.eps = ", MatrixForm[eps.eps]];
+Print["eps.gamma[A] symmetric, A=1..5: ", Table[eps.g4[[A]] === Transpose[eps.g4[[A]]], {A,1,5}]];
+Print["eps.gamma[A] antisym,   A=1..5: ", Table[eps.g4[[A]] === -Transpose[eps.g4[[A]]], {A,1,5}]];
+s22 = Join[{IdentityMatrix[2]}, Table[If[h==2, I, 1] PauliMatrix[h], {h,1,3}]];
+s22b= Join[{-IdentityMatrix[2]}, Table[If[h==2, I, 1] PauliMatrix[h], {h,1,3}]];
+e2244 = DiagonalMatrix[{-1,1,-1,1}];
+Print["sigma22 relation: ", Union@Flatten@Table[(1/2)(s22[[A]].s22b[[B]] + s22[[B]].s22b[[A]]) === e2244[[A,B]] IdentityMatrix[2], {A,4},{B,4}]];
+Print["s22 real? ", FreeQ[s22, Complex]];

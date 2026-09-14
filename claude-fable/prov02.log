@@ -1,0 +1,100 @@
+notebook Input cells: 137
+
+================ THE FRAME FIELD  e[mu,a] ================
+MatrixForm[{{Tan[6*H*x0], 0, 0, 0, 0, 0, 0, 0}, {0, 1/(E^a4[H*x4]*Sin[6*H*x0]^(1/6)), 0, 0, 0, 0, 0, 0}, {0, 0, 1/(E^a4[H*x4]*Sin[6*H*x0]^(1/6)), 0, 0, 0, 0, 0}, {0, 0, 0, 1/(E^a4[H*x4]*Sin[6*H*x0]^(1/6)), 0, 0, 0, 0}, {0, 0, 0, 0, 1, 0, 0, 0}, {0, 0, 0, 0, 0, E^a4[H*x4]/Sin[6*H*x0]^(1/6), 0, 0}, {0, 0, 0, 0, 0, 0, E^a4[H*x4]/Sin[6*H*x0]^(1/6), 0}, {0, 0, 0, 0, 0, 0, 0, E^a4[H*x4]/Sin[6*H*x0]^(1/6)}}]
+
+================ THE INVERSE FRAME  e_a[mu] ================
+MatrixForm[{{Cot[6*H*x0], 0, 0, 0, 0, 0, 0, 0}, {0, E^a4[H*x4]*Sin[6*H*x0]^(1/6), 0, 0, 0, 0, 0, 0}, {0, 0, E^a4[H*x4]*Sin[6*H*x0]^(1/6), 0, 0, 0, 0, 0}, {0, 0, 0, E^a4[H*x4]*Sin[6*H*x0]^(1/6), 0, 0, 0, 0}, {0, 0, 0, 0, 1, 0, 0, 0}, {0, 0, 0, 0, 0, Sin[6*H*x0]^(1/6)/E^a4[H*x4], 0, 0}, {0, 0, 0, 0, 0, 0, Sin[6*H*x0]^(1/6)/E^a4[H*x4], 0}, {0, 0, 0, 0, 0, 0, 0, Sin[6*H*x0]^(1/6)/E^a4[H*x4]}}]
+
+================ THE CURVED METRIC  g[mu,nu] ================
+MatrixForm[{{Tan[6*H*x0]^2, 0, 0, 0, 0, 0, 0, 0}, {0, 1/(E^(2*a4[H*x4])*Sin[6*H*x0]^(1/3)), 0, 0, 0, 0, 0, 0}, {0, 0, 1/(E^(2*a4[H*x4])*Sin[6*H*x0]^(1/3)), 0, 0, 0, 0, 0}, {0, 0, 0, 1/(E^(2*a4[H*x4])*Sin[6*H*x0]^(1/3)), 0, 0, 0, 0}, {0, 0, 0, 0, -1, 0, 0, 0}, {0, 0, 0, 0, 0, -(E^(2*a4[H*x4])/Sin[6*H*x0]^(1/3)), 0, 0}, {0, 0, 0, 0, 0, 0, -(E^(2*a4[H*x4])/Sin[6*H*x0]^(1/3)), 0}, {0, 0, 0, 0, 0, 0, 0, -(E^(2*a4[H*x4])/Sin[6*H*x0]^(1/3))}}]
+diagonal: InputForm[{Tan[6*H*x0]^2, 1/(E^(2*a4[H*x4])*Sin[6*H*x0]^(1/3)), 1/(E^(2*a4[H*x4])*Sin[6*H*x0]^(1/3)), 1/(E^(2*a4[H*x4])*Sin[6*H*x0]^(1/3)), -1, -(E^(2*a4[H*x4])/Sin[6*H*x0]^(1/3)), -(E^(2*a4[H*x4])/Sin[6*H*x0]^(1/3)), -(E^(2*a4[H*x4])/Sin[6*H*x0]^(1/3))}]
+Det[g]  : InputForm[Sec[6*H*x0]^2]
+Sqrt[Abs[Det[g]]] : InputForm[Abs[Sec[6*H*x0]]]
+
+================ [d] THE BRIDGE  g == e . eta . Transpose[e] ================
+residual identically zero? True
+
+================ THE FLAT MINKOWSKI METRIC  eta[a,b] ================
+MatrixForm[{{1, 0, 0, 0, 0, 0, 0, 0}, {0, 1, 0, 0, 0, 0, 0, 0}, {0, 0, 1, 0, 0, 0, 0, 0}, {0, 0, 0, 1, 0, 0, 0, 0}, {0, 0, 0, 0, -1, 0, 0, 0}, {0, 0, 0, 0, 0, -1, 0, 0}, {0, 0, 0, 0, 0, 0, -1, 0}, {0, 0, 0, 0, 0, 0, 0, -1}}]
+eta . eta == ID8 ? True
+signature : {1, 1, 1, 1, -1, -1, -1, -1}
+
+================ NON-ZERO CHRISTOFFEL SYMBOLS  (37 of 512) ================
+count: 37
+  Gamma[0;0,0] = InputForm[12*H*Csc[12*H*x0]]
+  Gamma[0;1,1] = InputForm[(H*Cos[6*H*x0]^3)/(E^(2*a4[H*x4])*Sin[6*H*x0]^(10/3))]
+  Gamma[0;2,2] = InputForm[(H*Cos[6*H*x0]^3)/(E^(2*a4[H*x4])*Sin[6*H*x0]^(10/3))]
+  Gamma[0;3,3] = InputForm[(H*Cos[6*H*x0]^3)/(E^(2*a4[H*x4])*Sin[6*H*x0]^(10/3))]
+  Gamma[0;5,5] = InputForm[-((E^(2*a4[H*x4])*H*Cos[6*H*x0]^3)/Sin[6*H*x0]^(10/3))]
+  Gamma[0;6,6] = InputForm[-((E^(2*a4[H*x4])*H*Cos[6*H*x0]^3)/Sin[6*H*x0]^(10/3))]
+  Gamma[0;7,7] = InputForm[-((E^(2*a4[H*x4])*H*Cos[6*H*x0]^3)/Sin[6*H*x0]^(10/3))]
+  Gamma[1;0,1] = InputForm[-(H*Cot[6*H*x0])]
+  Gamma[1;1,0] = InputForm[-(H*Cot[6*H*x0])]
+  Gamma[1;1,4] = InputForm[-(H*Derivative[1][a4][H*x4])]
+  Gamma[1;4,1] = InputForm[-(H*Derivative[1][a4][H*x4])]
+  Gamma[2;0,2] = InputForm[-(H*Cot[6*H*x0])]
+  Gamma[2;2,0] = InputForm[-(H*Cot[6*H*x0])]
+  Gamma[2;2,4] = InputForm[-(H*Derivative[1][a4][H*x4])]
+  Gamma[2;4,2] = InputForm[-(H*Derivative[1][a4][H*x4])]
+  Gamma[3;0,3] = InputForm[-(H*Cot[6*H*x0])]
+  Gamma[3;3,0] = InputForm[-(H*Cot[6*H*x0])]
+  Gamma[3;3,4] = InputForm[-(H*Derivative[1][a4][H*x4])]
+  Gamma[3;4,3] = InputForm[-(H*Derivative[1][a4][H*x4])]
+  Gamma[4;1,1] = InputForm[-((H*Derivative[1][a4][H*x4])/(E^(2*a4[H*x4])*Sin[6*H*x0]^(1/3)))]
+  Gamma[4;2,2] = InputForm[-((H*Derivative[1][a4][H*x4])/(E^(2*a4[H*x4])*Sin[6*H*x0]^(1/3)))]
+  Gamma[4;3,3] = InputForm[-((H*Derivative[1][a4][H*x4])/(E^(2*a4[H*x4])*Sin[6*H*x0]^(1/3)))]
+  Gamma[4;5,5] = InputForm[-((E^(2*a4[H*x4])*H*Derivative[1][a4][H*x4])/Sin[6*H*x0]^(1/3))]
+  Gamma[4;6,6] = InputForm[-((E^(2*a4[H*x4])*H*Derivative[1][a4][H*x4])/Sin[6*H*x0]^(1/3))]
+  Gamma[4;7,7] = InputForm[-((E^(2*a4[H*x4])*H*Derivative[1][a4][H*x4])/Sin[6*H*x0]^(1/3))]
+  Gamma[5;0,5] = InputForm[-(H*Cot[6*H*x0])]
+  Gamma[5;4,5] = InputForm[H*Derivative[1][a4][H*x4]]
+  Gamma[5;5,0] = InputForm[-(H*Cot[6*H*x0])]
+  Gamma[5;5,4] = InputForm[H*Derivative[1][a4][H*x4]]
+  Gamma[6;0,6] = InputForm[-(H*Cot[6*H*x0])]
+  Gamma[6;4,6] = InputForm[H*Derivative[1][a4][H*x4]]
+  Gamma[6;6,0] = InputForm[-(H*Cot[6*H*x0])]
+  Gamma[6;6,4] = InputForm[H*Derivative[1][a4][H*x4]]
+  Gamma[7;0,7] = InputForm[-(H*Cot[6*H*x0])]
+  Gamma[7;4,7] = InputForm[H*Derivative[1][a4][H*x4]]
+  Gamma[7;7,0] = InputForm[-(H*Cot[6*H*x0])]
+  Gamma[7;7,4] = InputForm[H*Derivative[1][a4][H*x4]]
+
+================ NON-ZERO CANONICAL SPIN-CONNECTION COMPONENTS  omega[mu,a,b]  (24 of 512) ================
+count: 24
+  omega[1;0,1] = InputForm[(H*Cos[6*H*x0]^2)/(E^a4[H*x4]*Sin[6*H*x0]^(13/6))]
+  omega[1;1,0] = InputForm[-((H*Cos[6*H*x0]^2)/(E^a4[H*x4]*Sin[6*H*x0]^(13/6)))]
+  omega[1;1,4] = InputForm[-((H*Derivative[1][a4][H*x4])/(E^a4[H*x4]*Sin[6*H*x0]^(1/6)))]
+  omega[1;4,1] = InputForm[(H*Derivative[1][a4][H*x4])/(E^a4[H*x4]*Sin[6*H*x0]^(1/6))]
+  omega[2;0,2] = InputForm[(H*Cos[6*H*x0]^2)/(E^a4[H*x4]*Sin[6*H*x0]^(13/6))]
+  omega[2;2,0] = InputForm[-((H*Cos[6*H*x0]^2)/(E^a4[H*x4]*Sin[6*H*x0]^(13/6)))]
+  omega[2;2,4] = InputForm[-((H*Derivative[1][a4][H*x4])/(E^a4[H*x4]*Sin[6*H*x0]^(1/6)))]
+  omega[2;4,2] = InputForm[(H*Derivative[1][a4][H*x4])/(E^a4[H*x4]*Sin[6*H*x0]^(1/6))]
+  omega[3;0,3] = InputForm[(H*Cos[6*H*x0]^2)/(E^a4[H*x4]*Sin[6*H*x0]^(13/6))]
+  omega[3;3,0] = InputForm[-((H*Cos[6*H*x0]^2)/(E^a4[H*x4]*Sin[6*H*x0]^(13/6)))]
+  omega[3;3,4] = InputForm[-((H*Derivative[1][a4][H*x4])/(E^a4[H*x4]*Sin[6*H*x0]^(1/6)))]
+  omega[3;4,3] = InputForm[(H*Derivative[1][a4][H*x4])/(E^a4[H*x4]*Sin[6*H*x0]^(1/6))]
+  omega[5;0,5] = InputForm[-((E^a4[H*x4]*H*Cos[6*H*x0]^2)/Sin[6*H*x0]^(13/6))]
+  omega[5;4,5] = InputForm[(E^a4[H*x4]*H*Derivative[1][a4][H*x4])/Sin[6*H*x0]^(1/6)]
+  omega[5;5,0] = InputForm[(E^a4[H*x4]*H*Cos[6*H*x0]^2)/Sin[6*H*x0]^(13/6)]
+  omega[5;5,4] = InputForm[-((E^a4[H*x4]*H*Derivative[1][a4][H*x4])/Sin[6*H*x0]^(1/6))]
+  omega[6;0,6] = InputForm[-((E^a4[H*x4]*H*Cos[6*H*x0]^2)/Sin[6*H*x0]^(13/6))]
+  omega[6;4,6] = InputForm[(E^a4[H*x4]*H*Derivative[1][a4][H*x4])/Sin[6*H*x0]^(1/6)]
+  omega[6;6,0] = InputForm[(E^a4[H*x4]*H*Cos[6*H*x0]^2)/Sin[6*H*x0]^(13/6)]
+  omega[6;6,4] = InputForm[-((E^a4[H*x4]*H*Derivative[1][a4][H*x4])/Sin[6*H*x0]^(1/6))]
+  omega[7;0,7] = InputForm[-((E^a4[H*x4]*H*Cos[6*H*x0]^2)/Sin[6*H*x0]^(13/6))]
+  omega[7;4,7] = InputForm[(E^a4[H*x4]*H*Derivative[1][a4][H*x4])/Sin[6*H*x0]^(1/6)]
+  omega[7;7,0] = InputForm[(E^a4[H*x4]*H*Cos[6*H*x0]^2)/Sin[6*H*x0]^(13/6)]
+  omega[7;7,4] = InputForm[-((E^a4[H*x4]*H*Derivative[1][a4][H*x4])/Sin[6*H*x0]^(1/6))]
+
+================ THE THREE CERTIFICATES ================
+vielbein postulate residual is identically zero : True
+omega[mu,a,b] == -omega[mu,b,a]                 : True
+torsion vanishes                                : True
+Gamma symmetric in its lower indices            : True
+
+================ CURVATURE ================
+non-zero curvature components : 156
+Ricci scalar                  : InputForm[-6*H^2*(24*Cot[6*H*x0]^2 + 31*Cot[6*H*x0]^4 - Derivative[1][a4][H*x4]^2)]
+
+================ DONE ================

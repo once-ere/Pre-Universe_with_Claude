@@ -1,0 +1,294 @@
+CopyRight (C) 2022, Patrick L. Nash, under the General Public License.
+Please cite this work, and this web page, if you use it.
+Refactored for claude-fable_Einstein-Rosen-2-Planes.nb; Wolfram Language 15.0.1 for Microsoft Windows (64-bit) (July 2, 2026)
+CELL 1  t=0.000 s
+CELL 2  t=0.000 s
+CELL 3  t=0.000 s
+CELL 4  t=0.000 s
+CELL 5  t=0.000 s
+CELL 6  t=0.000 s
+CELL 7  t=0.000 s
+CELL 8  t=0.001 s
+  PASS  eta4488 . eta4488 == ID8
+  PASS  eta4488 is symmetric
+  PASS  signature of eta4488 is (4,4)
+CELL 9  t=0.000 s
+CELL 10  t=0.001 s
+CELL 11  t=0.000 s
+CELL 12  t=0.006 s
+CELL 13  t=0.000 s
+  PASS  s4by4 is self-dual
+  PASS  t4by4 is anti-self-dual
+  PASS  s4by4 and t4by4 are antisymmetric
+  PASS  the two su(2) factors commute
+CELL 14  t=0.001 s
+  PASS  st[J,K] is symmetric
+CELL 15  t=0.000 s
+  PASS  sigma . sigma == ID8
+  PASS  sigma is symmetric
+  PASS  Tr[sigma] == 0
+CELL 16  t=0.000 s
+  PASS  blocks 1-3 (built from s4by4) are antisymmetric
+  PASS  blocks 4-6 (built from t4by4) are symmetric
+CELL 17  t=0.000 s
+CELL 18  t=0.000 s
+  PASS  (1/2)(tau[A].taubar[B] + tau[B].taubar[A]) == eta4488[[A+1,B+1]] ID8
+CELL 19  t=0.001 s
+  PASS  sigma == tau[1].tau[2].tau[3]
+  PASS  sigma == tau[4].tau[5].tau[6].tau[7]
+  PASS  tau[1]...tau[7] == tau[0] == ID8
+  PASS  sigma . taubar[A] == Transpose[sigma . tau[A]]
+  PASS  -eta4488[[A+1,A+1]] tau[A] == Transpose[tau[A]] for A = 1..7
+CELL 20  t=0.000 s
+  PASS  Omega == tau[4].tau[5].tau[6]
+CELL 21  t=0.000 s
+CELL 22  t=0.000 s
+  PASS  {T16[A], T16[B]}/2 == eta4488[[A+1,B+1]] ID16
+CELL 23  t=0.001 s
+  PASS  sigma16 == ArrayFlatten[{{-sigma,0},{0,sigma}}]
+  PASS  sigma16 . T16[A] is antisymmetric for A = 0..7
+  PASS  T16[8] == sigma16 . T16[4].T16[5].T16[6].T16[7]
+CELL 24  t=0.000 s
+  PASS  sigma16 . covariantDiffMatrix is symmetric
+CELL 25  t=0.000 s
+  PASS  PL + PR == ID16
+  PASS  PL is idempotent
+  PASS  PR is idempotent
+  PASS  PL . PR == PR . PL == 0
+CELL 26  t=0.000 s
+  PASS  SAB is antisymmetric in its two flat indices
+  PASS  sigma16 . SAB is antisymmetric
+  PASS  sigma16 is symmetric and sigma16 . sigma16 == ID16
+CELL 27  t=0.027 s
+  PASS  [SAB,SAB] closes on the so(4,4) algebra
+  [0.419 s]  so(4,4) commutators over 28 x 28 index pairs
+CELL 28  t=0.419 s
+  PASS  [SAB, T16] reproduces the vector representation
+  [0.192 s]  vector transformation law of the gammas
+CELL 29  t=0.192 s
+  [0.002 s]  build the 256-element basis of the 16x16 algebra
+CELL 30  t=0.002 s
+  PASS  base16[[93]] is sigma16
+  PASS  base16[[255]] is the chirality operator T16[8]
+  PASS  base16[[256]] is the identity
+CELL 31  t=0.000 s
+  PASS  Tr[M.M]/16 is +1 or -1 for every basis element
+CELL 32  t=0.011 s
+  PASS  136 basis elements have Tr[M.M] > 0
+  PASS  120 basis elements have Tr[M.M] < 0
+CELL 33  t=0.103 s
+  PASS  symmetric basis elements number 16*17/2 = 136
+  PASS  antisymmetric basis elements number 16*15/2 = 120
+  PASS  Tr[M.M] > 0 exactly when M is symmetric
+  PASS  Tr[M.M] < 0 exactly when M is antisymmetric
+CELL 34  t=0.001 s
+  [0.003 s]  find sign-duplicate basis elements
+CELL 35  t=0.003 s
+  PASS  the 8x8 basis has 64 elements
+  PASS  the 64 elements are distinct
+CELL 36  t=0.001 s
+  PASS  (1/8) Tr[bas64[A].bas64[B]] == eta64[[A,B]]
+  [0.008 s]  orthogonality of the 64-element trace form
+CELL 37  t=0.008 s
+  PASS  symmetric 8x8 basis elements number 36
+  PASS  antisymmetric 8x8 basis elements number 28
+CELL 38  t=0.000 s
+  PASS  g44 == diag(1,1,1,-1)
+  PASS  gamma4[[5]] == -t4by4[3]
+CELL 39  t=0.000 s
+  PASS  {gamma4[h], gamma4[k]} == 2 g44[[h,k]] ID4  for h,k = 1..4
+  PASS  {gamma4[h], gamma4[k]} == 2 eta4488[[1+h,1+k]] ID4  for h,k = 1..5
+CELL 40  t=0.000 s
+  PASS  epsilon4 is antisymmetric
+  PASS  epsilon4 . gamma4[A] is symmetric for A = 1..4
+  PASS  epsilon4 . gamma4[5] is ANTIsymmetric
+  PASS  epsilon4 . epsilon4 == -ID4
+  PASS  epsilon4 . S44 is symmetric
+CELL 41  t=0.001 s
+  PASS  [S44,S44] closes on the so(3,1) algebra
+  PASS  [S44, gamma4] reproduces the vector representation
+CELL 42  t=0.006 s
+  PASS  (1/2)(sigma22[A] sigma22bar[B] + sigma22[B] sigma22bar[A]) == eta2244[[A,B]] ID2
+  PASS  the 4x4 basis has 16 elements
+  PASS  the 16 elements are linearly independent
+CELL 43  t=0.008 s
+  PASS  the 4x4 basis splits 10 symmetric + 6 antisymmetric
+CELL 44  t=0.000 s
+  PASS  each uEig row is sigma-normalized to +/-1
+  PASS  unit is sigma-normalized to +1
+CELL 45  t=0.005 s
+  PASS  triVecToSpin . triSpinToVec == ID8
+  PASS  triSpinToVec . triVecToSpin == ID8
+  PASS  triSpinToVec == Transpose[ eta_AA tau[A].unit ]  (the original's closed form)
+CELL 46  t=0.002 s
+  PASS  etaTri is symmetric
+  PASS  etaTri has signature (4,4)
+  PASS  triVecToSpin transports etaTri back to eta4488
+  PASS  THE TRIALITY METRIC IS EXACTLY THE SPINOR METRIC:  etaTri == sigma
+CELL 47  t=0.002 s
+  [0.003 s]  split-octonion structure constants in the spinor basis
+  [0.028 s]  split-octonion structure constants in the vector basis
+CELL 48  t=0.031 s
+CELL 49  t=0.000 s
+  PASS  eA[1] is a two-sided identity for the vector-basis product
+CELL 50  t=0.000 s
+  PASS  <eA, eB> composition is compatible with eta (basis-unit norm form)
+CELL 51  t=0.003 s
+  PASS  m_{ABC} restricted to imaginary directions is totally antisymmetric
+CELL 52  t=0.001 s
+CELL 53  t=0.000 s
+  NOTE  a4 is an undefined scalar function inherited from the original notebook
+        The canonical frame field below contains Exp[-a4[H x4]] and Exp[+a4[H x4]].  The original 
+notebook never gives a4 a definition; it appears only inside the recorded value of the frame 
+field.  We therefore carry a4 through symbolically and we do NOT invent a value for it.  Every 
+result in Parts III and IV is valid for an arbitrary differentiable a4.  The same applies to 
+la, which occurs only inside the assumption ssX of Section 2.
+CELL 54  t=0.000 s
+CELL 55  t=0.000 s
+CELL 56  t=0.000 s
+CELL 57  t=0.000 s
+CELL 58  t=0.046 s
+  PASS  frame . coframe == ID8
+  PASS  g == frame . eta4488 . Transpose[frame]   (the bridge [d])
+  PASS  Inverse[g] == Transpose[coframe] . eta4488 . coframe
+  PASS  g is symmetric
+CELL 59  t=0.083 s
+  PASS  the metric is non-degenerate
+CELL 60  t=0.007 s
+CELL 61  t=0.000 s
+CELL 62  t=0.000 s
+  [0.436 s]  generalized Christoffel symbols of the 4+4 metric
+  PASS  Gamma is symmetric in its two lower indices (torsion-free affine connection)
+CELL 63  t=0.437 s
+CELL 64  t=0.001 s
+CELL 65  t=0.000 s
+CELL 66  t=0.000 s
+  [0.480 s]  canonical spin connection omega[mu]^a_b from the vielbein postulate
+CELL 67  t=0.483 s
+  PASS  CANONICAL: vielbein postulate holds identically (residual is zero)
+  PASS  CANONICAL: omega[mu,a,b] == -omega[mu,b,a]  (metric compatibility, so(4,4)-valued)
+  PASS  CANONICAL: torsion vanishes
+CELL 68  t=0.017 s
+CELL 69  t=0.001 s
+  [2.273 s]  curvature 2-form of the canonical spin connection
+  PASS  CANONICAL: curvature is antisymmetric in the two spacetime indices
+CELL 70  t=2.277 s
+  [0.626 s]  Ricci scalar of the canonical connection
+CELL 71  t=0.626 s
+  [1.667 s]  16x16 spin-connection matrices Gamma^spin[mu]
+CELL 72  t=1.667 s
+  PASS  (1/8) omega [gamma^a, gamma^b] == (1/2) omega SAB
+CELL 73  t=0.019 s
+  PASS  Gamma^spin[mu] is block diagonal: it never mixes type-1 with type-2
+CELL 74  t=0.002 s
+  PASS  the type-1 block is (1/8) omega (taubar^a tau^b - taubar^b tau^a)
+  PASS  the type-2 block is (1/8) omega (tau^a taubar^b - tau^b taubar^a)
+CELL 75  t=0.010 s
+  PASS  Dcov16 on the direct sum is the direct sum of Dcov1 and Dcov2
+CELL 76  t=0.003 s
+  PASS  {gammaCurved[mu], gammaCurved[nu]} == 2 gInv[mu,nu] ID16
+CELL 77  t=0.627 s
+  PASS  Lambda is in O(4,4): Lambda . eta . Transpose[Lambda] == eta
+  PASS  Lambda is NOT in O(8): it is a genuine boost, not a rotation
+  PASS  Lambda == MatrixExp[theta K] with K the (0,4) boost generator
+CELL 78  t=0.009 s
+  PASS  BRIDGE 1 reproduces the SAME curved metric g
+  PASS  BRIDGE 1 frame really is different from the canonical frame
+CELL 79  t=0.039 s
+  [0.673 s]  BRIDGE 1 spin connection
+  PASS  BRIDGE 1: vielbein postulate holds identically
+  PASS  BRIDGE 1: omega[mu,a,b] == -omega[mu,b,a]
+  PASS  BRIDGE 1: torsion still vanishes
+CELL 80  t=1.761 s
+  PASS  COMPARISON 1: omegaBoost == M omegaCanonical Inverse[M] - D[M,x_mu] Inverse[M]
+  PASS  COMPARISON 1: the WHOLE difference is the inhomogeneous gauge term
+CELL 81  t=1.766 s
+  PASS  COMPARISON 1: the difference equals -D[theta, x_mu] * (boost generator)
+CELL 82  t=0.013 s
+  [8.923 s]  BRIDGE 1 curvature 2-form
+  PASS  COMPARISON 1: curvature transforms covariantly, R' == M R Inverse[M]
+  [2.926 s]  BRIDGE 1 Ricci scalar
+  PASS  COMPARISON 1: BRIDGE 1 has the SAME Ricci scalar as the canonical frame
+CELL 83  t=12.030 s
+  PASS  U is an involution: U . U == ID8
+  PASS  U is symmetric
+  PASS  THE NULL TANGENT METRIC IS EXACTLY THE SPINOR METRIC sigma
+  PASS  etaNull is symmetric and squares to ID8
+  PASS  all eight frame directions are null: etaNull has zero diagonal
+CELL 84  t=0.001 s
+  PASS  BRIDGE 2 reproduces the SAME curved metric g
+CELL 85  t=0.095 s
+  [0.667 s]  BRIDGE 2 spin connection
+  PASS  BRIDGE 2: vielbein postulate holds identically
+  PASS  BRIDGE 2: omega[mu,a,b] == -omega[mu,b,a] with indices lowered by etaNull
+  PASS  BRIDGE 2: torsion vanishes
+CELL 86  t=2.882 s
+  PASS  COMPARISON 2: omegaNull == U . omegaCanonical . U exactly
+  PASS  COMPARISON 2: the inhomogeneous gauge term is ZERO because U is constant
+CELL 87  t=1.687 s
+  [13.535 s]  BRIDGE 2 curvature 2-form
+  PASS  COMPARISON 2: R_null == U . R_canonical . U
+  [4.270 s]  BRIDGE 2 Ricci scalar
+  PASS  COMPARISON 2: BRIDGE 2 has the SAME Ricci scalar as the canonical frame
+CELL 88  t=18.071 s
+  PASS  the triality bridge is ORTHOGONAL: Transpose[P] == Inverse[P]
+  PASS  BRIDGE 3 reproduces the SAME curved metric g
+  PASS  the triality tangent metric is sigma
+CELL 89  t=0.096 s
+  PASS  the antisymmetrized structure constants are totally antisymmetric
+  PASS  they agree with mLower on the seven imaginary directions
+  [0.259 s]  transport the skew structure constants to the spinor basis
+  PASS  mSkewSpin is totally antisymmetric
+CELL 90  t=0.261 s
+  [0.540 s]  BRIDGE 3 Levi-Civita part
+  PASS  BRIDGE 3 (lambda=0): vielbein postulate holds identically
+  PASS  BRIDGE 3 (lambda=0): omega[mu,a,b] == -omega[mu,b,a]
+  PASS  BRIDGE 3 (lambda=0) is the constant triality conjugate of the canonical connection
+CELL 91  t=0.555 s
+  PASS  BRIDGE 3: omegaOct[mu,a,b] == -omegaOct[mu,b,a]  (still metric compatible)
+  PASS  BRIDGE 3: at lambda = 0 it reduces to the Levi-Civita connection
+CELL 92  t=1.161 s
+  [3.339 s]  BRIDGE 3 torsion 2-form
+  PASS  BRIDGE 3: torsion vanishes at lambda = 0
+  PASS  BRIDGE 3: torsion is NOT zero for lambda != 0
+  [13.644 s]  BRIDGE 3 torsion with all indices flat
+  PASS  BRIDGE 3: the flat torsion T[a,b,c] is TOTALLY ANTISYMMETRIC
+  PASS  BRIDGE 3: T[a,b,c] == -2 lambda mSkewSpin[a,b,c]
+CELL 93  t=17.638 s
+  PASS  COMPARISON 3: omegaOct - (triality conjugate of omegaCanonical) == contortion
+  PASS  COMPARISON 3: the difference is linear in lambda and vanishes at lambda = 0
+CELL 94  t=0.453 s
+  [10.744 s]  BRIDGE 3 16x16 spin-connection matrices
+  [1.873 s]  BRIDGE 3 extra spinor coupling from the torsion
+  PASS  the extra spinor coupling vanishes at lambda = 0
+  PASS  the extra spinor coupling is non-zero for lambda != 0
+  PASS  the extra spinor coupling is still block diagonal (type-1 + type-2 preserved)
+CELL 95  t=12.641 s
+CELL 96  t=0.000 s
+CELL 97  t=0.001 s
+CELL 98  t=0.000 s
+numerical certificates used: 24
+Assertions run: 138   passed: 138   failed: 0
+CELL 99  t=0.000 s
+==================== RUN SUMMARY ====================
+cells evaluated : 99
+total seconds   : 78.309
+cells w/ msgs   : 0
+---- slowest cells ----
+  cell 88  18.071 s
+  cell 93  17.638 s
+  cell 95  12.641 s
+  cell 83  12.030 s
+  cell 86  2.882 s
+  cell 70  2.277 s
+  cell 81  1.766 s
+  cell 80  1.761 s
+  cell 87  1.687 s
+  cell 72  1.667 s
+  cell 92  1.161 s
+  cell 77  0.627 s
+==================== ASSERTIONS ====================
+assertions run  : 138
+passed          : 138
+FAILED          : 0
+====================================================
