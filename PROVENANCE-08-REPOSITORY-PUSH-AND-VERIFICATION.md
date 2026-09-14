@@ -78,9 +78,24 @@ git add Pre.txt Pre-00.txt
 git diff --cached --name-only | wc -l      # 71
 ```
 
-The 24 MB source notebook and the author's two `.mx` files are included on purpose: without them
-the fidelity check of provenance document 07 cannot be reproduced from the repository alone.
-`backups/` is excluded by `.gitignore` because it is a 24 MB duplicate of the source.
+The 24 MB source notebook and the author's two `.mx` files are included on purpose. The author's
+`.mx` files hold the Euler-Lagrange equations his own notebook computed and saved before any of
+this work began, and the refactored notebook's equations are compared against them with `SameQ`.
+Without those files in the repository that comparison could not be run from a clone:
+
+```bash
+cd "C:/Users/nsh/Documents/8-dim/Pre-Universe_14SEP26-77/claude-fable"
+wolframscript -code '
+  src  = "C:/Users/nsh/Documents/8-dim/Pre-Universe_14SEP26-77/";
+  mine = "C:/Users/nsh/Documents/8-dim/";
+  Get[src <> "Pre-gravityPre-Big_Bang_M6=3-Generations_of_Einstein-Rosen-2-Planes-eLa.mx"];
+  a = eLa; Clear[eLa];
+  Get[mine <> "claude-fable_Einstein-Rosen-2-Planes-eLa.mx"];
+  Print["identical: ", a === eLa]'
+```
+
+which prints `identical: True`. `backups/` is excluded by `.gitignore` because it is a 24 MB
+duplicate of the source.
 
 ## 3. The commit and the push
 
@@ -104,7 +119,7 @@ To https://github.com/once-ere/Pre-Universe_with_Claude.git
 The first verification cloned the repository and compared hashes. **They did not match.** Git was
 rewriting LF to CRLF on checkout, so a clone came back with different bytes for the 24 MB source
 notebook and for every text file. That silently alters the author's original notebook and breaks
-every hash comparison the provenance documents rely on. The `.mx` files were unaffected because
+every hash comparison on this page relies on. The `.mx` files were unaffected because
 git had detected them as binary.
 
 The fix is to tell git never to touch line endings, and to restore the exact bytes in the index:
