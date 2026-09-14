@@ -119,8 +119,8 @@ To https://github.com/once-ere/Pre-Universe_with_Claude.git
 The first verification cloned the repository and compared hashes. **They did not match.** Git was
 rewriting LF to CRLF on checkout, so a clone came back with different bytes for the 24 MB source
 notebook and for every text file. That silently alters the author's original notebook and breaks
-every hash comparison on this page relies on. The `.mx` files were unaffected because
-git had detected them as binary.
+every hash comparison on this page. The `.mx` files were unaffected because git had detected
+them as binary.
 
 The fix is to tell git never to touch line endings, and to restore the exact bytes in the index:
 
