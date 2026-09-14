@@ -5,20 +5,18 @@
 #
 #    1. no credential ever enters the history;
 #    2. editor, OS, language and build litter stays out;
-#    3. this project's own deliverables stay IN, even when they share an
-#       extension with the litter in job 2.
+#    3. this project's own deliverables stay IN, and are never at the mercy of
+#       an exception list somebody has to remember to update.
 #
-#  Job 3 is why the last section has explicit "!" rules.  A bare "*.log" and
-#  "*.txt" match 32 files that are deliverables here: the provenance run logs
-#  under claude-fable/, the extracted cell dump, and the two task-specification
-#  files Pre.txt and Pre-00.txt.  Git never re-ignores a file that is already
-#  tracked, so without the "!" rules nothing would appear to be wrong until
-#  someone produced a NEW provenance log and it silently failed to be added.
+#  Job 3 is why there is no blanket "*.txt" or "*.log" rule.  This repository is
+#  mostly provenance: 33 of its 86 tracked files are .txt or .log, and they are
+#  the record of exactly what the notebook printed.  Ignoring them by extension
+#  and rescuing them by name would mean every new one is dropped in silence.
+#  Scratch is named instead.  See section 3 for the full reasoning.
 #
-#  Two rules of gitignore that this file depends on:
-#    - later patterns win over earlier ones, so the "!" rules come last;
-#    - a "!" rule cannot rescue a file whose PARENT DIRECTORY is excluded,
-#      which is why claude-fable/ is never excluded as a directory.
+#  One rule of gitignore worth stating, because section 1 relies on it:
+#  a "!" rule cannot rescue a file whose PARENT DIRECTORY is excluded, which is
+#  why claude-fable/ is never excluded as a directory.
 # =============================================================================
 
 
@@ -137,27 +135,68 @@ backups/
 
 
 # -----------------------------------------------------------------------------
-# 3.  BULK TEXT AND LOGS, AND THE DELIVERABLES RESCUED FROM THEM
+# 3.  SCRATCH TEXT AND LOGS
 #
-#     Plain text and log files are ignored by default, because most of them in
-#     a directory like this one are scratch.  The exceptions below are real
-#     deliverables and are listed explicitly, so that the set of things this
-#     repository keeps is stated rather than accidental.
+#     This section used to read
+#
+#         *.txt
+#         *.log
+#         !Pre.txt
+#         !Pre-00.txt
+#         !claude-fable/**/*.log
+#         !claude-fable/**/*.txt
+#
+#     which was correct but a trap, for two reasons.
+#
+#     First it read as a lie.  Anyone opening this file saw "*.txt", concluded
+#     that .txt files are omitted, and was then surprised to find Pre.txt and
+#     Pre-00.txt in the repository.  The exception that made it true was fifteen
+#     lines further down, and gitignore resolves by LAST match, so you had to
+#     read to the bottom to know what the top meant.
+#
+#     Second, and worse, it failed silently in the one direction that matters.
+#     Ignore-everything-then-rescue means every NEW text or log deliverable is
+#     dropped unless somebody remembers to come back here and add another "!"
+#     line.  Nothing errors.  Nothing appears in git status.  The file is just
+#     quietly not in the commit.  That is the worst failure mode a .gitignore
+#     can have, and this repository is mostly provenance logs, so it was
+#     pointed straight at the thing most likely to be lost.
+#
+#     So the logic is inverted.  Nothing is ignored by extension.  Scratch is
+#     named, by the shapes scratch actually takes.  A stray notes.txt now shows
+#     up as untracked in git status, which is visible and one command to fix,
+#     instead of vanishing.  And adding a new provenance log or specification
+#     needs no edit here at all.
 # -----------------------------------------------------------------------------
 
-*.txt
-*.log
+# editor and tool backups, and merge leftovers
+*.tmp
+*.temp
+*.bak
+*.bak.*
+*.orig
+*.rej
+*.old
 
-# the task specifications
-!Pre.txt
-!Pre-00.txt
+# files whose NAME says they are scratch
+scratch*
+Scratch*
+tmp[-_.]*
+temp[-_.]*
+untitled*
+Untitled*
+*-scratch.*
+*[-_]draft.*
 
-# conventional repository files, should they ever be added in text form
-!README*.txt
-!LICENSE*.txt
-!CHANGELOG*.txt
-
-# every provenance artefact: the run logs that record exactly what the notebook
-# printed, and the plain-text extraction of the original 24 MB notebook
-!claude-fable/**/*.log
-!claude-fable/**/*.txt
+# There is deliberately no blanket *.log or *.txt rule, here or anywhere.
+#
+# LaTeX is the one tool that would argue for *.log, since it writes <doc>.log
+# beside <doc>.tex.  Section 2 covers its other products (*.aux, *.toc, *.out and
+# the rest) but NOT its log, precisely because *.log cannot be scoped by
+# extension without catching the 30 provenance logs.  There are no .tex sources
+# in this repository, so nothing writes a LaTeX log today.  If one is ever added,
+# scope the rule to it by name, for example
+#
+#     paper.log
+#
+# rather than reintroducing a blanket.

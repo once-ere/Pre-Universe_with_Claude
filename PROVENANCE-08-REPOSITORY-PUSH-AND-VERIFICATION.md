@@ -127,17 +127,62 @@ duplicate of the source.
 
 ## 2a. The .gitignore, and the secret scan
 
-The ignore file was refactored into three commented sections: secrets, litter, and bulk text
-with the deliverables rescued from it. The third section is the one that needed care.
+The ignore file has three commented sections: secrets, litter, and scratch text and logs. The
+third one went through two designs, and the second is the one that shipped.
 
-**The defect it fixes.** A bare `*.txt` and `*.log` match 32 files that are deliverables here:
-the 30 provenance run logs under `claude-fable/`, the plain-text extraction of the original
-notebook, and the two task specifications `Pre.txt` and `Pre-00.txt`. Git never re-ignores a file
-that is already tracked, so nothing appears to be wrong. The damage only shows up later, when a
-NEW provenance log is produced and silently fails to be added. The refactored file therefore ends
-with explicit `!` rules, and it relies on two properties of gitignore: later patterns win, and a
-`!` rule cannot rescue a file whose parent directory is excluded, which is why `claude-fable/` is
-never excluded as a directory.
+**First design, and why it was wrong.** The obvious reading of the author's original file was
+"ignore `*.txt` and `*.log`, then rescue the deliverables":
+
+```
+*.txt
+*.log
+!Pre.txt
+!Pre-00.txt
+!README*.txt
+!LICENSE*.txt
+!CHANGELOG*.txt
+!claude-fable/**/*.log
+!claude-fable/**/*.txt
+```
+
+That is *correct*. Gitignore resolves by LAST match, so every one of those files is kept, and
+`git ls-files -z | xargs -0 git check-ignore --no-index` returns nothing.
+
+It is also a trap, in two ways.
+
+It reads as a lie. Someone opens the file, sees `*.txt` at the top of the section, concludes that
+text files are omitted, and is then surprised to find `Pre.txt` and `Pre-00.txt` in the
+repository. The line that makes the top line untrue is fifteen lines below it. That is exactly
+the question this design provoked, and the question was fair.
+
+Worse, it fails silently in the one direction that matters. Ignore-everything-then-rescue means
+every NEW text or log deliverable is dropped unless somebody remembers to come back and add
+another `!` line. Nothing errors, nothing appears in `git status`, the file is simply not in the
+commit. This repository is mostly provenance: **33 of its 86 tracked files are `.txt` or `.log`**,
+and they are the record of exactly what the notebook printed. The rule was aimed straight at the
+thing most likely to be lost.
+
+**Second design, which shipped.** The logic is inverted. Nothing is ignored by extension. Scratch
+is named, by the shapes scratch actually takes:
+
+```
+*.tmp   *.temp   *.bak   *.bak.*   *.orig   *.rej   *.old
+scratch*   Scratch*   tmp[-_.]*   temp[-_.]*   untitled*   Untitled*
+*-scratch.*   *[-_]draft.*
+```
+
+A stray `notes.txt` now shows up as untracked in `git status`, which is visible and one command
+to resolve, instead of vanishing. Adding a new provenance log or specification needs no edit to
+the ignore file at all.
+
+The one case that argues for a blanket `*.log` is LaTeX, which writes `<doc>.log` beside
+`<doc>.tex`. Section 2 covers LaTeX's other products but deliberately not its log, because
+`*.log` cannot be scoped by extension without catching the 30 provenance logs. There are no
+`.tex` sources in this repository, so nothing writes one today; if one is ever added, the rule
+should name it rather than reintroduce a blanket.
+
+Section 1 still relies on one property of gitignore: a `!` rule cannot rescue a file whose parent
+directory is excluded, which is why `claude-fable/` is never excluded as a directory.
 
 Check that no tracked file is caught by any rule:
 
@@ -161,7 +206,22 @@ done
 ```
 
 Every deliverable prints `kept`; every piece of litter and every credential-shaped name prints
-`ignored`.
+`ignored`. Under the shipped design the same is true of files that do not exist yet:
+
+```bash
+cd "C:/Users/nsh/Documents/8-dim/Pre-Universe_14SEP26-77"
+for f in claude-fable/brand_new_run.log PROVENANCE-09-SOMETHING.md NewSpec.txt; do
+  printf '  %-32s ' "$f"
+  if git check-ignore --no-index -q "$f"; then echo "IGNORED <-- trap"; else echo "kept (correct)"; fi
+done
+```
+
+All three print `kept (correct)`, which is the property the first design lacked.
+
+A warning about reading these results. `git check-ignore -v` prints the matching line even when
+that line is a NEGATION, so the printed line does not tell you the verdict and a `!Pre.txt` in
+the output does NOT mean the file is ignored. Use the exit code: 0 means ignored, 1 means kept.
+That is why every check on this page uses `-q` and tests the exit status.
 
 **The secret scan.** Nothing matching a credential pattern exists in the tracked tree, in the
 untracked files, inside the multi-megabyte binaries, or in the nine commits that were pushed.
