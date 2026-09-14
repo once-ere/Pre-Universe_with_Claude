@@ -13,7 +13,7 @@ Everything needed to repeat this work is on this page. No other file needs to be
 
 | file | bytes | what it is |
 |---|---|---|
-| `C:\Users\nsh\Documents\8-dim\claude-fable_Einstein-Rosen-2-Planes.nb` | 136119 | the deliverable notebook: 211 cells, 139 of them Input |
+| `C:\Users\nsh\Documents\8-dim\claude-fable_Einstein-Rosen-2-Planes.nb` | 136162 | the deliverable notebook: 213 cells, 139 of them Input |
 | `Pre-Universe_14SEP26-77\claude-fable\cells_part1.wl` | — | source manifest, sections 0–4 |
 | `Pre-Universe_14SEP26-77\claude-fable\cells_part2.wl` | — | source manifest, sections 5–9 |
 | `Pre-Universe_14SEP26-77\claude-fable\cells_part3.wl` | — | source manifest, sections 10–14 |
@@ -111,9 +111,9 @@ Expected:
 
 ```
 manifest files : ['cells_part1.wl', 'cells_part2.wl', 'cells_part3.wl', 'cells_part4.wl']
-cells parsed   : 211 {'Title': 4, 'Text': 46, 'Section': 22, 'Input': 139}
+cells parsed   : 213 {'Title': 4, 'Subtitle': 1, 'Subsubtitle': 1, 'Text': 46, 'Section': 22, 'Input': 139}
 run_all.wls    : 139 Input cells
-notebook       : 211 cells -> C:\Users\nsh\Documents\8-dim\Pre-Universe_14SEP26-77\claude-fable\claude-fable_Einstein-Rosen-2-Planes.nb
+notebook       : 213 cells -> C:\Users\nsh\Documents\8-dim\Pre-Universe_14SEP26-77\claude-fable\claude-fable_Einstein-Rosen-2-Planes.nb
 ```
 
 Then copy it to the deliverable location:
@@ -151,10 +151,10 @@ cat verify_nb.log
 Expected:
 
 ```
-file bytes: 136119
+file bytes: 136162
 Head: Notebook
-cells: 211
-style tally: {{Title, 4}, {Text, 46}, {Section, 22}, {Input, 139}}
+cells: 213
+style tally: {{Title, 4}, {Subtitle, 1}, {Subsubtitle, 1}, {Text, 46}, {Section, 22}, {Input, 139}}
 input cells: 139
 total input characters: 88829
 input cells that FAIL to parse: {}
@@ -310,6 +310,7 @@ Changed, with the mathematics identical:
 | `Needs["Notation`"]` and 30 `Symbolize` declarations | plain ASCII symbol names | `Notation`` needs a front end; the notebook now runs headless |
 | `NotebookFileName[]` used directly | guarded, with a fallback to `Directory[]` | `NotebookFileName[]` returns `$Failed` in a headless kernel |
 | the 8-component position vector called `Z` | renamed `Zoct` | in the original it collides with the head `Z[k]` used for the wave-function components in the same session |
+| the whole title block as one `Title` cell | split into `Title`, `Subtitle`, `Subsubtitle` | all three lines rendered at full Title size in red; the split gives the intended hierarchy |
 
 Deliberately **not** changed: every constant, every tolerance, the `TimeConstraint` settings, the
 control flow of `eL`, the Lagrangian coefficients, the Maple solution strings, and the assumption

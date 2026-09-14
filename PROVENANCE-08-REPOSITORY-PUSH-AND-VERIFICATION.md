@@ -435,7 +435,7 @@ sha256sum "C:/Users/nsh/Documents/8-dim/claude-fable_Einstein-Rosen-2-Planes.nb"
           "C:/Users/nsh/Documents/8-dim/Pre-Universe_14SEP26-77/claude-fable/claude-fable_Einstein-Rosen-2-Planes.nb"
 ```
 
-Both print `a9ebd4837b7081d9b6dc7792ac0a0a534cfa4c4ef9a2730c4752d8ce73991d85`.
+Both print `5a12a7b4f1125d786bca279483b02d8c187a2498f50a5c0337f40cbc6cfeaaf1`.
 
 ## 9. What this proves
 

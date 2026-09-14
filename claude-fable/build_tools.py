@@ -24,6 +24,7 @@ MARKER = re.compile(r'^\(\*\s*::\s*([A-Za-z][A-Za-z0-9-]*)\s*::\s*(.*?)\*\)\s*$'
 KNOWN_STYLES = {
     "Title": "Title",
     "Subtitle": "Subtitle",
+    "Subsubtitle": "Subsubtitle",
     "Section": "Section",
     "Subsection": "Subsection",
     "Subsubsection": "Subsubsection",

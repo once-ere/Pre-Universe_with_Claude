@@ -2,7 +2,11 @@
 
 (* ::Title:: *)
 claude-fable_Einstein-Rosen-2-Planes
+
+(* ::Subtitle:: *)
 Pre-gravity, Pre-Big-Bang: 3 Generations of Einstein-Rosen 2-Plane Bridges
+
+(* ::Subsubtitle:: *)
 Frame fields, spin connections and the 16-component split-octonion spinor on a curved 4+4 spacetime
 
 (* ::Text:: *)
