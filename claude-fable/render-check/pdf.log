@@ -1,0 +1,8 @@
+pdf : 254808 bytes   pages: 66
+  pages {30}  <- A word first on WHICH split
+  pages {31}  <- the yZ split at 8 is NOT
+  pages {32}  <- sigma16 alone is SYMMETRIC
+  pages {64}  <- Count the gammas
+  pages {40}  <- counts the times stage 3 returned TRUE
+  pages {66}  <- identities accepted on numerical evidence alone
+source unchanged: e1f2e0848c83bdb82d671369f0b2d06ab1853e98af20d4568d936ec5b7b7ebd2
