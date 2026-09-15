@@ -8,6 +8,13 @@ Everything needed to repeat this work is on this page. No other file needs to be
 
 ---
 
+> **Note added 2026-09-14.** The extract this page produces, `cells_dump.txt` and
+> `cells_index.txt`, is **no longer committed**. No `.txt` file is. The extract is generated,
+> and the script that generates it is reproduced in full below, so run section 3 first and the
+> rest of this page then works exactly as written. This page is the only thing that needs
+> them, and it now builds them itself rather than relying on a copy in the repository.
+
+
 ## 1. Environment actually used
 
 | item | value |

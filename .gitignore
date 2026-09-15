@@ -8,8 +8,8 @@
 #    3. this project's own deliverables stay IN, and are never at the mercy of
 #       an exception list somebody has to remember to update.
 #
-#  Job 3 is why there is no blanket "*.txt" or "*.log" rule.  This repository is
-#  mostly provenance: 44 of its 120 tracked files are .txt or .log, and they are
+#  Job 3 is why there is no blanket "*.log" rule.  This repository is
+#  mostly provenance: 42 of its 118 tracked files are .log, and they are
 #  the record of exactly what the notebook printed.  Ignoring them by extension
 #  and rescuing them by name would mean every new one is dropped in silence.
 #  Scratch is named instead.  See section 3 for the full reasoning.
@@ -88,6 +88,12 @@ ActivationKey*
 # stay on disk.
 Pre.txt
 Pre-00.txt
+
+# the plain-text extract of the author's original notebook.  It is GENERATED, by
+# claude-fable/extract/extract_original.wls, and PROVENANCE-00 gives the command.
+# Regenerate it rather than committing it; no .txt belongs in this repository.
+claude-fable/extract/cells_dump.txt
+claude-fable/extract/cells_index.txt
 
 # -----------------------------------------------------------------------------
 # 2.  LITTER
