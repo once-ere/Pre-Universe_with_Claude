@@ -23,6 +23,13 @@ srcELazt = eLazt; Clear[eLazt];
 
 Get[cf <> "claude-fable_Einstein-Rosen-2-Planes-eLa.mx"];    kerELa = eLa; Clear[eLa];
 Get[cf <> "claude-fable_Einstein-Rosen-2-Planes-eLazt.mx"];  kerELazt = eLazt; Clear[eLazt];
+(* A missing front-end .mx must ANNOUNCE itself.  Without this guard Get fails quietly, the
+   symbols stay unset, and the SameQ below reports a bare False that reads like a fidelity
+   failure when it is really "the front-end run has not been done in this CF_OUT". *)
+If[! FileExistsQ[fe <> "evaluated-eLa.mx"],
+  Print["  NOTE  no front-end .mx in ", fe];
+  Print["        The front-end leg of this comparison needs fe_full.wls to have been run"];
+  Print["        with CF_OUT set to that directory.  The kernel-run leg below is unaffected."]];
 Get[fe <> "evaluated-eLa.mx"];                               feELa = eLa; Clear[eLa];
 Get[fe <> "evaluated-eLazt.mx"];                             feELazt = eLazt; Clear[eLazt];
 
