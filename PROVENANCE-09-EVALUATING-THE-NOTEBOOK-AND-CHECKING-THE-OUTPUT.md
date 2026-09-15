@@ -2,8 +2,10 @@
 
 **Effort.** Evaluate `claude-fable_Einstein-Rosen-2-Planes.nb` in Mathematica — both headlessly
 in a kernel and in the actual front end — and then check the output: not merely that it ran, but
-that every number it prints means what it says it means. Three defects were found and fixed; all
-three were in prose or in a label, none changed a computed value.
+that every number it prints means what it says it means. FOUR defects were found and fixed --
+three surfaced by the audit and a fourth settled by direct measurement after the audit's majority
+had wrongly dismissed it (section 7.4). All four were in prose or in a label; none changed a
+computed value.
 
 Everything needed to repeat this work is on this page. No other file needs to be consulted.
 

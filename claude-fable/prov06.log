@@ -1,0 +1,55 @@
+
+================ THE TRIALITY BRIDGE ================
+triVecToSpin = 
+MatrixForm[{{1/Sqrt[2], 0, 0, 0, 1/Sqrt[2], 0, 0, 0}, {0, 0, 0, -(1/Sqrt[2]), 0, 0, 0, -(1/Sqrt[2])}, {0, 0, 1/Sqrt[2], 0, 0, 0, 1/Sqrt[2], 0}, {0, -(1/Sqrt[2]), 0, 0, 0, -(1/Sqrt[2]), 0, 0}, {0, 1/Sqrt[2], 0, 0, 0, -(1/Sqrt[2]), 0, 0}, {0, 0, -(1/Sqrt[2]), 0, 0, 0, 1/Sqrt[2], 0}, {0, 0, 0, -(1/Sqrt[2]), 0, 0, 0, 1/Sqrt[2]}, {1/Sqrt[2], 0, 0, 0, -(1/Sqrt[2]), 0, 0, 0}}]
+it is ORTHOGONAL: Transpose[P] == Inverse[P] : True
+it carries eta4488 exactly onto sigma        : True
+so its tangent metric is the SPINOR metric   : True
+
+================ THE NEW FRAME FIELD ================
+frameTri = frameCanonical . triVecToSpin = 
+MatrixForm[{{Tan[6*H*x0]/Sqrt[2], 0, 0, 0, Tan[6*H*x0]/Sqrt[2], 0, 0, 0}, {0, 0, 0, -(1/(Sqrt[2]*E^a4[H*x4]*Sin[6*H*x0]^(1/6))), 0, 0, 0, -(1/(Sqrt[2]*E^a4[H*x4]*Sin[6*H*x0]^(1/6)))}, {0, 0, 1/(Sqrt[2]*E^a4[H*x4]*Sin[6*H*x0]^(1/6)), 0, 0, 0, 1/(Sqrt[2]*E^a4[H*x4]*Sin[6*H*x0]^(1/6)), 0}, {0, -(1/(Sqrt[2]*E^a4[H*x4]*Sin[6*H*x0]^(1/6))), 0, 0, 0, -(1/(Sqrt[2]*E^a4[H*x4]*Sin[6*H*x0]^(1/6))), 0, 0}, {0, 1/Sqrt[2], 0, 0, 0, -(1/Sqrt[2]), 0, 0}, {0, 0, -(E^a4[H*x4]/(Sqrt[2]*Sin[6*H*x0]^(1/6))), 0, 0, 0, E^a4[H*x4]/(Sqrt[2]*Sin[6*H*x0]^(1/6)), 0}, {0, 0, 0, -(E^a4[H*x4]/(Sqrt[2]*Sin[6*H*x0]^(1/6))), 0, 0, 0, E^a4[H*x4]/(Sqrt[2]*Sin[6*H*x0]^(1/6))}, {E^a4[H*x4]/(Sqrt[2]*Sin[6*H*x0]^(1/6)), 0, 0, 0, -(E^a4[H*x4]/(Sqrt[2]*Sin[6*H*x0]^(1/6))), 0, 0, 0}}]
+it gives the SAME curved metric g : True
+
+================ THE TOTALLY ANTISYMMETRIC SPLIT-OCTONION STRUCTURE CONSTANTS ================
+mSkewSpin is totally antisymmetric : True
+non-zero components of mSkewSpin : 48
+distinct values : {0, -(1/Sqrt[2]), 1/Sqrt[2], -Sqrt[2], Sqrt[2]}
+
+================ THE lambda = 0 PART: LEVI-CIVITA IN THE TRIALITY FRAME ================
+non-zero components of omegaTriLC : 84
+vielbein postulate holds identically : True
+omega[mu,a,b] == -omega[mu,b,a] : True
+it IS the constant triality conjugate of the canonical connection : True
+
+================ THE NEW CONNECTION: LEVI-CIVITA PLUS OCTONIONIC SKEW TORSION ================
+non-zero contortion components : 78
+omegaOct[mu,a,b] == -omegaOct[mu,b,a]  (still metric compatible) : True
+at lambda = 0 it reduces to Levi-Civita : True
+
+================ ITS TORSION ================
+torsion vanishes at lambda = 0 : True
+torsion is NOT zero for lambda != 0 : True
+non-zero flat torsion components : 48
+T[a,b,c] is TOTALLY ANTISYMMETRIC : True
+T[a,b,c] == -2 lambda mSkewSpin[a,b,c] : True
+
+================ COMPARISON WITH THE CANONICAL SPIN CONNECTION ================
+omegaOct - (triality conjugate of omegaCanonical) == contortion : True
+the difference vanishes at lambda = 0 : True
+non-zero components of the difference : 78
+the difference is linear in lambda : True
+
+================ THE DIRAC MATRICES THAT MATCH THIS FRAME ================
+{T16Tri[a],T16Tri[b]} == 2 sigma[[a,b]] ID16 : True
+they differ from the vector-frame T16 : True
+T16 does NOT obey the sigma relation : True
+
+================ THE EFFECT ON THE SPINOR COVARIANT DERIVATIVE ================
+at lambda = 0 the Bridge 3 spinor connection equals the canonical one : True
+extra 16x16 coupling vanishes at lambda = 0 : True
+extra coupling is non-zero for lambda != 0  : True
+it is still block diagonal (type-1 + type-2 preserved) : True
+non-zero entries in the extra coupling : 160
+
+================ DONE ================

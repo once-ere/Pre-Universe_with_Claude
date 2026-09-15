@@ -1,0 +1,40 @@
+
+================ THE NEW OBJECT: A LOCAL BOOST Lambda(x) ================
+Lambda = 
+MatrixForm[{{Cosh[cfBoostRapidity[x0, x4]], 0, 0, 0, Sinh[cfBoostRapidity[x0, x4]], 0, 0, 0}, {0, 1, 0, 0, 0, 0, 0, 0}, {0, 0, 1, 0, 0, 0, 0, 0}, {0, 0, 0, 1, 0, 0, 0, 0}, {Sinh[cfBoostRapidity[x0, x4]], 0, 0, 0, Cosh[cfBoostRapidity[x0, x4]], 0, 0, 0}, {0, 0, 0, 0, 0, 1, 0, 0}, {0, 0, 0, 0, 0, 0, 1, 0}, {0, 0, 0, 0, 0, 0, 0, 1}}]
+Lambda . eta . Transpose[Lambda] == eta   (Lambda is in O(4,4)) : True
+Lambda . Transpose[Lambda] != ID8         (a boost, not a rotation) : True
+Lambda == MatrixExp[theta K] : True
+the boost generator K = 
+MatrixForm[{{0, 0, 0, 0, 1, 0, 0, 0}, {0, 0, 0, 0, 0, 0, 0, 0}, {0, 0, 0, 0, 0, 0, 0, 0}, {0, 0, 0, 0, 0, 0, 0, 0}, {1, 0, 0, 0, 0, 0, 0, 0}, {0, 0, 0, 0, 0, 0, 0, 0}, {0, 0, 0, 0, 0, 0, 0, 0}, {0, 0, 0, 0, 0, 0, 0, 0}}]
+
+================ THE NEW FRAME FIELD ================
+frameBoost = frameCanonical . Lambda =
+MatrixForm[{{Cosh[cfBoostRapidity[x0, x4]]*Tan[6*H*x0], 0, 0, 0, Sinh[cfBoostRapidity[x0, x4]]*Tan[6*H*x0], 0, 0, 0}, {0, 1/(E^a4[H*x4]*Sin[6*H*x0]^(1/6)), 0, 0, 0, 0, 0, 0}, {0, 0, 1/(E^a4[H*x4]*Sin[6*H*x0]^(1/6)), 0, 0, 0, 0, 0}, {0, 0, 0, 1/(E^a4[H*x4]*Sin[6*H*x0]^(1/6)), 0, 0, 0, 0}, {Sinh[cfBoostRapidity[x0, x4]], 0, 0, 0, Cosh[cfBoostRapidity[x0, x4]], 0, 0, 0}, {0, 0, 0, 0, 0, E^a4[H*x4]/Sin[6*H*x0]^(1/6), 0, 0}, {0, 0, 0, 0, 0, 0, E^a4[H*x4]/Sin[6*H*x0]^(1/6), 0}, {0, 0, 0, 0, 0, 0, 0, E^a4[H*x4]/Sin[6*H*x0]^(1/6)}}]
+it is a DIFFERENT frame : True
+but it gives the SAME curved metric g : True
+
+================ THE NEW SPIN CONNECTION ================
+non-zero components of omegaBoost : 28
+   (canonical had 24)
+vielbein postulate holds identically : True
+omega[mu,a,b] == -omega[mu,b,a]      : True
+torsion still vanishes               : True
+
+================ COMPARISON WITH THE CANONICAL SPIN CONNECTION ================
+omegaBoost == M omegaCanonical Inverse[M] - D[M,x_mu] Inverse[M],  M = Transpose[Lambda] : True
+the WHOLE difference is the inhomogeneous gauge term : True
+the difference equals -D[theta,x_mu] * K : True
+non-zero components of the difference : 4
+  Delta1[0] flat entry (0,4) = InputForm[-Derivative[1, 0][cfBoostRapidity][x0, x4]]
+  Delta1[0] flat entry (4,0) = InputForm[-Derivative[1, 0][cfBoostRapidity][x0, x4]]
+  Delta1[4] flat entry (0,4) = InputForm[-Derivative[0, 1][cfBoostRapidity][x0, x4]]
+  Delta1[4] flat entry (4,0) = InputForm[-Derivative[0, 1][cfBoostRapidity][x0, x4]]
+
+================ THE GEOMETRY IS THE SAME: CURVATURE AND RICCI SCALAR ================
+R' == M R Inverse[M]  (curvature transforms covariantly) : True
+Ricci scalar, canonical : InputForm[-3*H^2*((55 + 7*Cos[12*H*x0])*Cot[6*H*x0]^2*Csc[6*H*x0]^2 - 2*Derivative[1][a4][H*x4]^2)]
+Ricci scalar, bridge 1  : InputForm[3*H^2*(-((55 + 7*Cos[12*H*x0])*Cot[6*H*x0]^2*Csc[6*H*x0]^2) + 2*Derivative[1][a4][H*x4]^2)]
+they are equal          : True
+
+================ DONE ================

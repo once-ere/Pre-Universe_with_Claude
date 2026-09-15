@@ -1,4 +1,4 @@
-notebook Input cells: 137
+notebook Input cells: 139
 
 ================ THE FRAME FIELD  e[mu,a] ================
 MatrixForm[{{Tan[6*H*x0], 0, 0, 0, 0, 0, 0, 0}, {0, 1/(E^a4[H*x4]*Sin[6*H*x0]^(1/6)), 0, 0, 0, 0, 0, 0}, {0, 0, 1/(E^a4[H*x4]*Sin[6*H*x0]^(1/6)), 0, 0, 0, 0, 0}, {0, 0, 0, 1/(E^a4[H*x4]*Sin[6*H*x0]^(1/6)), 0, 0, 0, 0}, {0, 0, 0, 0, 1, 0, 0, 0}, {0, 0, 0, 0, 0, E^a4[H*x4]/Sin[6*H*x0]^(1/6), 0, 0}, {0, 0, 0, 0, 0, 0, E^a4[H*x4]/Sin[6*H*x0]^(1/6), 0}, {0, 0, 0, 0, 0, 0, 0, E^a4[H*x4]/Sin[6*H*x0]^(1/6)}}]
@@ -13,7 +13,9 @@ Det[g]  : InputForm[Sec[6*H*x0]^2]
 Sqrt[Abs[Det[g]]] : InputForm[Abs[Sec[6*H*x0]]]
 
 ================ [d] THE BRIDGE  g == e . eta . Transpose[e] ================
-residual identically zero? True
+residual (DEFINITION, cannot fail): True
+g equals the STATED line element (has content): True
+Diagonal[g] == Diagonal[eta] * Diagonal[frame]^2, exactly: True
 
 ================ THE FLAT MINKOWSKI METRIC  eta[a,b] ================
 MatrixForm[{{1, 0, 0, 0, 0, 0, 0, 0}, {0, 1, 0, 0, 0, 0, 0, 0}, {0, 0, 1, 0, 0, 0, 0, 0}, {0, 0, 0, 1, 0, 0, 0, 0}, {0, 0, 0, 0, -1, 0, 0, 0}, {0, 0, 0, 0, 0, -1, 0, 0}, {0, 0, 0, 0, 0, 0, -1, 0}, {0, 0, 0, 0, 0, 0, 0, -1}}]
@@ -87,14 +89,15 @@ count: 24
   omega[7;7,0] = InputForm[(E^a4[H*x4]*H*Cos[6*H*x0]^2)/Sin[6*H*x0]^(13/6)]
   omega[7;7,4] = InputForm[-((E^a4[H*x4]*H*Derivative[1][a4][H*x4])/Sin[6*H*x0]^(1/6))]
 
-================ THE THREE CERTIFICATES ================
-vielbein postulate residual is identically zero : True
-omega[mu,a,b] == -omega[mu,b,a]                 : True
-torsion vanishes                                : True
-Gamma symmetric in its lower indices            : True
+================ THE CERTIFICATES, AND WHAT EACH ONE IS WORTH ================
+[solver regression] vielbein postulate residual is zero : True
+[structural]        torsion vanishes                    : True
+[structural]        Gamma symmetric in its lower indices : True
+[HAS CONTENT]       omega[mu,a,b] == -omega[mu,b,a]      : True
+[INDEPENDENT]       frame-only derivation reproduces omegaCanonical : True
 
 ================ CURVATURE ================
 non-zero curvature components : 156
-Ricci scalar                  : InputForm[-6*H^2*(24*Cot[6*H*x0]^2 + 31*Cot[6*H*x0]^4 - Derivative[1][a4][H*x4]^2)]
+Ricci scalar                  : InputForm[-3*H^2*((55 + 7*Cos[12*H*x0])*Cot[6*H*x0]^2*Csc[6*H*x0]^2 - 2*Derivative[1][a4][H*x4]^2)]
 
 ================ DONE ================

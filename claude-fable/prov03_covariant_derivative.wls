@@ -1,8 +1,8 @@
 (* Run the delivered notebook, then print everything about the 16x16 Dirac matrices and the
    spinor covariant derivative. *)
 
-nbfile = "C:/Users/nsh/Documents/8-dim/claude-fable_Einstein-Rosen-2-Planes.nb";
-SetDirectory["C:/Users/nsh/Documents/8-dim"];
+nbfile = "C:/Users/nsh/Documents/8-dim/Pre-Universe_14SEP26-77/claude-fable/claude-fable_Einstein-Rosen-2-Planes.nb";
+SetDirectory["C:/Users/nsh/Documents/8-dim/Pre-Universe_14SEP26-77/claude-fable"];
 nb = Import[nbfile, "Notebook"];
 inputs = Cases[nb, Cell[BoxData[s_String], "Input", ___] :> s, Infinity];
 asOne[h_Hold] := Replace[h, Hold[args___] :> Hold[CompoundExpression[args]]];

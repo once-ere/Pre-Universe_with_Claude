@@ -12,6 +12,13 @@ sections 10 to 14, Input cells 53 to 90.
 
 Everything needed to repeat this work is on this page. No other file needs to be consulted.
 
+The script below opens the notebook **inside the repository**, at
+`<repo>\claude-fable\claude-fable_Einstein-Rosen-2-Planes.nb`, and sets the working
+directory to `<repo>\claude-fable`. That is the only copy git tracks, so this page runs
+against a fresh clone with no further step. An identical copy is also delivered to
+`C:\Users\nsh\Documents\8-dim\` for the author's convenience; that one is outside the
+repository and nothing on this page depends on it.
+
 ---
 
 ## 1. The strongest possible fidelity check, and it passes
@@ -141,8 +148,8 @@ cd "C:/Users/nsh/Documents/8-dim/Pre-Universe_14SEP26-77/claude-fable"
 cat > prov07_physics.wls <<'WLSEOF'
 (* Run the delivered notebook, then print the whole of Part II. *)
 
-nbfile = "C:/Users/nsh/Documents/8-dim/claude-fable_Einstein-Rosen-2-Planes.nb";
-SetDirectory["C:/Users/nsh/Documents/8-dim"];
+nbfile = "C:/Users/nsh/Documents/8-dim/Pre-Universe_14SEP26-77/claude-fable/claude-fable_Einstein-Rosen-2-Planes.nb";
+SetDirectory["C:/Users/nsh/Documents/8-dim/Pre-Universe_14SEP26-77/claude-fable"];
 nb = Import[nbfile, "Notebook"];
 inputs = Cases[nb, Cell[BoxData[s_String], "Input", ___] :> s, Infinity];
 asOne[h_Hold] := Replace[h, Hold[args___] :> Hold[CompoundExpression[args]]];

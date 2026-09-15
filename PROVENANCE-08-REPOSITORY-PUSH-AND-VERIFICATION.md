@@ -105,6 +105,14 @@ git diff --stat "Pre-gravity_Pre-Big_Bang_M6=3-Generations_of_Einstein-Rosen-2-P
 
 What was committed:
 
+> **Do not run the next block against the current repository.** It is the historical record of
+> the FIRST `.gitignore`, the five-line one written at this moment. That file has since been
+> replaced three times (`a1096db`, `ea0f3fc`, `35ff142`) and the shipped version is 208 lines.
+> Running this heredoc today would overwrite the shipped file with the five-line stub and
+> silently delete every credential pattern the rest of this page justifies. To read the file
+> that is actually in the repository, use `cat .gitignore`; it is reproduced in full in section
+> 2b below, so this page still carries it complete.
+
 ```bash
 cd "C:/Users/nsh/Documents/8-dim/Pre-Universe_14SEP26-77"
 cat > .gitignore <<'EOF'
@@ -184,7 +192,8 @@ the question this design provoked, and the question was fair.
 Worse, it fails silently in the one direction that matters. Ignore-everything-then-rescue means
 every NEW text or log deliverable is dropped unless somebody remembers to come back and add
 another `!` line. Nothing errors, nothing appears in `git status`, the file is simply not in the
-commit. This repository is mostly provenance: **33 of its 86 tracked files are `.txt` or `.log`**,
+commit. This repository is mostly provenance: **33 of its 86 tracked files were `.txt` or `.log`**
+when this was written, and 43 of 114 are today;
 and they are the record of exactly what the notebook printed. The rule was aimed straight at the
 thing most likely to be lost.
 
@@ -203,7 +212,8 @@ the ignore file at all.
 
 The one case that argues for a blanket `*.log` is LaTeX, which writes `<doc>.log` beside
 `<doc>.tex`. Section 2 covers LaTeX's other products but deliberately not its log, because
-`*.log` cannot be scoped by extension without catching the 29 provenance logs. There are no
+`*.log` cannot be scoped by extension without catching the provenance logs (29 of them when
+this was written, 39 today). There are no
 `.tex` sources in this repository, so nothing writes one today; if one is ever added, the rule
 should name it rather than reintroduce a blanket.
 
@@ -334,6 +344,231 @@ done
 ```
 
 All five ignored paths print `absent (correct)`; all six deliverables print `present (correct)`.
+
+## 2b. The shipped `.gitignore`, in full
+
+The five-line file in section 2 above is the historical one. This is the file that is actually
+in the repository today, reproduced complete so that this page needs no other file. It is 208
+lines. Verify it with `cat .gitignore` or `sha256sum .gitignore`.
+
+```
+# =============================================================================
+#  Pre-Universe_with_Claude  --  .gitignore
+#
+#  Three jobs, in order of importance:
+#
+#    1. no credential ever enters the history;
+#    2. editor, OS, language and build litter stays out;
+#    3. this project's own deliverables stay IN, and are never at the mercy of
+#       an exception list somebody has to remember to update.
+#
+#  Job 3 is why there is no blanket "*.txt" or "*.log" rule.  This repository is
+#  mostly provenance: 43 of its 114 tracked files are .txt or .log, and they are
+#  the record of exactly what the notebook printed.  Ignoring them by extension
+#  and rescuing them by name would mean every new one is dropped in silence.
+#  Scratch is named instead.  See section 3 for the full reasoning.
+#
+#  One rule of gitignore worth knowing, because the superseded design depended on
+#  it entirely: a "!" rule cannot rescue a file whose PARENT DIRECTORY is
+#  excluded.  The shipped design does not depend on it.  Its only negations are
+#  !.env.example and !.env.sample in section 1, which negate the FILE pattern
+#  .env.* rather than any directory, so nothing here is at the mercy of
+#  directory ordering.
+# =============================================================================
+
+
+# -----------------------------------------------------------------------------
+# 1.  SECRETS
+#
+#     Nothing matching these may ever be committed.  Nothing matching them is
+#     present today; these patterns are here so that it stays that way.
+# -----------------------------------------------------------------------------
+
+# environment and dotfile credential stores
+.env
+.env.*
+!.env.example
+!.env.sample
+.netrc
+_netrc
+.npmrc
+.pypirc
+.htpasswd
+
+# keys and certificates
+*.pem
+*.key
+*.p12
+*.pfx
+*.jks
+*.keystore
+*.asc
+*.gpg
+id_rsa*
+id_dsa*
+id_ecdsa*
+id_ed25519*
+*.ppk
+
+# anything that names itself a credential
+*credential*
+*credentials*
+*.secret
+*.secrets
+secrets.*
+*token*.json
+*_token
+*.token
+
+# Wolfram and Mathematica licensing material.  A mathpass file holds licence
+# passwords and an activation key is a credential in exactly the way an API
+# token is.  Neither belongs in a public repository.
+mathpass
+*.mathpass
+ActivationKey*
+*activation-key*
+*activation_key*
+
+# tool and agent state, which can carry tokens or conversation transcripts
+.claude/
+.vscode/
+.idea/
+*.code-workspace
+
+
+# -----------------------------------------------------------------------------
+# 2.  LITTER
+#
+#     Editor swap files, OS metadata, language caches, build products, and the
+#     duplicate files this project accumulates while the author works.
+# -----------------------------------------------------------------------------
+
+# operating system
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+Thumbs.db
+ehthumbs.db
+desktop.ini
+
+# editors
+*.swp
+*.swo
+*.swn
+*~
+.*.sw[a-z]
+
+# Python, used here only by the notebook build tool
+__pycache__/
+*.py[cod]
+.pytest_cache/
+
+# LaTeX build products, which is what *.aux, *.toc and *.out were added for
+*.aux
+*.toc
+*.out
+*.lof
+*.lot
+*.synctex.gz
+*.fls
+*.fdb_latexmk
+*.bbl
+*.blg
+
+# Wolfram front-end scratch
+*.nb.bak
+.MathematicaHistory
+
+# hand-made duplicates: "EtoExp - Copy.wl", "EtoExp copy 2.wl" and friends
+*[Cc]opy*.wl
+*[Cc]opy*.nb
+*[Cc]opy*.mx
+
+# local backups taken before modifying a file.  These are multi-megabyte
+# duplicates of files that are already in the repository.
+backups/
+
+
+# -----------------------------------------------------------------------------
+# 3.  SCRATCH TEXT AND LOGS
+#
+#     This section used to read
+#
+#         *.txt
+#         *.log
+#         !Pre.txt
+#         !Pre-00.txt
+#         !README*.txt
+#         !LICENSE*.txt
+#         !CHANGELOG*.txt
+#         !claude-fable/**/*.log
+#         !claude-fable/**/*.txt
+#
+#     which was correct but a trap, for two reasons.
+#
+#     First it read as a lie.  Anyone opening this file saw "*.txt", concluded
+#     that .txt files are omitted, and was then surprised to find Pre.txt and
+#     Pre-00.txt in the repository.  The exception that made it true was fifteen
+#     lines further down, and gitignore resolves by LAST match, so you had to
+#     read to the bottom to know what the top meant.
+#
+#     Second, and worse, it failed silently in the one direction that matters.
+#     Ignore-everything-then-rescue means every NEW text or log deliverable is
+#     dropped unless somebody remembers to come back here and add another "!"
+#     line.  Nothing errors.  Nothing appears in git status.  The file is just
+#     quietly not in the commit.  That is the worst failure mode a .gitignore
+#     can have, and this repository is mostly provenance logs, so it was
+#     pointed straight at the thing most likely to be lost.
+#
+#     So the logic is inverted.  Nothing is ignored by extension.  Scratch is
+#     named, by the shapes scratch actually takes.  A stray notes.txt now shows
+#     up as untracked in git status, which is visible and one command to fix,
+#     instead of vanishing.  And adding a new provenance log or specification
+#     needs no edit here at all.
+# -----------------------------------------------------------------------------
+
+# editor and tool backups, and merge leftovers
+*.tmp
+*.temp
+*.bak
+*.bak.*
+*.orig
+*.rej
+*.old
+
+# files whose NAME says they are scratch
+scratch*
+Scratch*
+tmp[-_.]*
+temp[-_.]*
+untitled*
+Untitled*
+*-scratch.*
+*[-_]draft.*
+
+# There is deliberately no blanket *.log or *.txt rule, here or anywhere.
+#
+# LaTeX is the one tool that would argue for *.log, since it writes <doc>.log
+# beside <doc>.tex.  Section 2 covers its other products (*.aux, *.toc, *.out and
+# the rest) but NOT its log, precisely because *.log cannot be scoped by
+# extension without catching the 39 provenance logs.  There are no .tex sources
+# in this repository, so nothing writes a LaTeX log today.  If one is ever added,
+# scope the rule to it by name, for example
+#
+#     paper.log
+#
+# rather than reintroducing a blanket.
+```
+
+To restore exactly this file:
+
+```bash
+cd "C:/Users/nsh/Documents/8-dim/Pre-Universe_14SEP26-77"
+git checkout -- .gitignore
+wc -l .gitignore          # 208
+```
 
 ## 3. The commit and the push
 
@@ -494,7 +729,16 @@ FAILED          : 0
 ====================================================
 ```
 
-**139 of 139 cells evaluated, zero messages, 175 of 175 assertions passing, from a clone.** No
+**139 of 139 cells evaluated, zero messages, 175 of 175 assertions passing, from a clone.**
+
+> **Snapshot.** 175 was the assertion count on the day of this push. The notebook has since
+> gained checks — 178 at commit `35ff142`, 182 at `2da615d` — so a clone made today prints
+> **182 of 182**. The figures on this page are left as they were measured, because this page is
+> the record of that push; re-run the commands and you will get today's numbers. What has not
+> changed, and is the point of the check, is that *passed* equals *assertions run* and *FAILED*
+> is zero, from a clone, with nothing from the development machine on the path.
+
+No
 `MISSING FILE` notice appeared, so section 10 found both helper packages inside the clone.
 
 To confirm that last point explicitly:
@@ -517,7 +761,7 @@ grep -n 'MESSAGES' run_from_clone.log || echo "no messages"
 | the test harness | `claude-fable/runner_header.wl` |
 | the provenance scripts | `claude-fable/prov0*.wls` |
 | every run log | `claude-fable/*.log` |
-| the eight provenance documents | repository root, `PROVENANCE-00` … `PROVENANCE-08` |
+| the provenance documents | repository root, `PROVENANCE-00` … `PROVENANCE-10`; there were nine when this page was written, and there are eleven today |
 
 `C:\Users\nsh\Documents\8-dim` is not itself a git repository, which is why the notebook is
 delivered both to that exact path and, as an identical copy, inside the repository. The two are
@@ -538,4 +782,5 @@ Both print `5a12a7b4f1125d786bca279483b02d8c187a2498f50a5c0337f40cbc6cfeaaf1`.
   nine provenance documents.
 - A fresh clone returns every file byte-for-byte, including the author's original notebook.
 - The delivered notebook runs to completion from that clone: 139 cells, zero messages, 175 of
-  175 assertions passing.
+  175 assertions passing *as measured on the day of this push*; a clone made today gives 182 of
+  182, for the reason given in section 7.

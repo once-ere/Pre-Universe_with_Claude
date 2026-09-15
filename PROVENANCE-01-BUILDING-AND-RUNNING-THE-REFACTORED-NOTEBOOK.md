@@ -13,7 +13,8 @@ Everything needed to repeat this work is on this page. No other file needs to be
 
 | file | bytes | what it is |
 |---|---|---|
-| `C:\Users\nsh\Documents\8-dim\claude-fable_Einstein-Rosen-2-Planes.nb` | 136162 | the deliverable notebook: 213 cells, 139 of them Input |
+| `Pre-Universe_14SEP26-77\claude-fable\claude-fable_Einstein-Rosen-2-Planes.nb` | 144787 | **the deliverable notebook**: 213 cells, 139 of them Input. This is the copy git tracks. |
+| `C:\Users\nsh\Documents\8-dim\claude-fable_Einstein-Rosen-2-Planes.nb` | 144787 | a byte-identical copy delivered to the requested path, outside the repository |
 | `Pre-Universe_14SEP26-77\claude-fable\cells_part1.wl` | — | source manifest, sections 0–4 |
 | `Pre-Universe_14SEP26-77\claude-fable\cells_part2.wl` | — | source manifest, sections 5–9 |
 | `Pre-Universe_14SEP26-77\claude-fable\cells_part3.wl` | — | source manifest, sections 10–14 |
@@ -129,7 +130,9 @@ ls -la "C:/Users/nsh/Documents/8-dim/claude-fable_Einstein-Rosen-2-Planes.nb"
 ```bash
 cd "C:/Users/nsh/Documents/8-dim/Pre-Universe_14SEP26-77/claude-fable"
 cat > verify_nb.wls <<'WLSEOF'
-nbfile = "C:/Users/nsh/Documents/8-dim/claude-fable_Einstein-Rosen-2-Planes.nb";
+(* Verify the generated .nb: import it, pull out the Input cells, and evaluate them all in
+   order in this kernel.  If the notebook is well formed, this reproduces run_all.wls exactly. *)
+nbfile = "C:/Users/nsh/Documents/8-dim/Pre-Universe_14SEP26-77/claude-fable/claude-fable_Einstein-Rosen-2-Planes.nb";
 Print["file bytes: ", FileByteCount[nbfile]];
 nb = Import[nbfile, "Notebook"];
 Print["Head: ", Head[nb]];
@@ -137,12 +140,16 @@ cells = Cases[nb, Cell[__], Infinity];
 Print["cells: ", Length[cells]];
 Print["style tally: ", Tally[Cases[cells, Cell[_, s_String, ___] :> s]]];
 inputs = Cases[nb, Cell[BoxData[s_String], "Input", ___] :> s, Infinity];
-Print["input cells: ", Length[inputs]];
+Print["input cells with plain-string BoxData: ", Length[inputs]];
 Print["total input characters: ", Total[StringLength /@ inputs]];
+(* every Input cell must parse *)
 bad = {};
 Do[Module[{e = Quiet@Check[ToExpression[inputs[[i]], InputForm, HoldComplete], $Failed]},
     If[e === $Failed || Head[e] =!= HoldComplete, AppendTo[bad, i]]], {i, Length[inputs]}];
 Print["input cells that FAIL to parse: ", bad];
+(* compare against the manifest-built script *)
+Print["first cell: ", InputForm[StringTake[inputs[[1]], UpTo[90]]]];
+Print["last cell : ", InputForm[StringTake[inputs[[-1]], UpTo[90]]]];
 WLSEOF
 timeout 900 wolframscript -file verify_nb.wls 2>&1 | tee verify_nb.log
 cat verify_nb.log
@@ -151,13 +158,15 @@ cat verify_nb.log
 Expected:
 
 ```
-file bytes: 136162
+file bytes: 144787
 Head: Notebook
 cells: 213
 style tally: {{Title, 4}, {Subtitle, 1}, {Subsubtitle, 1}, {Text, 46}, {Section, 22}, {Input, 139}}
-input cells: 139
-total input characters: 88829
+input cells with plain-string BoxData: 139
+total input characters: 93970
 input cells that FAIL to parse: {}
+first cell: InputForm[(* --- provenance banner, as in the original notebook ------------------------------------]
+last cell : InputForm[(* --- final tally of every assertion made in this notebook ------------------------------]
 ```
 
 ## 7. Execute the notebook itself, end to end
@@ -168,8 +177,8 @@ evaluates each one in a fresh kernel, exactly as the front end would.
 ```bash
 cd "C:/Users/nsh/Documents/8-dim/Pre-Universe_14SEP26-77/claude-fable"
 cat > runner_header.wl <<'WLSEOF'
-(* Harness: evaluate every notebook Input cell in order, in one kernel, reporting timing and
-   every message raised. *)
+(* runner_header.wl -- harness used by run_all.wls to evaluate every notebook Input cell
+   in order, in one kernel, reporting timing and every message raised. *)
 
 $cfCellLog = {};
 $cfMessages = {};
@@ -197,8 +206,7 @@ cfRunSummary[] := Module[{tot, slow},
     Print["---- messages ----"];
     Scan[Print["  cell ", #[[1]], ": ", #[[2]]] &, $cfMessages]];
   Print["---- slowest cells ----"];
-  Scan[Print["  cell ", #["cell"], "  ",
-     ToString[NumberForm[N[#["seconds"]], {8, 3}, ExponentFunction -> (Null &)]], " s"] &, slow];
+  Scan[Print["  cell ", #["cell"], "  ", ToString[NumberForm[N[#["seconds"]], {8, 3}, ExponentFunction -> (Null &)]], " s"] &, slow];
   Print["==================== ASSERTIONS ===================="];
   Module[{n = Length[$cfAssertLog], bad = Cases[$cfAssertLog, {l_, False} :> l]},
     Print["assertions run  : ", n];
@@ -212,9 +220,8 @@ cat > run_from_nb.wls <<'WLSEOF'
 (* Execute the notebook itself: import the .nb, take its Input cells in order, evaluate each.
    ToExpression[...,Hold] on a multi-line cell returns Hold[e1,e2,...]; rewrap those as one
    CompoundExpression so the cell evaluates as a single unit, exactly as the front end does. *)
-Get["C:/Users/nsh/Documents/8-dim/Pre-Universe_14SEP26-77/claude-fable/runner_header.wl"];
-nbfile = "C:/Users/nsh/Documents/8-dim/claude-fable_Einstein-Rosen-2-Planes.nb";
-SetDirectory["C:/Users/nsh/Documents/8-dim"];
+Get["runner_header.wl"];
+nbfile = "C:/Users/nsh/Documents/8-dim/Pre-Universe_14SEP26-77/claude-fable/claude-fable_Einstein-Rosen-2-Planes.nb";
 nb = Import[nbfile, "Notebook"];
 inputs = Cases[nb, Cell[BoxData[s_String], "Input", ___] :> s, Infinity];
 Print["evaluating ", Length[inputs], " Input cells straight out of the .nb"];
@@ -231,16 +238,16 @@ Expected tail:
 ```
 ==================== RUN SUMMARY ====================
 cells evaluated : 139
-total seconds   : 140.600
+total seconds   : 127.849
 cells w/ msgs   : 0
 ---- slowest cells ----
-  cell 80  75.065 s
-  cell 88  24.810 s
-  cell 86   8.921 s
+  cell 80  69.005 s
+  cell 88  22.723 s
+  cell 86   8.173 s
   ...
 ==================== ASSERTIONS ====================
-assertions run  : 178
-passed          : 178
+assertions run  : 182
+passed          : 182
 FAILED          : 0
 ====================================================
 ```
@@ -249,16 +256,21 @@ The three numbers that matter:
 
 - **`cells evaluated : 139`** — every Input cell ran.
 - **`cells w/ msgs : 0`** — the notebook raises no errors and no warnings.
-- **`assertions run : 178  passed : 178  FAILED : 0`** — every identity the notebook claims was
+- **`assertions run : 182  passed : 182  FAILED : 0`** — every identity the notebook claims was
   checked and holds.
 
-Wall-clock time is roughly 140 s on this machine; it will vary.
+Wall-clock time is roughly 128 s on this machine; it will vary.
+
+The assertion total has grown as the notebook gained checks: it was 175 when the repository was
+first pushed, 178 after the review of commit `35ff142`, and 182 after the evaluation of
+`2da615d` added four. If a future change adds more, this number moves with it; what must stay
+true is that **passed** equals **assertions run** and **FAILED** is zero.
 
 To see the individual assertion verdicts:
 
 ```bash
 cd "C:/Users/nsh/Documents/8-dim/Pre-Universe_14SEP26-77/claude-fable"
-grep -c 'PASS' run_from_nb.log       # 178
+grep -c 'PASS' run_from_nb.log       # 182
 grep    'FAIL' run_from_nb.log       # only the "FAILED : 0" summary line
 grep -n 'MESSAGES' run_from_nb.log   # no hits
 ```
@@ -280,12 +292,31 @@ stages (`cfZeroQ` and `cfZeroArrayQ`, defined in section 15):
    to 200 digits of extra working precision, and require the magnitude to be below `10^-22`.
 
 Stage 3 uses the probes as *test inputs only*. They are never definitions: `a4` and the rapidity
-stay undetermined everywhere else, and no stated result depends on the particular probes. The
-counter `$cfNumericCertificates` records how many checks needed stage 3. To see it:
+stay undetermined everywhere else, and no stated result depends on the particular probes.
+
+Stage 3 is reached with two opposite intentions, and the notebook counts them apart, because one
+number lumping them together was misleading and was corrected on 2026-09-14:
+
+- `$cfNumericCertificates` counts the times stage 3 returned **True** — an identity that
+  `Simplify` could not close, accepted on numerical evidence alone. It measures how much of the
+  notebook is *not* symbolic, and smaller is better. It currently reads **0**.
+- `$cfNonVanishingWitnesses` counts the times stage 3 returned **False** inside an assertion of
+  the form `! TrueQ[cfZeroArrayQ[...]]`, i.e. a claim that something is *not* identically zero. A
+  single sample point where an expression evaluates non-zero is a complete proof of
+  non-vanishing, so these are the strongest form such a claim can take. It currently reads **6**.
+
+To see both:
 
 ```bash
 cd "C:/Users/nsh/Documents/8-dim/Pre-Universe_14SEP26-77/claude-fable"
-grep 'numerical certificates used' run_from_nb.log
+grep -E 'identities accepted|non-vanishing witnesses' run_from_nb.log
+```
+
+which prints
+
+```
+identities accepted on numerical evidence alone : 0   (stage 3 returned True)
+non-vanishing witnesses                         : 6   (stage 3 returned False inside a ! TrueQ[...] assertion;
 ```
 
 which prints `numerical certificates used: 6`. That counter records `cfZeroQ`/`cfZeroArrayQ`

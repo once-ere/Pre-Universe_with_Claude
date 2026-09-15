@@ -370,14 +370,16 @@ One `WolframNB.exe` (the author's window) and its kernel; hash unchanged; tree c
 ## 9. Repeating the whole check from nothing
 
 ```bash
-# 1. the file is what it should be
+# 1. the file is what it should be.  This is the copy git tracks, so these lines work
+#    against a fresh clone; the identical copy under 8-dim is outside the repository.
 cd "C:/Users/nsh/Documents/8-dim/Pre-Universe_14SEP26-77"
-sha256sum ../claude-fable_Einstein-Rosen-2-Planes.nb
+sha256sum claude-fable/claude-fable_Einstein-Rosen-2-Planes.nb
 git status --porcelain=v1 -- claude-fable/claude-fable_Einstein-Rosen-2-Planes.nb
 
 # 2. open it, if it is not open already
 FE="/c/Program Files/Wolfram Research/Wolfram/15.0.1/WolframNB.exe"
-("$FE" "C:\Users\nsh\Documents\8-dim\claude-fable_Einstein-Rosen-2-Planes.nb" >/dev/null 2>&1 &)
+NB="$(pwd -W 2>/dev/null || pwd)/claude-fable/claude-fable_Einstein-Rosen-2-Planes.nb"
+("$FE" "$NB" >/dev/null 2>&1 &)
 
 # 3. the three checks
 mkdir -p "C:/Users/nsh/Documents/8-dim/render3"
@@ -388,7 +390,8 @@ wolframscript -file shots.wls 2>&1 | tee shots.log
 wolframscript -file pdf.wls   2>&1 | tee pdf.log
 
 # 4. nothing was written to the notebook
-sha256sum "C:/Users/nsh/Documents/8-dim/claude-fable_Einstein-Rosen-2-Planes.nb"
+cd "C:/Users/nsh/Documents/8-dim/Pre-Universe_14SEP26-77"
+sha256sum claude-fable/claude-fable_Einstein-Rosen-2-Planes.nb
 ```
 
 Expected: 213 cells, 0 `ErrorBox`, 0 unparsed `Input` cells, 0 private-use characters, six

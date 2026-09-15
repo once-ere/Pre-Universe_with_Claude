@@ -16,7 +16,7 @@ CELL 8  t=0.001 s
 CELL 9  t=0.000 s
 CELL 10  t=0.001 s
 CELL 11  t=0.000 s
-CELL 12  t=0.005 s
+CELL 12  t=0.006 s
 CELL 13  t=0.000 s
   PASS  s4by4 is self-dual
   PASS  t4by4 is anti-self-dual
@@ -60,15 +60,15 @@ CELL 26  t=0.000 s
   PASS  SAB is antisymmetric in its two flat indices
   PASS  sigma16 . SAB is antisymmetric
   PASS  sigma16 is symmetric and sigma16 . sigma16 == ID16
-CELL 27  t=0.028 s
+CELL 27  t=0.026 s
   PASS  [SAB,SAB] closes on the so(4,4) algebra
-  [0.427 s]  so(4,4) commutators over 28 x 28 index pairs
-CELL 28  t=0.427 s
+  [0.400 s]  so(4,4) commutators over 28 x 28 index pairs
+CELL 28  t=0.401 s
   PASS  [SAB, T16] reproduces the vector representation
-  [0.194 s]  vector transformation law of the gammas
-CELL 29  t=0.194 s
+  [0.181 s]  vector transformation law of the gammas
+CELL 29  t=0.181 s
   [0.001 s]  build the 256-element basis of the 16x16 algebra
-CELL 30  t=0.004 s
+CELL 30  t=0.003 s
   PASS  base16[[93]] is sigma16
   PASS  base16[[255]] is the chirality operator T16[8]
   PASS  base16[[256]] is the identity
@@ -77,7 +77,7 @@ CELL 31  t=0.000 s
 CELL 32  t=0.011 s
   PASS  136 basis elements have Tr[M.M] > 0
   PASS  120 basis elements have Tr[M.M] < 0
-CELL 33  t=0.098 s
+CELL 33  t=0.101 s
   PASS  symmetric basis elements number 16*17/2 = 136
   PASS  antisymmetric basis elements number 16*15/2 = 120
   PASS  Tr[M.M] > 0 exactly when M is symmetric
@@ -108,28 +108,28 @@ CELL 40  t=0.000 s
 CELL 41  t=0.001 s
   PASS  [S44,S44] closes on the so(3,1) algebra
   PASS  [S44, gamma4] reproduces the vector representation
-CELL 42  t=0.006 s
+CELL 42  t=0.010 s
   PASS  (1/2)(sigma22[A] sigma22bar[B] + sigma22[B] sigma22bar[A]) == eta2244[[A,B]] ID2
   PASS  the 4x4 basis has 16 elements
   PASS  the 16 elements are linearly independent
-CELL 43  t=0.002 s
+CELL 43  t=0.003 s
   PASS  the 4x4 basis splits 10 symmetric + 6 antisymmetric
 CELL 44  t=0.000 s
   PASS  each uEig row is sigma-normalized to +/-1
   PASS  unit is sigma-normalized to +1
-CELL 45  t=0.005 s
+CELL 45  t=0.007 s
   PASS  triVecToSpin . triSpinToVec == ID8
   PASS  triSpinToVec . triVecToSpin == ID8
   PASS  triSpinToVec == Transpose[ eta_AA tau[A].unit ]  (the original's closed form)
-CELL 46  t=0.001 s
+CELL 46  t=0.002 s
   PASS  etaTri is symmetric
   PASS  etaTri has signature (4,4)
   PASS  triVecToSpin transports etaTri back to eta4488
   PASS  THE TRIALITY METRIC IS EXACTLY THE SPINOR METRIC:  etaTri == sigma
 CELL 47  t=0.002 s
   [0.003 s]  split-octonion structure constants in the spinor basis
-  [0.028 s]  split-octonion structure constants in the vector basis
-CELL 48  t=0.030 s
+  [0.031 s]  split-octonion structure constants in the vector basis
+CELL 48  t=0.035 s
 CELL 49  t=0.000 s
   PASS  eA[1] is a two-sided identity for the vector-basis product
 CELL 50  t=0.000 s
@@ -145,17 +145,17 @@ CELL 55  t=0.004 s
   PASS  Psi16 is the direct sum of the type-1 and type-2 spinors
 CELL 56  t=0.000 s
 CELL 57  t=0.000 s
-  [0.051 s]  evaluate the Lagrangian La[]
-CELL 58  t=0.051 s
+  [0.052 s]  evaluate the Lagrangian La[]
+CELL 58  t=0.052 s
   PASS  Psi16 . sigma16 . T16[alpha] . Psi16 == 0 identically (antisymmetric form)
   PASS  the kinetic term equals minus its transpose, exactly
 CELL 59  t=0.002 s
   PASS  La[] == its conjugate form when the coefficients match
 CELL 60  t=0.002 s
 CELL 61  t=0.000 s
-  [0.101 s]  Euler-Lagrange equations eLa = eL[La, 1]
+  [0.108 s]  Euler-Lagrange equations eLa = eL[La, 1]
   PASS  there are sixteen field equations
-CELL 62  t=0.102 s
+CELL 62  t=0.108 s
 CELL 63  t=0.000 s
   [0.000 s]  partition the 16 components into coupled blocks
   PASS  the coupled blocks partition all sixteen components
@@ -163,37 +163,37 @@ CELL 63  t=0.000 s
 CELL 64  t=0.000 s
 wrote C:\Users\nsh\Documents\8-dim\Pre-Universe_14SEP26-77\claude-fable\claude-fable_Einstein-Rosen-2-Planes-eLa.mx
 CELL 65  t=0.000 s
-  [0.117 s]  change of chart: eLazt = (1/(2H)) eLa in the (z,t) coordinates
+  [0.128 s]  change of chart: eLazt = (1/(2H)) eLa in the (z,t) coordinates
 wrote C:\Users\nsh\Documents\8-dim\Pre-Universe_14SEP26-77\claude-fable\claude-fable_Einstein-Rosen-2-Planes-eLazt.mx
-CELL 66  t=0.117 s
+CELL 66  t=0.129 s
 CELL 67  t=0.000 s
-  [0.062 s]  solve the 16 equations for the t-derivatives
+  [0.066 s]  solve the 16 equations for the t-derivatives
   PASS  all sixteen t-derivatives are determined
-CELL 68  t=0.062 s
+CELL 68  t=0.066 s
   PASS  the relabelling is a bijection of the sixteen components
 CELL 69  t=0.001 s
-  [0.119 s]  relabel the equations
-  [0.083 s]  solve the relabelled system for the t-derivatives
+  [0.122 s]  relabel the equations
+  [0.085 s]  solve the relabelled system for the t-derivatives
   PASS  the system splits into four blocks of four equations
-CELL 70  t=0.201 s
+CELL 70  t=0.207 s
   PASS  each 4x4 block is closed in its own four components
 CELL 71  t=0.000 s
   block 1: returned unevaluated
   block 2: returned unevaluated
   block 3: returned unevaluated
   block 4: returned unevaluated
-  [0.031 s]  DSolve on the four blocks
-CELL 72  t=0.031 s
+  [0.032 s]  DSolve on the four blocks
+CELL 72  t=0.032 s
 CELL 73  t=0.000 s
   PASS  all sixteen components have a closed form
-CELL 74  t=0.078 s
+CELL 74  t=0.077 s
   PASS  there are sixteen pure-function rules
 CELL 75  t=0.001 s
-  [0.492 s]  substitute the closed forms back into the four blocks
+  [0.504 s]  substitute the closed forms back into the four blocks
   PASS  THE MAPLE CLOSED FORMS SOLVE ALL SIXTEEN EQUATIONS
-CELL 76  t=0.493 s
-  [0.970 s]  Psi16 with the closed forms substituted
-CELL 77  t=0.970 s
+CELL 76  t=0.505 s
+  [0.966 s]  Psi16 with the closed forms substituted
+CELL 77  t=0.966 s
   PASS  the yZ coefficient matrix is the identity
   PASS  ORTHOGONAL: Transpose[S] . S == ID16
   PASS  ORTHOGONAL: S . Transpose[S] == ID16
@@ -201,55 +201,59 @@ CELL 77  t=0.970 s
   PASS  and NOT a direct sum: it mixes type-1 with type-2
 CELL 78  t=0.000 s
 CELL 79  t=0.001 s
+  PASS  the yZ split at 8 is NOT the type-1/type-2 split
+  PASS  the first relabelled block holds four type-1 and four type-2 components
   EXPECTED MESSAGE  FullSimplify::time may fire on the bilinears; the 3-second budget
                     set in Section 1 is the original notebook's, and a budget that is
                     reached still returns a correct, merely less-simplified, result.
-  [14.418 s]  bilinear psi . sigma16 . psi
-  [0.180 s]  bilinear psi1 . sigma . psi1
-  [0.186 s]  bilinear psi2 . sigma . psi2
-  [26.372 s]  bilinear psi2 . psi1
-  [26.164 s]  bilinear psi2 . sigma . psi1
+  [14.748 s]  bilinear psi . sigma16 . psi
+  [0.183 s]  bilinear psi1 . sigma . psi1
+  [0.191 s]  bilinear psi2 . sigma . psi2
+  [26.887 s]  bilinear psi2 . psi1
+  [26.505 s]  bilinear psi2 . sigma . psi1
   PASS  psi . sigma16 . psi == psi2.sigma.psi2 - psi1.sigma.psi1
-CELL 80  t=67.711 s
+  PASS  sigma16 alone is SYMMETRIC, so psi . sigma16 . psi is not forced to vanish
+  PASS  and for this solution it does NOT vanish: it is not the zero expression
+CELL 80  t=69.005 s
   EXPECTED MESSAGES  Solve::ifun and Solve::svars: the light-cone conditions are
                      transcendental and leave a family of solutions, not a unique one.
   PASS  the light-cone-constant condition has solutions
 CELL 81  t=0.219 s
   PASS  on the branch C2 = -C1, C4 = -C3 the two norms are independent of ztadv and ztret
-CELL 82  t=0.121 s
-  [1.183 s]  Psi16ab  (M -> H Mab Sqrt[C1 C3])
-  [0.603 s]  Psi16aa  (M -> H Sqrt[C1 C3])
+CELL 82  t=0.122 s
+  [1.228 s]  Psi16ab  (M -> H Mab Sqrt[C1 C3])
+  [0.606 s]  Psi16aa  (M -> H Sqrt[C1 C3])
   [0.028 s]  Psi16x0ONLY  (C3 -> C1)
-CELL 83  t=1.814 s
-CELL 84  t=0.000 s
-CELL 85  t=1.698 s
+CELL 83  t=1.862 s
+CELL 84  t=0.001 s
+CELL 85  t=1.613 s
   PASS  both triality vectors have eight components
   PASS  vectorFormOfType2 == psi2 contracted on the SPINOR index of triVecToSpin
   PASS  triVecToSpin and triSpinToVec really are mutually inverse
-CELL 86  t=8.062 s
+CELL 86  t=8.173 s
   PASS  sevenPlane2 is annihilated by vectorFormOfType2
   PASS  sevenPlane1 is annihilated by vectorFormOfType1
-CELL 87  t=7.789 s
+CELL 87  t=7.234 s
   EXPECTED MESSAGE  Solve::svars: two 7-planes fix only two of the eight components,
                     leaving the six free parameters of M6.
-  [24.311 s]  intersect the two 7-planes
-  [0.635 s]  M6 in advanced / retarded coordinates
+  [22.168 s]  intersect the two 7-planes
+  [0.555 s]  M6 in advanced / retarded coordinates
   PASS  M6 is a non-empty solution set
   PASS  M6 has six free parameters
-CELL 88  t=24.946 s
+CELL 88  t=22.723 s
 CELL 89  t=0.000 s
   PASS  cfResolution[unit]: the closed-form bridge equals the matrix inverse
   PASS  cfResolution[unit]: the two bridges are mutually inverse
   PASS  cfResolution[unit] reproduces triVecToSpin
-CELL 90  t=0.007 s
+CELL 90  t=0.006 s
 CELL 91  t=0.000 s
   NOTE  a4 is an undefined scalar function inherited from the original notebook
         The canonical frame field below contains Exp[-a4[H x4]] and Exp[+a4[H x4]].  The original notebook never gives a4 a definition; it appears only inside the recorded value of the frame field.  We therefore carry a4 through symbolically and we do NOT invent a value for it.  Every result in Parts III and IV is valid for an arbitrary differentiable a4.  The same applies to la, which occurs only inside the assumption ssX of Section 2.
 CELL 92  t=0.000 s
 CELL 93  t=0.000 s
-CELL 94  t=0.006 s
+CELL 94  t=0.004 s
 CELL 95  t=0.000 s
-CELL 96  t=0.004 s
+CELL 96  t=0.002 s
   PASS  CANONICAL [structural]: frame . coframe == ID8  (certifies only that the frame is invertible)
   PASS  CANONICAL [definition]: g == frame . eta4488 . Transpose[frame]  (bridge [d]; this IS how g was defined, so it cannot fail)
   PASS  CANONICAL [has content]: g == diag(Tan[6 H x0]^2, q^2, q^2, q^2, -1, -p^2, -p^2, -p^2), the stated line element
@@ -257,37 +261,37 @@ CELL 96  t=0.004 s
   PASS  CANONICAL [has content]: g has signature (4,4), GIVEN a4 real and 0 < 6 H x0 < Pi/2
   PASS  Inverse[g] == Transpose[coframe] . eta4488 . coframe
   PASS  g is symmetric
-CELL 97  t=0.116 s
+CELL 97  t=0.099 s
   PASS  the metric is non-degenerate
-CELL 98  t=0.009 s
+CELL 98  t=0.008 s
 CELL 99  t=0.000 s
 CELL 100  t=0.000 s
-  [0.516 s]  generalized Christoffel symbols of the 4+4 metric
+  [0.444 s]  generalized Christoffel symbols of the 4+4 metric
   PASS  Gamma is symmetric in its two lower indices (torsion-free affine connection)
-CELL 101  t=0.517 s
+CELL 101  t=0.445 s
 CELL 102  t=0.001 s
 CELL 103  t=0.000 s
 CELL 104  t=0.000 s
-  [0.479 s]  canonical spin connection omega[mu]^a_b from the vielbein postulate
-CELL 105  t=0.482 s
+  [0.441 s]  canonical spin connection omega[mu]^a_b from the vielbein postulate
+CELL 105  t=0.444 s
   PASS  CANONICAL [solver regression]: vielbein postulate residual is zero
   PASS  CANONICAL [structural]: torsion vanishes
   PASS  CANONICAL [has content]: omega[mu,a,b] == -omega[mu,b,a]  (metric compatibility)
-CELL 106  t=0.015 s
-  [3.811 s]  independent derivation of omega from the frame alone
+CELL 106  t=0.013 s
+  [3.519 s]  independent derivation of omega from the frame alone
   PASS  INDEPENDENT CHECK: the frame-only derivation reproduces omegaCanonical exactly
   PASS  INDEPENDENT CHECK: and it is antisymmetric in its two raised flat indices
-CELL 107  t=3.816 s
+CELL 107  t=3.523 s
 CELL 108  t=0.001 s
-  [0.933 s]  curvature 2-form of the canonical spin connection
+  [0.864 s]  curvature 2-form of the canonical spin connection
   PASS  CANONICAL: curvature is antisymmetric in the two spacetime indices
-CELL 109  t=0.940 s
-  [0.609 s]  Ricci scalar of the canonical connection
-CELL 110  t=0.609 s
-  [0.263 s]  16x16 spin-connection matrices Gamma^spin[mu]
-CELL 111  t=0.263 s
+CELL 109  t=0.869 s
+  [0.553 s]  Ricci scalar of the canonical connection
+CELL 110  t=0.553 s
+  [0.229 s]  16x16 spin-connection matrices Gamma^spin[mu]
+CELL 111  t=0.229 s
   PASS  (1/8) omega [gamma^a, gamma^b] == (1/2) omega SAB
-CELL 112  t=0.022 s
+CELL 112  t=0.020 s
   PASS  Gamma^spin[mu] is block diagonal: it never mixes type-1 with type-2
 CELL 113  t=0.002 s
   PASS  the type-1 block is (1/8) omega (taubar^a tau^b - taubar^b tau^a)
@@ -296,29 +300,29 @@ CELL 114  t=0.011 s
   PASS  Dcov16 on the direct sum is the direct sum of Dcov1 and Dcov2
 CELL 115  t=0.004 s
   PASS  {gammaCurved[mu], gammaCurved[nu]} == 2 gInv[mu,nu] ID16
-CELL 116  t=0.159 s
+CELL 116  t=0.147 s
   PASS  Lambda is in O(4,4): Lambda . eta . Transpose[Lambda] == eta
   PASS  Lambda is NOT in O(8): it is a genuine boost, not a rotation
   PASS  Lambda == MatrixExp[theta K] with K the (0,4) boost generator
-CELL 117  t=0.008 s
+CELL 117  t=0.007 s
   PASS  BRIDGE 1 reproduces the SAME curved metric g
   PASS  BRIDGE 1 frame really is different from the canonical frame
-CELL 118  t=0.027 s
-  [0.629 s]  BRIDGE 1 spin connection
+CELL 118  t=0.024 s
+  [0.598 s]  BRIDGE 1 spin connection
   PASS  BRIDGE 1: vielbein postulate holds identically
   PASS  BRIDGE 1: omega[mu,a,b] == -omega[mu,b,a]
   PASS  BRIDGE 1: torsion still vanishes
-CELL 119  t=0.682 s
+CELL 119  t=0.652 s
   PASS  COMPARISON 1: omegaBoost == M omegaCanonical Inverse[M] - D[M,x_mu] Inverse[M]
   PASS  COMPARISON 1: the WHOLE difference is the inhomogeneous gauge term
-CELL 120  t=0.097 s
+CELL 120  t=0.086 s
   PASS  COMPARISON 1: the difference equals -D[theta, x_mu] * (boost generator)
 CELL 121  t=0.000 s
-  [1.782 s]  BRIDGE 1 curvature 2-form
+  [1.494 s]  BRIDGE 1 curvature 2-form
   PASS  COMPARISON 1: curvature transforms covariantly, R' == M R Inverse[M]
-  [0.385 s]  BRIDGE 1 Ricci scalar
+  [0.345 s]  BRIDGE 1 Ricci scalar
   PASS  COMPARISON 1: BRIDGE 1 has the SAME Ricci scalar as the canonical frame
-CELL 122  t=2.187 s
+CELL 122  t=1.856 s
   PASS  U is an involution: U . U == ID8
   PASS  U is symmetric
   PASS  THE NULL TANGENT METRIC IS EXACTLY THE SPINOR METRIC sigma
@@ -326,82 +330,84 @@ CELL 122  t=2.187 s
   PASS  all eight frame directions are null: etaNull has zero diagonal
 CELL 123  t=0.000 s
   PASS  BRIDGE 2 reproduces the SAME curved metric g
-CELL 124  t=0.051 s
-  [0.628 s]  BRIDGE 2 spin connection
+CELL 124  t=0.050 s
+  [0.561 s]  BRIDGE 2 spin connection
   PASS  BRIDGE 2: vielbein postulate holds identically
   PASS  BRIDGE 2: omega[mu,a,b] == -omega[mu,b,a] with indices lowered by etaNull
   PASS  BRIDGE 2: torsion vanishes
-CELL 125  t=0.708 s
+CELL 125  t=0.624 s
   PASS  COMPARISON 2: omegaNull == U . omegaCanonical . U exactly
   PASS  COMPARISON 2: the inhomogeneous gauge term is ZERO because U is constant
-CELL 126  t=0.054 s
-  [1.373 s]  BRIDGE 2 curvature 2-form
+CELL 126  t=0.044 s
+  [1.225 s]  BRIDGE 2 curvature 2-form
   PASS  COMPARISON 2: R_null == U . R_canonical . U
-  [0.158 s]  BRIDGE 2 Ricci scalar
+  [0.138 s]  BRIDGE 2 Ricci scalar
   PASS  COMPARISON 2: BRIDGE 2 has the SAME Ricci scalar as the canonical frame
-CELL 127  t=1.569 s
+CELL 127  t=1.396 s
   PASS  the triality bridge is ORTHOGONAL: Transpose[P] == Inverse[P]
   PASS  BRIDGE 3 reproduces the SAME curved metric g
   PASS  the triality tangent metric is sigma
 CELL 128  t=0.022 s
   PASS  the antisymmetrized structure constants are totally antisymmetric
   PASS  they agree with mLower on the seven imaginary directions
-  [0.267 s]  transport the skew structure constants to the spinor basis
+  [0.275 s]  transport the skew structure constants to the spinor basis
   PASS  mSkewSpin is totally antisymmetric
-CELL 129  t=0.270 s
-  [0.427 s]  BRIDGE 3 Levi-Civita part
+CELL 129  t=0.278 s
+  [0.384 s]  BRIDGE 3 Levi-Civita part
   PASS  BRIDGE 3 (lambda=0): vielbein postulate holds identically
   PASS  BRIDGE 3 (lambda=0): omega[mu,a,b] == -omega[mu,b,a]
   PASS  BRIDGE 3 (lambda=0) is the constant triality conjugate of the canonical connection
-CELL 130  t=0.448 s
+CELL 130  t=0.400 s
   PASS  BRIDGE 3: omegaOct[mu,a,b] == -omegaOct[mu,b,a]  (still metric compatible)
   PASS  BRIDGE 3: at lambda = 0 it reduces to the Levi-Civita connection
-CELL 131  t=0.303 s
-  [0.260 s]  BRIDGE 3 torsion 2-form
+CELL 131  t=0.249 s
+  [0.212 s]  BRIDGE 3 torsion 2-form
   PASS  BRIDGE 3: torsion vanishes at lambda = 0
   PASS  BRIDGE 3: torsion is NOT zero for lambda != 0
-  [0.366 s]  BRIDGE 3 torsion with all indices flat
+  [0.338 s]  BRIDGE 3 torsion with all indices flat
   PASS  BRIDGE 3: the flat torsion T[a,b,c] is TOTALLY ANTISYMMETRIC
   PASS  BRIDGE 3: T[a,b,c] == -2 lambda mSkewSpin[a,b,c]
-CELL 132  t=0.703 s
+CELL 132  t=0.619 s
   PASS  COMPARISON 3: omegaOct - (triality conjugate of omegaCanonical) == contortion
   PASS  COMPARISON 3: the difference is linear in lambda and vanishes at lambda = 0
-CELL 133  t=0.093 s
+CELL 133  t=0.080 s
   PASS  THE TRIALITY DIRAC MATRICES OBEY THE sigma CLIFFORD RELATION: {T16Tri[a],T16Tri[b]} == 2 sigma[[a,b]] ID16
   PASS  they are NOT the vector-frame Dirac matrices, so the distinction is real
-CELL 134  t=0.043 s
-  [0.656 s]  BRIDGE 3 16x16 spin-connection matrices
-  [0.460 s]  BRIDGE 3 extra spinor coupling from the torsion
+CELL 134  t=0.038 s
+  [0.637 s]  BRIDGE 3 16x16 spin-connection matrices
+  [0.428 s]  BRIDGE 3 extra spinor coupling from the torsion
   PASS  at lambda = 0 the Bridge 3 spinor connection equals the canonical one
   PASS  the extra spinor coupling vanishes at lambda = 0
   PASS  the extra spinor coupling is non-zero for lambda != 0
   PASS  the extra spinor coupling is still block diagonal (type-1 + type-2 preserved)
-CELL 135  t=1.185 s
+CELL 135  t=1.126 s
 CELL 136  t=0.000 s
 CELL 137  t=0.001 s
 CELL 138  t=0.000 s
-numerical certificates used: 6
-Assertions run: 178   passed: 178   failed: 0
+identities accepted on numerical evidence alone : 0   (stage 3 returned True)
+non-vanishing witnesses                         : 6   (stage 3 returned False inside a ! TrueQ[...] assertion;
+                                                     a sample point with a non-zero value is a complete proof of non-vanishing)
+Assertions run: 182   passed: 182   failed: 0
 CELL 139  t=0.000 s
 ==================== RUN SUMMARY ====================
 cells evaluated : 139
-total seconds   : 130.745
+total seconds   : 127.849
 cells w/ msgs   : 0
 ---- slowest cells ----
-  cell 80  67.711 s
-  cell 88  24.946 s
-  cell 86  8.062 s
-  cell 87  7.789 s
-  cell 107  3.816 s
-  cell 122  2.187 s
-  cell 83  1.814 s
-  cell 85  1.698 s
-  cell 127  1.569 s
-  cell 135  1.185 s
-  cell 77  0.970 s
-  cell 109  0.940 s
+  cell 80  69.005 s
+  cell 88  22.723 s
+  cell 86  8.173 s
+  cell 87  7.234 s
+  cell 107  3.523 s
+  cell 83  1.862 s
+  cell 122  1.856 s
+  cell 85  1.613 s
+  cell 127  1.396 s
+  cell 135  1.126 s
+  cell 77  0.966 s
+  cell 109  0.869 s
 ==================== ASSERTIONS ====================
-assertions run  : 178
-passed          : 178
+assertions run  : 182
+passed          : 182
 FAILED          : 0
 ====================================================
