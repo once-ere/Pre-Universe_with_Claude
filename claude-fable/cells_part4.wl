@@ -113,8 +113,29 @@ stages:
 
 Stage 3 uses probe functions ONLY as test inputs.  They are never definitions: a4 and the
 rapidity remain undetermined everywhere else in this notebook, and no stated result depends on
-the particular probes.  The counter $cfNumericCertificates records how many checks needed
-stage 3, and the run summary reports it, so a reader can see exactly how much is symbolic.
+the particular probes.
+
+Stage 3 is reached with two opposite intentions, and this notebook counts them separately
+because a single number lumping them together was actively misleading.
+
+  $cfNumericCertificates  counts the times stage 3 returned TRUE, i.e. an identity that
+                          Simplify could not close and that is therefore accepted on numerical
+                          evidence alone.  This is the number that measures how much of the
+                          notebook is NOT symbolic, and the smaller it is the better.
+
+  $cfNonVanishingWitnesses  counts the times stage 3 returned FALSE inside an assertion of the
+                          form  ! TrueQ[cfZeroArrayQ[...]],  which is how this notebook states
+                          that something is NOT identically zero -- that the Bridge 3 torsion
+                          really is present, that the triality Dirac matrices really do differ
+                          from the vector ones, that Lambda really is a boost and not a
+                          rotation.  A single sample point at which an expression evaluates to
+                          a non-zero number is a COMPLETE proof that it is not identically
+                          zero, so these are not weakened results; they are the strongest form
+                          the claim can take.
+
+Both are printed by the final summary.  At the time of writing the run reports
+$cfNumericCertificates == 0 and $cfNonVanishingWitnesses == 6: every identity in this notebook
+is closed symbolically, and stage 3 is used only to witness the six non-vanishing claims.
 
 One detail about stage 3.  Evaluating an expression that is IDENTICALLY ZERO in arbitrary
 precision always ends by raising N::meprec, because no amount of extra working precision can
@@ -125,8 +146,10 @@ to 200 digits of extra working precision, and anything larger than 10^-22 in mag
 reported as non-zero.
 
 (* ::Input:: *)
-ClearAll[cfProbeRules, cfProbePoints, cfZeroQ, cfZeroArrayQ, $cfNumericCertificates];
-$cfNumericCertificates = 0;
+ClearAll[cfProbeRules, cfProbePoints, cfZeroQ, cfZeroArrayQ,
+         $cfNumericCertificates, $cfNonVanishingWitnesses];
+$cfNumericCertificates   = 0;   (* stage 3 said "yes, zero"  -- an identity taken on numerics *)
+$cfNonVanishingWitnesses = 0;   (* stage 3 said "no, non-zero" -- a witness of non-vanishing  *)
 (* probe functions: TEST INPUTS ONLY, never definitions *)
 cfProbeRules = {
   a4 -> Function[u, 3/7 + u/5 + Sin[u]/11],
@@ -151,12 +174,15 @@ cfNumericallyZeroQ[expr_] := Block[{$MaxExtraPrecision = 200},
     Function[pt,
      TrueQ[Max[Abs[Quiet[Chop[N[Flatten[{expr}] /. cfProbeRules /. pt, 30], 10^-22],
                          {N::meprec, General::stop}]]] == 0]]]];
-cfZeroQ[e_] := Module[{s},
+cfZeroQ[e_] := Module[{s, r},
   If[e === 0, Return[True]];
   s = Simplify[e, cfGeomAssume, TimeConstraint -> 5];
   If[s === 0, Return[True]];
-  $cfNumericCertificates++;
-  cfNumericallyZeroQ[s]];
+  r = cfNumericallyZeroQ[s];
+  (* Count the two outcomes apart.  Incrementing one counter BEFORE the call, as this cell   *)
+  (* used to, made every non-vanishing assertion look like an identity accepted on numerics. *)
+  If[r, $cfNumericCertificates++, $cfNonVanishingWitnesses++];
+  r];
 cfZeroArrayQ[arr_] := Module[{flat = Flatten[{arr}], s},
   (* stage 1 *)
   If[AllTrue[flat, # === 0 &], Return[True]];
@@ -767,9 +793,12 @@ metric compatibility.  Define, for a real parameter lambda,
 The added term is antisymmetric in (a,b), so omegaOct is still an so(4,4)-valued connection and
 is still metric compatible; but it is no longer torsion-free.  Its torsion is totally
 antisymmetric and proportional to the octonion structure constants.  This is the octonionic
-analogue of the Cartan-Schouten flat connections on a Lie group, and in physics it is the
-Einstein-Cartan axial-torsion coupling.  At lambda = 0 it reduces to the Levi-Civita connection
-in the triality frame.
+analogue of the Cartan-Schouten flat connections on a Lie group, and a totally antisymmetric
+torsion is precisely the kind that sources the Einstein-Cartan AXIAL torsion coupling of a
+spinor.  What Section 20 computes is the torsion itself and its effect on the connection; the
+cubic gamma^a gamma^b gamma^c axial term is a further contraction that this notebook does not
+carry out, and the cell that builds the spinor coupling says so.  At lambda = 0 the connection
+reduces to the Levi-Civita connection in the triality frame.
 
 (* ::Input:: *)
 ClearAll[frameTri, \[Eta]TriFlat];
@@ -909,10 +938,17 @@ cfSpinMatrixTri[om_, mu_Integer] :=
   (1/8) Sum[om[[mu, a, b]] (T16Tri[a] . T16Tri[b] - T16Tri[b] . T16Tri[a]), {a, 8}, {b, 8}];
 
 (* ::Input:: *)
-(* --- the effect on the spinor covariant derivative: an axial-torsion coupling ------------ *)
-(* Dcov picks up (lambda/8) mSkew[a,b,c] frameTri[[mu,c]] Commutator[gammaTri^a, gammaTri^b], *)
-(* a cubic-in-gamma term.  This is the Einstein-Cartan axial coupling, here generated by the  *)
-(* split-octonion multiplication itself rather than put in by hand.                           *)
+(* --- the effect on the spinor covariant derivative: the torsion's so(4,4) piece ---------- *)
+(* Dcov picks up (lambda/8) mSkew[a,b,c] frameTri[[mu,c]] Commutator[gammaTri^a, gammaTri^b]. *)
+(* Count the gammas: that expression is QUADRATIC in gamma, not cubic.  The third structure-  *)
+(* constant index c is contracted against the FRAME, frameTri[[mu,c]], not against a third    *)
+(* gamma.  What this cell exhibits is therefore the torsion's contribution to the so(4,4)     *)
+(* part of the spinor connection, generated by the split-octonion multiplication itself       *)
+(* rather than put in by hand.                                                                *)
+(* The familiar Einstein-Cartan AXIAL term, T[a,b,c] gamma^a gamma^b gamma^c, is the genuinely *)
+(* cubic object, and it appears only after this connection piece is contracted with the        *)
+(* gamma^mu of the Dirac operator.  This notebook does not perform that contraction, so it     *)
+(* does not claim to have displayed the axial coupling.                                        *)
 ClearAll[GammaSpinOct, GammaSpinOctExtra];
 GammaSpinOct = cfTimed["BRIDGE 3 16x16 spin-connection matrices",
   Table[cfSimpArray[cfSpinMatrixTri[omegaOct, mu]], {mu, 8}]];
@@ -995,5 +1031,10 @@ Grid[{
 
 (* ::Input:: *)
 (* --- final tally of every assertion made in this notebook -------------------------------- *)
-Print["numerical certificates used: ", $cfNumericCertificates];
+Print["identities accepted on numerical evidence alone : ", $cfNumericCertificates,
+      "   (stage 3 returned True)"];
+Print["non-vanishing witnesses                         : ", $cfNonVanishingWitnesses,
+      "   (stage 3 returned False inside a ! TrueQ[...] assertion;"];
+Print["                                                     a sample point with a non-zero",
+      " value is a complete proof of non-vanishing)"];
 cfAssertSummary[]

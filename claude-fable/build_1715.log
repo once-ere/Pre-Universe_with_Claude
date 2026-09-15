@@ -1,0 +1,4 @@
+manifest files : ['cells_part1.wl', 'cells_part2.wl', 'cells_part3.wl', 'cells_part4.wl']
+cells parsed   : 213 {'Title': 4, 'Subtitle': 1, 'Subsubtitle': 1, 'Text': 46, 'Section': 22, 'Input': 139}
+run_all.wls    : 139 Input cells
+notebook       : 213 cells -> C:\Users\nsh\Documents\8-dim\Pre-Universe_14SEP26-77\claude-fable\claude-fable_Einstein-Rosen-2-Planes.nb

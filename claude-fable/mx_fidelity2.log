@@ -1,0 +1,8 @@
+lengths eLa   : author 16  kernel-run 16  front-end 16
+lengths eLazt : author 16  kernel-run 16  front-end 16
+eLa   author === kernel-run (SameQ) : True
+eLa   author === front-end  (SameQ) : True
+eLazt author === kernel-run (SameQ) : True
+eLazt author === front-end  (SameQ) : True
+eLa   residual author - kernel-run  : {0}
+eLazt residual author - kernel-run  : {0}

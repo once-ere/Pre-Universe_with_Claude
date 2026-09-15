@@ -422,17 +422,40 @@ MatrixForm[caZ2]
 14.  Bilinears, the two solution branches, and M6 = 3 generations of Einstein-Rosen 2-planes
 
 (* ::Text:: *)
-Five bilinear invariants are formed from the solution.  With psi the 16-component solution,
-psi1 its type-1 half and psi2 its type-2 half:
+Five bilinear invariants are formed from the solution.  A word first on WHICH split of the
+sixteen components is used, because it is not the one the names suggest.
 
-    psi . sigma16 . psi        (identically zero, as Section 11 showed)
-    psi1 . sigma . psi1        (the type-1 norm)
-    psi2 . sigma . psi2        (the type-2 norm)
-    psi2 . psi1                (the unpaired product)
-    psi2 . sigma . psi1        (the paired product)
+psisol below is the solution written in the RELABELLED yZ basis of Section 12, and psi1sol and
+psi2sol are its first and second blocks of eight in THAT basis.  They are NOT the type-1 and
+type-2 split-octonion spinors.  The relabelling regroups the sixteen components by which four
+of them couple to each other in the field equations, and Section 13 has already PROVED that the
+regrouping mixes the two types: the assertion "and NOT a direct sum: it mixes type-1 with
+type-2" is exactly that check.  The relabelling table printed in Section 12 shows it explicitly,
 
-Requiring the norms to be constant along the light cone is what fixes two of the four block
-constants.  We first introduce the advanced and retarded light-cone coordinates in the (z,t)
+    yZ[0..7]  ==  {Z0, Z5, Z8, Z13, Z1, Z4, Z9, Z12}
+
+which is four type-1 components (Z0..Z7) and four type-2 components (Z8..Z15).  The cell below
+asserts both of these facts rather than leaving them to the reader.  The genuine type-1 and
+type-2 spinors appear two cells later as psi1 = Psi16ab[[1;;8]] and psi2 = Psi16ab[[9;;16]];
+the names are similar and the objects are not, so the two are kept distinct here on purpose.
+
+The five bilinears are then
+
+    psisol  . sigma16 . psisol     (the full 16-component norm)
+    psi1sol . sigma   . psi1sol    (the norm of the first relabelled block)
+    psi2sol . sigma   . psi2sol    (the norm of the second relabelled block)
+    psi2sol . psi1sol              (the unpaired product)
+    psi2sol . sigma   . psi1sol    (the paired product)
+
+A correction to a claim this notebook used to make about the first of them.  Section 11 proved
+that psi . sigma16 . T16[alpha] . psi vanishes for every alpha -- WITH the T16 factor, which is
+what makes sigma16 . T16[alpha] antisymmetric and the kinetic term self-adjoint.  sigma16 by
+itself is symmetric (Section 5), so psi . sigma16 . psi is not forced to vanish, and for this
+solution it does not: it is the difference of the two block norms.  Both statements are asserted
+below.
+
+Requiring the two block norms to be constant along the light cone is what fixes two of the four
+block constants.  We first introduce the advanced and retarded light-cone coordinates in the (z,t)
 chart, which are the original notebook's ztadv and ztret.
 
 (* ::Input:: *)
@@ -448,6 +471,14 @@ ClearAll[\[Psi]sol, \[Psi]1sol, \[Psi]2sol, psiSigma16psi, psi1Sigmapsi1, psi2Si
 \[Psi]sol  = Through[yZdef[z, t]] /. ssyZ;
 \[Psi]1sol = \[Psi]sol[[1 ;; 8]];
 \[Psi]2sol = \[Psi]sol[[9 ;; 16]];
+(* The split at 8 is a split of the yZ COUPLING blocks, NOT of the type-1/type-2 direct sum.   *)
+(* Section 13 proved the relabelling mixes the two types; these two assertions say exactly how, *)
+(* so that the names psi1sol/psi2sol cannot be misread as the split-octonion halves.            *)
+cfAssert["the yZ split at 8 is NOT the type-1/type-2 split",
+  Sort[sZtOyZ[[1 ;; 8, 1]]] =!= Sort[Table[Z[k], {k, 0, 7}]]];
+cfAssert["the first relabelled block holds four type-1 and four type-2 components",
+  {Count[sZtOyZ[[1 ;; 8, 1]], Z[k_Integer] /; k <= 7],
+   Count[sZtOyZ[[1 ;; 8, 1]], Z[k_Integer] /; k >= 8]} === {4, 4}];
 (* FullSimplify::time is EXPECTED on two of these five bilinears: Section 1 set the original    *)
 (* notebook's 3-second FullSimplify budget and these expressions exceed it.  FullSimplify then  *)
 (* returns the best form it reached, which is correct but not maximally simplified, so the      *)
@@ -476,6 +507,14 @@ psi2Sigmapsi1  = cfTimed["bilinear psi2 . sigma . psi1",
 (* term of Section 11 self-adjoint.                                                             *)
 cfAssert["psi . sigma16 . psi == psi2.sigma.psi2 - psi1.sigma.psi1",
   Simplify[psiSigma16psi - (psi2Sigmapsi2 - psi1Sigmapsi1), constraintVars] === 0];
+(* This notebook used to describe psi . sigma16 . psi as "identically zero, as Section 11       *)
+(* showed".  That was wrong on both counts and is corrected here.  Section 11's identity is     *)
+(* psi . sigma16 . T16[alpha] . psi == 0, with the T16 factor.  Without it the form is          *)
+(* symmetric, so nothing forces the bilinear to vanish -- and it does not.                       *)
+cfAssert["sigma16 alone is SYMMETRIC, so psi . sigma16 . psi is not forced to vanish",
+  Transpose[\[Sigma]16] === \[Sigma]16];
+cfAssert["and for this solution it does NOT vanish: it is not the zero expression",
+  Simplify[psiSigma16psi, constraintVars] =!= 0];
 Column[{psiSigma16psi, psi1Sigmapsi1, psi2Sigmapsi2, psi2psi1, psi2Sigmapsi1}]
 
 (* ::Input:: *)
