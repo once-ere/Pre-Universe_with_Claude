@@ -372,7 +372,7 @@ v.eta.v becomes w . etaTri . w with
 
 We compute it and find that it is EXACTLY the split-octonion spinor metric sigma.  That is the
 precise sense in which the type-1 spinor space is an isometric copy of the 4+4 vector space, and
-it is what makes the third new bridge of Section 18 possible.
+it is what makes the third new bridge, Section 20, possible.
 
 (* ::Input:: *)
 ClearAll[\[Eta]Tri];

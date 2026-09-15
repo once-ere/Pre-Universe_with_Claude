@@ -119,6 +119,8 @@ claude-fable/                 the deliverable, its manifests, build tool, runner
   build_tools.py                             <- the generator
   run_from_nb.wls                            <- evaluates the .nb straight out of the file
   prov0*.wls, *.log                          <- the scripts and logs behind the provenance pages
+  build_tools.py                             <- the generator; reproduced in full in PROVENANCE-01
+  probe*.wls, check_deltas.wls, cmp_mx.wls   <- development scratch, inventoried in PROVENANCE-01 5a
   render-check/                              <- evidence that it renders in the front end
   extract/                                   <- plain-text extract of the original notebook
 PROVENANCE-*.md               one page per stage, each complete on its own

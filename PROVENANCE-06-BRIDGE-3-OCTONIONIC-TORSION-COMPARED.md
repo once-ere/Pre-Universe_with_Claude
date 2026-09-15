@@ -215,6 +215,10 @@ timeout 3000 wolframscript -file prov06_bridge3.wls 2>&1 | tee prov06.log
 
 ## 5. The result
 
+The block below is `claude-fable/prov06_bridge3.log` as the run printed it, with the literal
+`InputForm[...]` and `MatrixForm[...]` wrappers removed and the bulk matrix dumps elided for
+reading. No data line is dropped; compare against the committed log if you want the raw form.
+
 ```
 ================ THE TRIALITY BRIDGE ================
 it is ORTHOGONAL: Transpose[P] == Inverse[P] : True
@@ -226,6 +230,7 @@ it gives the SAME curved metric g : True
 
 ================ THE TOTALLY ANTISYMMETRIC SPLIT-OCTONION STRUCTURE CONSTANTS ================
 mSkewSpin is totally antisymmetric : True
+distinct values : {0, -(1/Sqrt[2]), 1/Sqrt[2], -Sqrt[2], Sqrt[2]}
 non-zero components of mSkewSpin : 48
 
 ================ THE lambda = 0 PART: LEVI-CIVITA IN THE TRIALITY FRAME ================
@@ -249,6 +254,7 @@ T[a,b,c] == -2 lambda mSkewSpin[a,b,c] : True
 ================ COMPARISON WITH THE CANONICAL SPIN CONNECTION ================
 omegaOct - (triality conjugate of omegaCanonical) == contortion : True
 the difference vanishes at lambda = 0 : True
+non-zero components of the difference : 78
 the difference is linear in lambda : True
 
 ================ THE DIRAC MATRICES THAT MATCH THIS FRAME ================

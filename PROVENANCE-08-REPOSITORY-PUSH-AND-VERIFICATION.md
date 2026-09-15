@@ -72,7 +72,8 @@ nothing needed syncing:
 
 ```bash
 cd "$(git rev-parse --show-toplevel)"
-for f in "EtoExp.wl" "claude-fable/EtoExp.wl" "C:/Users/nsh/Documents/8-dim/EtoExp.wl"; do
+for f in "EtoExp.wl" "claude-fable/EtoExp.wl"; do   # a third copy sits in the author's
+                                                    # delivery folder; not needed here
   printf '%-52s ' "$f"
   stat -c '%s bytes  ' "$f" | tr -d '
 '
@@ -146,13 +147,13 @@ this work began, and the refactored notebook's equations are compared against th
 Without those files in the repository that comparison could not be run from a clone:
 
 ```bash
-cd "$(git rev-parse --show-toplevel)/claude-fable"
+# Relative Gets from the repository root, so this really does run from a clone at any path --
+# which is the point the sentence above is making.
+cd "$(git rev-parse --show-toplevel)"
 wolframscript -code '
-  src  = "C:/Users/nsh/Documents/8-dim/Pre-Universe_14SEP26-77/";
-  mine = "C:/Users/nsh/Documents/8-dim/";
-  Get[src <> "Pre-gravityPre-Big_Bang_M6=3-Generations_of_Einstein-Rosen-2-Planes-eLa.mx"];
+  Get["Pre-gravityPre-Big_Bang_M6=3-Generations_of_Einstein-Rosen-2-Planes-eLa.mx"];
   a = eLa; Clear[eLa];
-  Get[mine <> "claude-fable_Einstein-Rosen-2-Planes-eLa.mx"];
+  Get["claude-fable/claude-fable_Einstein-Rosen-2-Planes-eLa.mx"];
   Print["identical: ", a === eLa]'
 ```
 

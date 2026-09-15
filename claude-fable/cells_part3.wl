@@ -12,8 +12,12 @@ but returns $Failed in a headless kernel, which would stop the whole notebook.  
 location defensively instead, and fall back on the current working directory.  Two helper
 packages written by the author are loaded if they can be found:
 
-    ConvertMapleToMathematicaV2.wl   parses the Maple solution strings of Section 12
-    EtoExp.wl                        rewrites Power[E, ...] as Exp[...]
+    ConvertMapleToMathematicaV2.wl   parses the Maple solution strings of Section 13
+    EtoExp.wl                        rewrites Power[E, ...] as Exp[...].  The original notebook
+                                     calls this five times.  THIS notebook loads it for parity
+                                     with the original but never calls it -- nothing here needs
+                                     the rewrite.  It is loaded and not used, and that is said
+                                     here rather than left for a reader to discover.
 
 If a package cannot be found we say exactly which file is missing and where we looked, and we
 do NOT substitute a home-made replacement for it.
@@ -50,9 +54,10 @@ ClearAll[cfMaplePath, cfEtoExpPath];
 cfMaplePath  = cfResolveFile["ConvertMapleToMathematicaV2.wl"];
 cfEtoExpPath = cfResolveFile["EtoExp.wl"];
 If[StringQ[cfMaplePath],  Get[cfMaplePath],
-   Print["  ConvertMapleToMathematicaV2 not loaded; Section 12 will report it again."]];
+   Print["  ConvertMapleToMathematicaV2 not loaded; Section 13 will report it again."]];
 If[StringQ[cfEtoExpPath], Get[cfEtoExpPath],
-   Print["  EtoExp not loaded; the Exp-rewriting cells of Section 12 will report it again."]];
+   Print["  EtoExp not loaded.  Nothing in this notebook calls it, so nothing will fail;"];
+   Print["  it is loaded only for parity with the original."]];
 {ValueQ[cfMaplePath], ValueQ[cfEtoExpPath]}
 
 (* ::Section:: *)
@@ -425,12 +430,12 @@ MatrixForm[caZ2]
 Five bilinear invariants are formed from the solution.  A word first on WHICH split of the
 sixteen components is used, because it is not the one the names suggest.
 
-psisol below is the solution written in the RELABELLED yZ basis of Section 12, and psi1sol and
+psisol below is the solution written in the RELABELLED yZ basis of Section 13, and psi1sol and
 psi2sol are its first and second blocks of eight in THAT basis.  They are NOT the type-1 and
 type-2 split-octonion spinors.  The relabelling regroups the sixteen components by which four
 of them couple to each other in the field equations, and Section 13 has already PROVED that the
 regrouping mixes the two types: the assertion "and NOT a direct sum: it mixes type-1 with
-type-2" is exactly that check.  The relabelling table printed in Section 12 shows it explicitly,
+type-2" is exactly that check.  The relabelling table printed in Section 13 shows it explicitly,
 
     yZ[0..7]  ==  {Z0, Z5, Z8, Z13, Z1, Z4, Z9, Z12}
 

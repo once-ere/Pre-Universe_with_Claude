@@ -698,9 +698,10 @@ ClearAll[cfMaplePath, cfEtoExpPath];
 cfMaplePath  = cfResolveFile["ConvertMapleToMathematicaV2.wl"];
 cfEtoExpPath = cfResolveFile["EtoExp.wl"];
 If[StringQ[cfMaplePath],  Get[cfMaplePath],
-   Print["  ConvertMapleToMathematicaV2 not loaded; Section 12 will report it again."]];
+   Print["  ConvertMapleToMathematicaV2 not loaded; Section 13 will report it again."]];
 If[StringQ[cfEtoExpPath], Get[cfEtoExpPath],
-   Print["  EtoExp not loaded; the Exp-rewriting cells of Section 12 will report it again."]];
+   Print["  EtoExp not loaded.  Nothing in this notebook calls it, so nothing will fail;"];
+   Print["  it is loaded only for parity with the original."]];
 {ValueQ[cfMaplePath], ValueQ[cfEtoExpPath]}
 ]];
 

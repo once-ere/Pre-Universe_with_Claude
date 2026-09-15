@@ -103,8 +103,10 @@ To regenerate the refactor's two `.mx` files, run the notebook (section 12 write
 ```bash
 cd "$(git rev-parse --show-toplevel)/claude-fable"
 timeout 3000 wolframscript -file run_from_nb.wls 2>&1 | tee run_from_nb.log
-ls -la "C:/Users/nsh/Documents/8-dim/claude-fable_Einstein-Rosen-2-Planes-eLa.mx" \
-       "C:/Users/nsh/Documents/8-dim/claude-fable_Einstein-Rosen-2-Planes-eLazt.mx"
+# the notebook DumpSaves these beside itself, i.e. in <repo>/claude-fable, because a
+# headless kernel has no NotebookFileName[] and cfDir falls back to the working directory
+ls -la claude-fable_Einstein-Rosen-2-Planes-eLa.mx \
+       claude-fable_Einstein-Rosen-2-Planes-eLazt.mx
 ```
 
 ## 2. What Part II computes, step by step

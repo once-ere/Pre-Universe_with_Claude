@@ -77,9 +77,10 @@ WolframScript 1.14.0 for Microsoft Windows (64-bit)
 Two helper packages written by the author must sit next to the notebook. Put them there:
 
 ```bash
-cd "$(dirname "$(git rev-parse --show-toplevel)")"   # the author's delivery folder; optional
-cp Pre-Universe_14SEP26-77/ConvertMapleToMathematicaV2.wl .
-cp Pre-Universe_14SEP26-77/EtoExp.wl .
+REPO="$(git rev-parse --show-toplevel)"
+cd "$(dirname "$REPO")"          # the author's delivery folder; optional
+cp "$REPO/ConvertMapleToMathematicaV2.wl" .
+cp "$REPO/EtoExp.wl" .
 ls -la ConvertMapleToMathematicaV2.wl EtoExp.wl
 ```
 
@@ -124,6 +125,199 @@ cd "$(git rev-parse --show-toplevel)/claude-fable"
 cp claude-fable_Einstein-Rosen-2-Planes.nb "C:/Users/nsh/Documents/8-dim/"
 ls -la "C:/Users/nsh/Documents/8-dim/claude-fable_Einstein-Rosen-2-Planes.nb"
 ```
+
+## 5a. The generator, in full, and every other file under `claude-fable/`
+
+`build_tools.py` is invoked above and on three other pages. It is the only thing that writes the
+notebook, so this page carries it complete rather than assuming it.
+
+`<repo>\claude-fable\build_tools.py`, in full:
+
+```python
+#!/usr/bin/env python3
+"""
+build_tools.py -- turn the cell-manifest .wl files into
+
+  (a) a runnable .wls script containing only the Input cells, in order, and
+  (b) a Wolfram .nb notebook containing every cell with its style.
+
+The manifest format is one marker line per cell,
+
+      (* ::Title:: *)      (* ::Section:: *)      (* ::Subsection:: *)
+      (* ::Text:: *)       (* ::Input:: *)
+
+followed by the cell body until the next marker.  Bodies of Text/Title/Section cells are
+literal text; bodies of Input cells are Wolfram Language code.
+"""
+
+import re
+import sys
+import glob
+import os
+
+MARKER = re.compile(r'^\(\*\s*::\s*([A-Za-z][A-Za-z0-9-]*)\s*::\s*(.*?)\*\)\s*$')
+
+KNOWN_STYLES = {
+    "Title": "Title",
+    "Subtitle": "Subtitle",
+    "Subsubtitle": "Subsubtitle",
+    "Section": "Section",
+    "Subsection": "Subsection",
+    "Subsubsection": "Subsubsection",
+    "Text": "Text",
+    "Input": "Input",
+    "Item": "Item",
+}
+
+
+def parse_manifest(paths):
+    """Return a list of (style, body) pairs, in file order then line order."""
+    cells = []
+    for path in paths:
+        with open(path, "r", encoding="utf-8") as fh:
+            lines = fh.read().split("\n")
+        style = None
+        buf = []
+        for line in lines:
+            m = MARKER.match(line)
+            if m:
+                name = m.group(1)
+                if style is not None:
+                    cells.append((style, "\n".join(buf).strip("\n")))
+                buf = []
+                style = KNOWN_STYLES.get(name)  # None for unknown markers -> skipped
+            else:
+                if style is not None:
+                    buf.append(line)
+        if style is not None:
+            cells.append((style, "\n".join(buf).strip("\n")))
+    # drop cells whose body is entirely blank
+    return [(s, b) for (s, b) in cells if b.strip() != ""]
+
+
+def wl_string(s):
+    """Encode a Python str as a Wolfram Language double-quoted string literal."""
+    out = []
+    for ch in s:
+        if ch == "\\":
+            out.append("\\\\")
+        elif ch == '"':
+            out.append('\\"')
+        elif ch == "\n":
+            out.append("\\n")
+        elif ch == "\r":
+            continue
+        elif ch == "\t":
+            out.append("\\t")
+        else:
+            out.append(ch)
+    return '"' + "".join(out) + '"'
+
+
+def build_script(cells, out_path, header=""):
+    """Write a .wls that evaluates every Input cell in order."""
+    with open(out_path, "w", encoding="utf-8") as fh:
+        if header:
+            fh.write(header.rstrip() + "\n\n")
+        n = 0
+        for style, body in cells:
+            if style != "Input":
+                continue
+            n += 1
+            fh.write("\n(* ---------- Input cell %d ---------- *)\n" % n)
+            fh.write("cfRunCell[%d, Hold[\n" % n)
+            fh.write(body.rstrip() + "\n")
+            fh.write("]];\n")
+        fh.write("\ncfRunSummary[];\n")
+    return n
+
+
+def build_notebook(cells, out_path, window_title):
+    """Write a .nb file as a plain-text Wolfram expression."""
+    parts = []
+    for style, body in cells:
+        if style == "Input":
+            parts.append("Cell[BoxData[%s], \"Input\"]" % wl_string(body))
+        else:
+            parts.append("Cell[%s, %s]" % (wl_string(body), wl_string(style)))
+    with open(out_path, "w", encoding="utf-8", newline="\n") as fh:
+        fh.write("(* Content-type: application/vnd.wolfram.mathematica *)\n\n")
+        fh.write("(*** Wolfram Notebook File ***)\n")
+        fh.write("(* http://www.wolfram.com/nb *)\n\n")
+        fh.write("(* CreatedBy='claude-fable build_tools.py' *)\n\n")
+        fh.write("Notebook[{\n")
+        fh.write(",\n".join(parts))
+        fh.write("\n},\n")
+        fh.write("WindowSize->{1400, 900},\n")
+        fh.write("WindowTitle->%s,\n" % wl_string(window_title))
+        fh.write("WindowMargins->{{Automatic, 0}, {Automatic, 0}},\n")
+        fh.write("FrontEndVersion->\"14.0 for Microsoft Windows (64-bit)\",\n")
+        fh.write("StyleDefinitions->\"Default.nb\"\n")
+        fh.write("]\n")
+    return len(cells)
+
+
+def main():
+    here = os.path.dirname(os.path.abspath(__file__))
+    paths = sorted(glob.glob(os.path.join(here, "cells_part*.wl")))
+    if not paths:
+        print("no cells_part*.wl found in", here)
+        return 1
+    cells = parse_manifest(paths)
+    counts = {}
+    for s, _ in cells:
+        counts[s] = counts.get(s, 0) + 1
+    print("manifest files :", [os.path.basename(p) for p in paths])
+    print("cells parsed   :", len(cells), counts)
+
+    runner_header = open(os.path.join(here, "runner_header.wl"), "r", encoding="utf-8").read()
+    n_in = build_script(cells, os.path.join(here, "run_all.wls"), runner_header)
+    print("run_all.wls    :", n_in, "Input cells")
+
+    nb = os.path.join(here, "claude-fable_Einstein-Rosen-2-Planes.nb")
+    n_nb = build_notebook(cells, nb, "claude-fable_Einstein-Rosen-2-Planes")
+    print("notebook       :", n_nb, "cells ->", nb)
+    return 0
+
+
+if __name__ == "__main__":
+    sys.exit(main())
+```
+
+The rest of `claude-fable/` is listed here so that nothing in the directory is unexplained. The
+scripts in the first group are the ones the provenance pages run and reproduce; the second group
+is development scratch, kept because it is the record of how the work actually went, and named
+here so a reader is not left guessing.
+
+| file | what it is | reproduced on |
+|---|---|---|
+| `build_tools.py` | generates the `.nb` and `run_all.wls` from the four manifests | this page, above |
+| `cells_part1.wl` … `cells_part4.wl` | the cell manifests the notebook is generated from | — (they are the source) |
+| `runner_header.wl` | the assertion and timing harness | this page |
+| `run_from_nb.wls` | evaluates the delivered `.nb` straight out of the file | this page, PROVENANCE-09 |
+| `verify_nb.wls` | parses the `.nb` without evaluating it | this page |
+| `run_from_clone.wls` | the same run, from a fresh clone | PROVENANCE-08 |
+| `prov02_…` … `prov07_physics.wls` | one per chapter of Parts III and IV | PROVENANCE-02 … 07 |
+| `prov07_mx_fidelity.wls`, `mx_fidelity2.wls` | compare the equations with the author's own `.mx` | PROVENANCE-07, PROVENANCE-09 |
+| `attribute_certs.wls` | attributes each numerical certificate to its call site | PROVENANCE-09 |
+| `render-check/*.wls` | front-end parse, cell images, PDF render | PROVENANCE-10 |
+| `extract/extract_original.wls` | the non-evaluating extract of the author's notebook | PROVENANCE-00 |
+| `run_all.wls` | **generated** by `build_tools.py`; the Input cells as a script | — (generated) |
+
+Development scratch, superseded but kept:
+
+| file | what it was for |
+|---|---|
+| `run_all_12.wls` | an early partial build, sections 1–12 only; superseded by `run_all.wls` |
+| `probe2.wls`, `probe3.wls`, `probe4.wls` | one-off probes run against those partial builds while the manifests were being written |
+| `probe_sig.wls`, `probe_sig2.wls` | probes used to work out why `Sign[Exp[a4[…]]]` is undecidable, which is what led to the explicit `cfSignatureAssume` in Section 15 |
+| `check_deltas.wls` | an early component-by-component diff of two spin connections, before the master comparison of Section 21 existed |
+| `cmp_mx.wls` | the first `.mx` comparison, superseded by `prov07_mx_fidelity.wls` and `mx_fidelity2.wls` |
+| `report_results.wls` | prints a headline summary of the metric, `Det[g]` and both Ricci scalars; its output is `report_results.log` |
+
+Each of those runs the same way as the others: `cd "$(git rev-parse --show-toplevel)/claude-fable"`
+then `wolframscript -file <name> 2>&1 | tee <name>.log`. They are not needed to reproduce any
+result on any provenance page.
 
 ## 6. Check that the `.nb` is well formed and every Input cell parses
 
@@ -401,8 +595,10 @@ those cells perform rather than guessing at their text.
 Section 12 calls `DumpSave` exactly as the original does, into the notebook's own directory:
 
 ```bash
-ls -la "C:/Users/nsh/Documents/8-dim/claude-fable_Einstein-Rosen-2-Planes-eLa.mx" \
-       "C:/Users/nsh/Documents/8-dim/claude-fable_Einstein-Rosen-2-Planes-eLazt.mx"
+# the notebook DumpSaves these beside itself, i.e. in <repo>/claude-fable, because a
+# headless kernel has no NotebookFileName[] and cfDir falls back to the working directory
+ls -la claude-fable_Einstein-Rosen-2-Planes-eLa.mx \
+       claude-fable_Einstein-Rosen-2-Planes-eLazt.mx
 ```
 
 Expected sizes 2,696 and 3,144 bytes. To turn the writing off, set `$cfWriteMX = False` in the
