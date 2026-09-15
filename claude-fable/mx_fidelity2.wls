@@ -9,7 +9,12 @@ cfRepo = ParentDirectory[cfHere];
 cfNB   = FileNameJoin[{cfHere, "claude-fable_Einstein-Rosen-2-Planes.nb"}];
 src = cfRepo <> "/";
 cf  = cfHere <> "/";
-fe  = "C:/Users/nsh/Documents/8-dim/eval-run/";
+(* The front-end run writes its .mx into the directory it was told to use, which is $CF_OUT, *)
+(* or a folder in the system temp directory when CF_OUT is unset -- the same convention the  *)
+(* render-check scripts follow.  Nothing here depends on a path outside the repository.      *)
+fe  = Environment["CF_OUT"];
+If[fe === $Failed || fe === "", fe = FileNameJoin[{$TemporaryDirectory, "cf-render-check"}]];
+fe  = fe <> "/";
 
 Get[src <> "Pre-gravityPre-Big_Bang_M6=3-Generations_of_Einstein-Rosen-2-Planes-eLa.mx"];
 srcELa = eLa; Clear[eLa];
