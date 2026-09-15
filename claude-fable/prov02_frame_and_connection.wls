@@ -1,8 +1,15 @@
 (* Run the delivered notebook, then print everything about the frame field and the canonical
    spin connection.  Self-contained: it needs only the .nb and the two helper .wl packages. *)
+(* --- self-locating, so this script works from a clone at any path -------------------------- *)
+(* $InputFileName is the path this file was invoked with; ExpandFileName makes it absolute even *)
+(* when wolframscript was given a relative path.  cfHere is this script's own directory,        *)
+(* i.e. <repo>/claude-fable, and cfRepo is the repository root.                                 *)
+cfHere = DirectoryName[ExpandFileName[$InputFileName]];
+cfRepo = ParentDirectory[cfHere];
+cfNB   = FileNameJoin[{cfHere, "claude-fable_Einstein-Rosen-2-Planes.nb"}];
 
-nbfile = "C:/Users/nsh/Documents/8-dim/Pre-Universe_14SEP26-77/claude-fable/claude-fable_Einstein-Rosen-2-Planes.nb";
-SetDirectory["C:/Users/nsh/Documents/8-dim/Pre-Universe_14SEP26-77/claude-fable"];
+nbfile = cfNB;
+SetDirectory[cfHere];
 nb = Import[nbfile, "Notebook"];
 inputs = Cases[nb, Cell[BoxData[s_String], "Input", ___] :> s, Infinity];
 Print["notebook Input cells: ", Length[inputs]];

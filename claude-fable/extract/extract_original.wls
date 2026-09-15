@@ -1,8 +1,12 @@
 (* Safe, NON-EVALUATING extraction of every authored cell of the original notebook.
    Box structures are rendered to plain text purely by string surgery.  Nothing is evaluated. *)
+(* --- self-locating, so this works from a clone at any path --------------------------------- *)
+(* Run in place, from <repo>/claude-fable/extract.  cfRepo is then the repository root.          *)
+cfHere = DirectoryName[ExpandFileName[$InputFileName]];
+cfRepo = ParentDirectory[ParentDirectory[cfHere]];
 
-src = "C:/Users/nsh/Documents/8-dim/Pre-Universe_14SEP26-77/Pre-gravityPre-Big_Bang_M6=3-Generations_of_Einstein-Rosen-2-Planes.nb";
-dir = "C:/Users/nsh/Documents/8-dim/Pre-Universe_14SEP26-77/claude-fable/extract/";
+src = FileNameJoin[{cfRepo, "Pre-gravityPre-Big_Bang_M6=3-Generations_of_Einstein-Rosen-2-Planes.nb"}];
+dir = cfHere <> "/";
 
 Print["Reading notebook..."];
 nb = Import[src, "Notebook"];

@@ -5,8 +5,22 @@
    Cell[CellGroupData[{...}, Open]], so First[] would return a whole group rather than the cell
    asked for, and two needles inside one group would silently produce the same picture twice.
    Cell[_, _String, ___] matches LEAF cells only, because a group has no String style in slot 2. *)
-src = "C:/Users/nsh/Documents/8-dim/claude-fable_Einstein-Rosen-2-Planes.nb";
-out = "C:/Users/nsh/Documents/8-dim/render3/";
+(* --- self-locating, so this works from a clone at any path --------------------------------- *)
+(* Run this script IN PLACE, from <repo>/claude-fable/render-check.  cfRepo is then the           *)
+(* repository root and cfNB the delivered notebook.  Output goes to the directory named by the    *)
+(* CF_OUT environment variable, or to a folder in the system temp directory if CF_OUT is unset,   *)
+(* so that running this never writes into the repository.                                        *)
+cfHere = DirectoryName[ExpandFileName[$InputFileName]];
+cfRepo = ParentDirectory[ParentDirectory[cfHere]];
+cfNB   = FileNameJoin[{cfRepo, "claude-fable", "claude-fable_Einstein-Rosen-2-Planes.nb"}];
+cfOut  = Environment["CF_OUT"];
+If[cfOut === $Failed || cfOut === "", cfOut = FileNameJoin[{$TemporaryDirectory, "cf-render-check"}]];
+Quiet[CreateDirectory[cfOut]];
+cfOut  = cfOut <> "/";
+Print["repo   : ", cfRepo];
+Print["output : ", cfOut];
+src = cfNB;
+out = cfOut;
 
 (* The yZ-split assertions and the sigma16 assertions are both in the five-bilinears Input cell,
    so they are ONE picture, not two. *)

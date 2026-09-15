@@ -37,7 +37,7 @@ WolframScript 1.14.0 for Microsoft Windows (64-bit)
 ## 2. Back up the source before touching anything
 
 ```bash
-cd "C:/Users/nsh/Documents/8-dim/Pre-Universe_14SEP26-77"
+cd "$(git rev-parse --show-toplevel)"
 mkdir -p backups
 cp -p "Pre-gravityPre-Big_Bang_M6=3-Generations_of_Einstein-Rosen-2-Planes.nb" \
       "backups/Pre-gravityPre-Big_Bang_M6=3-Generations_of_Einstein-Rosen-2-Planes.nb.bak-$(date +%Y%m%d-%H%M%S)"
@@ -91,14 +91,18 @@ forward slashes in Wolfram code. Every command below does.
 ## 4. The complete extraction script
 
 ```bash
-mkdir -p "C:/Users/nsh/Documents/8-dim/Pre-Universe_14SEP26-77/claude-fable/extract"
-cd "C:/Users/nsh/Documents/8-dim/Pre-Universe_14SEP26-77/claude-fable/extract"
+mkdir -p "$(git rev-parse --show-toplevel)/claude-fable/extract"
+cd "$(git rev-parse --show-toplevel)/claude-fable/extract"
 cat > extract_original.wls <<'WLSEOF'
 (* Safe, NON-EVALUATING extraction of every authored cell of the original notebook.
    Box structures are rendered to plain text purely by string surgery.  Nothing is evaluated. *)
+(* --- self-locating, so this works from a clone at any path --------------------------------- *)
+(* Run in place, from <repo>/claude-fable/extract.  cfRepo is then the repository root.          *)
+cfHere = DirectoryName[ExpandFileName[$InputFileName]];
+cfRepo = ParentDirectory[ParentDirectory[cfHere]];
 
-src = "C:/Users/nsh/Documents/8-dim/Pre-Universe_14SEP26-77/Pre-gravityPre-Big_Bang_M6=3-Generations_of_Einstein-Rosen-2-Planes.nb";
-dir = "C:/Users/nsh/Documents/8-dim/Pre-Universe_14SEP26-77/claude-fable/extract/";
+src = FileNameJoin[{cfRepo, "Pre-gravityPre-Big_Bang_M6=3-Generations_of_Einstein-Rosen-2-Planes.nb"}];
+dir = cfHere <> "/";
 
 Print["Reading notebook..."];
 nb = Import[src, "Notebook"];
@@ -213,7 +217,7 @@ The authored content compresses to 131,660 bytes of readable text — 0.55 % of 
 ## 3a. Confirm nothing was silently dropped
 
 ```bash
-cd "C:/Users/nsh/Documents/8-dim/Pre-Universe_14SEP26-77/claude-fable/extract"
+cd "$(git rev-parse --show-toplevel)/claude-fable/extract"
 grep -o '<<UNRENDERED:[A-Za-z]*>>' cells_dump.txt | sort | uniq -c
 ```
 
@@ -231,7 +235,7 @@ actually occurs in this notebook.
 Tally the remaining non-ASCII characters to confirm every operator was transliterated:
 
 ```bash
-cd "C:/Users/nsh/Documents/8-dim/Pre-Universe_14SEP26-77/claude-fable/extract"
+cd "$(git rev-parse --show-toplevel)/claude-fable/extract"
 PYTHONIOENCODING=utf-8 python -c "
 import collections, unicodedata
 s=open('cells_dump.txt',encoding='utf-8').read()
@@ -248,7 +252,7 @@ Everything that remains must be a named Greek letter or ordinary punctuation. An
 another entry. With the `opFix` given above there are none left; the check that says so is
 
 ```bash
-cd "C:/Users/nsh/Documents/8-dim/Pre-Universe_14SEP26-77/claude-fable/extract"
+cd "$(git rev-parse --show-toplevel)/claude-fable/extract"
 PYTHONIOENCODING=utf-8 python -c "
 import collections
 s=open('cells_dump.txt',encoding='utf-8').read()
@@ -265,7 +269,7 @@ private-use characters left: []
 ## 4a. Read the extraction
 
 ```bash
-cd "C:/Users/nsh/Documents/8-dim/Pre-Universe_14SEP26-77/claude-fable/extract"
+cd "$(git rev-parse --show-toplevel)/claude-fable/extract"
 grep -n 'style=Section\|style=Title\|style=Subsubsection' cells_dump.txt   # the outline
 awk -F'\t' '{s[$2]+=$3; n[$2]++} END {for (k in s) print k, n[k], s[k]}' cells_index.txt
 sed -n '1,700p'    cells_dump.txt
@@ -279,9 +283,10 @@ sed -n '3500,3740p' cells_dump.txt
 To see the raw, untransliterated boxes of any particular cell — the way to settle an ambiguity:
 
 ```bash
-cd "C:/Users/nsh/Documents/8-dim/Pre-Universe_14SEP26-77/claude-fable/extract"
+cd "$(git rev-parse --show-toplevel)/claude-fable/extract"
 cat > rawcell.wls <<'WLSEOF'
-src = "C:/Users/nsh/Documents/8-dim/Pre-Universe_14SEP26-77/Pre-gravityPre-Big_Bang_M6=3-Generations_of_Einstein-Rosen-2-Planes.nb";
+cfRepo = ParentDirectory[ParentDirectory[DirectoryName[ExpandFileName[$InputFileName]]]];
+src = FileNameJoin[{cfRepo, "Pre-gravityPre-Big_Bang_M6=3-Generations_of_Einstein-Rosen-2-Planes.nb"}];
 nb = Import[src, "Notebook"];
 keep = {"Input","Code","Text","Title","Subtitle","Chapter","Section","Subsection",
         "Subsubsection","Item","ItemNumbered","Program","ExternalLanguage",
@@ -331,7 +336,7 @@ Two facts recorded here because they are load-bearing downstream:
    Check it:
 
    ```bash
-   cd "C:/Users/nsh/Documents/8-dim/Pre-Universe_14SEP26-77/claude-fable/extract"
+   cd "$(git rev-parse --show-toplevel)/claude-fable/extract"
    grep -n 'sixAntiSymmetric8by8' cells_dump.txt
    ```
 

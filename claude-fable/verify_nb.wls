@@ -1,6 +1,13 @@
 (* Verify the generated .nb: import it, pull out the Input cells, and evaluate them all in
    order in this kernel.  If the notebook is well formed, this reproduces run_all.wls exactly. *)
-nbfile = "C:/Users/nsh/Documents/8-dim/Pre-Universe_14SEP26-77/claude-fable/claude-fable_Einstein-Rosen-2-Planes.nb";
+(* --- self-locating, so this script works from a clone at any path -------------------------- *)
+(* $InputFileName is the path this file was invoked with; ExpandFileName makes it absolute even *)
+(* when wolframscript was given a relative path.  cfHere is this script's own directory,        *)
+(* i.e. <repo>/claude-fable, and cfRepo is the repository root.                                 *)
+cfHere = DirectoryName[ExpandFileName[$InputFileName]];
+cfRepo = ParentDirectory[cfHere];
+cfNB   = FileNameJoin[{cfHere, "claude-fable_Einstein-Rosen-2-Planes.nb"}];
+nbfile = cfNB;
 Print["file bytes: ", FileByteCount[nbfile]];
 nb = Import[nbfile, "Notebook"];
 Print["Head: ", Head[nb]];

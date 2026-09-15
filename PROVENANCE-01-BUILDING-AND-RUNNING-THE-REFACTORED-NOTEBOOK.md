@@ -2,7 +2,7 @@
 
 **Effort.** Refine and refactor the whole of
 `Pre-gravityPre-Big_Bang_M6=3-Generations_of_Einstein-Rosen-2-Planes.nb` into a new, commented,
-optimized notebook at `C:\Users\nsh\Documents\8-dim\claude-fable_Einstein-Rosen-2-Planes.nb`,
+optimized notebook at `claude-fable/claude-fable_Einstein-Rosen-2-Planes.nb`,
 and prove that the notebook executes cleanly from end to end.
 
 Everything needed to repeat this work is on this page. No other file needs to be consulted.
@@ -77,7 +77,7 @@ WolframScript 1.14.0 for Microsoft Windows (64-bit)
 Two helper packages written by the author must sit next to the notebook. Put them there:
 
 ```bash
-cd "C:/Users/nsh/Documents/8-dim"
+cd "$(dirname "$(git rev-parse --show-toplevel)")"   # the author's delivery folder; optional
 cp Pre-Universe_14SEP26-77/ConvertMapleToMathematicaV2.wl .
 cp Pre-Universe_14SEP26-77/EtoExp.wl .
 ls -la ConvertMapleToMathematicaV2.wl EtoExp.wl
@@ -91,7 +91,7 @@ silently substitute a home-made parser.
 ## 4. Back up before overwriting
 
 ```bash
-cd "C:/Users/nsh/Documents/8-dim"
+cd "$(dirname "$(git rev-parse --show-toplevel)")"   # the author's delivery folder; optional
 mkdir -p Pre-Universe_14SEP26-77/backups
 if [ -f claude-fable_Einstein-Rosen-2-Planes.nb ]; then
   cp -p claude-fable_Einstein-Rosen-2-Planes.nb \
@@ -103,7 +103,7 @@ ls -la Pre-Universe_14SEP26-77/backups/
 ## 5. Rebuild the notebook from the manifests
 
 ```bash
-cd "C:/Users/nsh/Documents/8-dim/Pre-Universe_14SEP26-77/claude-fable"
+cd "$(git rev-parse --show-toplevel)/claude-fable"
 python build_tools.py 2>&1 | tee build.log
 cat build.log
 ```
@@ -120,7 +120,7 @@ notebook       : 213 cells -> C:\Users\nsh\Documents\8-dim\Pre-Universe_14SEP26-
 Then copy it to the deliverable location:
 
 ```bash
-cd "C:/Users/nsh/Documents/8-dim/Pre-Universe_14SEP26-77/claude-fable"
+cd "$(git rev-parse --show-toplevel)/claude-fable"
 cp claude-fable_Einstein-Rosen-2-Planes.nb "C:/Users/nsh/Documents/8-dim/"
 ls -la "C:/Users/nsh/Documents/8-dim/claude-fable_Einstein-Rosen-2-Planes.nb"
 ```
@@ -128,11 +128,18 @@ ls -la "C:/Users/nsh/Documents/8-dim/claude-fable_Einstein-Rosen-2-Planes.nb"
 ## 6. Check that the `.nb` is well formed and every Input cell parses
 
 ```bash
-cd "C:/Users/nsh/Documents/8-dim/Pre-Universe_14SEP26-77/claude-fable"
+cd "$(git rev-parse --show-toplevel)/claude-fable"
 cat > verify_nb.wls <<'WLSEOF'
 (* Verify the generated .nb: import it, pull out the Input cells, and evaluate them all in
    order in this kernel.  If the notebook is well formed, this reproduces run_all.wls exactly. *)
-nbfile = "C:/Users/nsh/Documents/8-dim/Pre-Universe_14SEP26-77/claude-fable/claude-fable_Einstein-Rosen-2-Planes.nb";
+(* --- self-locating, so this script works from a clone at any path -------------------------- *)
+(* $InputFileName is the path this file was invoked with; ExpandFileName makes it absolute even *)
+(* when wolframscript was given a relative path.  cfHere is this script's own directory,        *)
+(* i.e. <repo>/claude-fable, and cfRepo is the repository root.                                 *)
+cfHere = DirectoryName[ExpandFileName[$InputFileName]];
+cfRepo = ParentDirectory[cfHere];
+cfNB   = FileNameJoin[{cfHere, "claude-fable_Einstein-Rosen-2-Planes.nb"}];
+nbfile = cfNB;
 Print["file bytes: ", FileByteCount[nbfile]];
 nb = Import[nbfile, "Notebook"];
 Print["Head: ", Head[nb]];
@@ -175,7 +182,7 @@ This is the real test: it imports the delivered `.nb`, takes its Input cells in 
 evaluates each one in a fresh kernel, exactly as the front end would.
 
 ```bash
-cd "C:/Users/nsh/Documents/8-dim/Pre-Universe_14SEP26-77/claude-fable"
+cd "$(git rev-parse --show-toplevel)/claude-fable"
 cat > runner_header.wl <<'WLSEOF'
 (* runner_header.wl -- harness used by run_all.wls to evaluate every notebook Input cell
    in order, in one kernel, reporting timing and every message raised. *)
@@ -220,8 +227,15 @@ cat > run_from_nb.wls <<'WLSEOF'
 (* Execute the notebook itself: import the .nb, take its Input cells in order, evaluate each.
    ToExpression[...,Hold] on a multi-line cell returns Hold[e1,e2,...]; rewrap those as one
    CompoundExpression so the cell evaluates as a single unit, exactly as the front end does. *)
-Get["runner_header.wl"];
-nbfile = "C:/Users/nsh/Documents/8-dim/Pre-Universe_14SEP26-77/claude-fable/claude-fable_Einstein-Rosen-2-Planes.nb";
+(* --- self-locating, so this script works from a clone at any path -------------------------- *)
+(* $InputFileName is the path this file was invoked with; ExpandFileName makes it absolute even *)
+(* when wolframscript was given a relative path.  cfHere is this script's own directory,        *)
+(* i.e. <repo>/claude-fable, and cfRepo is the repository root.                                 *)
+cfHere = DirectoryName[ExpandFileName[$InputFileName]];
+cfRepo = ParentDirectory[cfHere];
+cfNB   = FileNameJoin[{cfHere, "claude-fable_Einstein-Rosen-2-Planes.nb"}];
+Get[FileNameJoin[{cfHere, "runner_header.wl"}]];
+nbfile = cfNB;
 nb = Import[nbfile, "Notebook"];
 inputs = Cases[nb, Cell[BoxData[s_String], "Input", ___] :> s, Infinity];
 Print["evaluating ", Length[inputs], " Input cells straight out of the .nb"];
@@ -269,7 +283,7 @@ true is that **passed** equals **assertions run** and **FAILED** is zero.
 To see the individual assertion verdicts:
 
 ```bash
-cd "C:/Users/nsh/Documents/8-dim/Pre-Universe_14SEP26-77/claude-fable"
+cd "$(git rev-parse --show-toplevel)/claude-fable"
 grep -c 'PASS' run_from_nb.log       # 182
 grep    'FAIL' run_from_nb.log       # only the "FAILED : 0" summary line
 grep -n 'MESSAGES' run_from_nb.log   # no hits
@@ -308,7 +322,7 @@ number lumping them together was misleading and was corrected on 2026-09-14:
 To see both:
 
 ```bash
-cd "C:/Users/nsh/Documents/8-dim/Pre-Universe_14SEP26-77/claude-fable"
+cd "$(git rev-parse --show-toplevel)/claude-fable"
 grep -E 'identities accepted|non-vanishing witnesses' run_from_nb.log
 ```
 
@@ -335,7 +349,7 @@ probe is used to REFUTE an identity by exhibiting a non-zero value at rational s
 which is a sound refutation rather than a numerical stand-in for a proof. To confirm the five:
 
 ```bash
-cd "C:/Users/nsh/Documents/8-dim/Pre-Universe_14SEP26-77/claude-fable"
+cd "$(git rev-parse --show-toplevel)/claude-fable"
 grep -n '! TrueQ\[cfZero' cells_part*.wl
 ```
 

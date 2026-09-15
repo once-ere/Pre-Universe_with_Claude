@@ -4,7 +4,7 @@
 derive its spin connection from the same vielbein postulate; and compare that new spin connection,
 component by component, with the canonical one of section 16.
 
-This is section 18 of `C:\Users\nsh\Documents\8-dim\claude-fable_Einstein-Rosen-2-Planes.nb`
+This is section 18 of `claude-fable/claude-fable_Einstein-Rosen-2-Planes.nb`
 (Input cells 117–122).
 
 Everything needed to repeat this work is on this page. No other file needs to be consulted.
@@ -76,12 +76,19 @@ Delta1[mu]  ==  omegaBoost[mu] - Lambda . omegaCanonical[mu] . Inverse[Lambda]
 ## 3. Complete commands
 
 ```bash
-cd "C:/Users/nsh/Documents/8-dim/Pre-Universe_14SEP26-77/claude-fable"
+cd "$(git rev-parse --show-toplevel)/claude-fable"
 cat > prov04_bridge1.wls <<'WLSEOF'
 (* Run the delivered notebook, then print the whole of the bridge-1 comparison. *)
+(* --- self-locating, so this script works from a clone at any path -------------------------- *)
+(* $InputFileName is the path this file was invoked with; ExpandFileName makes it absolute even *)
+(* when wolframscript was given a relative path.  cfHere is this script's own directory,        *)
+(* i.e. <repo>/claude-fable, and cfRepo is the repository root.                                 *)
+cfHere = DirectoryName[ExpandFileName[$InputFileName]];
+cfRepo = ParentDirectory[cfHere];
+cfNB   = FileNameJoin[{cfHere, "claude-fable_Einstein-Rosen-2-Planes.nb"}];
 
-nbfile = "C:/Users/nsh/Documents/8-dim/Pre-Universe_14SEP26-77/claude-fable/claude-fable_Einstein-Rosen-2-Planes.nb";
-SetDirectory["C:/Users/nsh/Documents/8-dim/Pre-Universe_14SEP26-77/claude-fable"];
+nbfile = cfNB;
+SetDirectory[cfHere];
 nb = Import[nbfile, "Notebook"];
 inputs = Cases[nb, Cell[BoxData[s_String], "Input", ___] :> s, Infinity];
 asOne[h_Hold] := Replace[h, Hold[args___] :> Hold[CompoundExpression[args]]];

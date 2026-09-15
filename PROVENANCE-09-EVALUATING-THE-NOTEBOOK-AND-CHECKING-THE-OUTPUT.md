@@ -29,7 +29,7 @@ described below was made to a manifest and the notebook rebuilt.
 ## 1. Back up before touching anything
 
 ```bash
-cd "C:/Users/nsh/Documents/8-dim/Pre-Universe_14SEP26-77"
+cd "$(git rev-parse --show-toplevel)"
 mkdir -p backups
 cp -p claude-fable/claude-fable_Einstein-Rosen-2-Planes.nb "backups/claude-fable_Einstein-Rosen-2-Planes.2026-09-14T1700.nb"
 cp -p ../claude-fable_Einstein-Rosen-2-Planes.nb "backups/8-dim-copy_claude-fable_Einstein-Rosen-2-Planes.2026-09-14T1700.nb"
@@ -53,8 +53,15 @@ so it cannot pass because of anything that lives only in the build tooling.
 (* Execute the notebook itself: import the .nb, take its Input cells in order, evaluate each.
    ToExpression[...,Hold] on a multi-line cell returns Hold[e1,e2,...]; rewrap those as one
    CompoundExpression so the cell evaluates as a single unit, exactly as the front end does. *)
-Get["runner_header.wl"];
-nbfile = "C:/Users/nsh/Documents/8-dim/Pre-Universe_14SEP26-77/claude-fable/claude-fable_Einstein-Rosen-2-Planes.nb";
+(* --- self-locating, so this script works from a clone at any path -------------------------- *)
+(* $InputFileName is the path this file was invoked with; ExpandFileName makes it absolute even *)
+(* when wolframscript was given a relative path.  cfHere is this script's own directory,        *)
+(* i.e. <repo>/claude-fable, and cfRepo is the repository root.                                 *)
+cfHere = DirectoryName[ExpandFileName[$InputFileName]];
+cfRepo = ParentDirectory[cfHere];
+cfNB   = FileNameJoin[{cfHere, "claude-fable_Einstein-Rosen-2-Planes.nb"}];
+Get[FileNameJoin[{cfHere, "runner_header.wl"}]];
+nbfile = cfNB;
 nb = Import[nbfile, "Notebook"];
 inputs = Cases[nb, Cell[BoxData[s_String], "Input", ___] :> s, Infinity];
 Print["evaluating ", Length[inputs], " Input cells straight out of the .nb"];
@@ -66,7 +73,7 @@ cfRunSummary[];
 Run it:
 
 ```bash
-cd "C:/Users/nsh/Documents/8-dim/Pre-Universe_14SEP26-77/claude-fable"
+cd "$(git rev-parse --show-toplevel)/claude-fable"
 wolframscript -file run_from_nb.wls 2>&1 | tee eval_kernel_1728.log
 ```
 
@@ -113,7 +120,8 @@ truncated notebook showed the cause: `NotebookEvaluate` had inserted the `Output
 correctly, and it was the save that silently failed.
 
 ```bash
-cd "C:/Users/nsh/Documents/8-dim/eval-run"
+WORK="${CF_OUT:-$(dirname "$(git rev-parse --show-toplevel)")/eval-run}"
+mkdir -p "$WORK" && cd "$WORK"
 wolframscript -file probe_prefix.wls 2>&1 | tee probe_prefix.log
 ```
 ```
@@ -128,14 +136,24 @@ same kernel raises `ClearAll::wrsym: Symbol DIM8 is Protected`, because Section 
 notebook executed `Protect[DIM8, M, K, H]`. That is an artifact of the harness, not of the
 notebook. Each notebook gets its own kernel.
 
-`C:\Users\nsh\Documents\8-dim\eval-run\fe_full.wls`, in full:
+`<repo>\claude-fable\render-check\fe_full.wls`, in full:
 
 ```wolfram
 (* Evaluate the delivered notebook in the Mathematica FRONT END, on a COPY, in a CLEAN kernel.
    Nothing else runs in this kernel, so no earlier Protect[] can contaminate it.
    Results are harvested with NotebookGet, because NotebookSave[nb,path] returns $Failed here. *)
-src = "C:/Users/nsh/Documents/8-dim/Pre-Universe_14SEP26-77/claude-fable/claude-fable_Einstein-Rosen-2-Planes.nb";
-dst = "C:/Users/nsh/Documents/8-dim/eval-run/evaluated.nb";
+(* --- self-locating, so this works from a clone at any path --------------------------------- *)
+(* Run in place, from <repo>/claude-fable/render-check.  Output goes to $CF_OUT, or to a folder  *)
+(* in the system temp directory when CF_OUT is unset, so this never writes into the repository.  *)
+cfHere = DirectoryName[ExpandFileName[$InputFileName]];
+cfRepo = ParentDirectory[ParentDirectory[cfHere]];
+cfNB   = FileNameJoin[{cfRepo, "claude-fable", "claude-fable_Einstein-Rosen-2-Planes.nb"}];
+cfOut  = Environment["CF_OUT"];
+If[cfOut === $Failed || cfOut === "", cfOut = FileNameJoin[{$TemporaryDirectory, "cf-render-check"}]];
+Quiet[CreateDirectory[cfOut]];
+cfOut  = cfOut <> "/";
+src = cfNB;
+dst = cfOut <> "evaluated.nb";
 If[FileExistsQ[dst], DeleteFile[dst]];
 CopyFile[src, dst];
 Print["source   : ", FileByteCount[src], " bytes  sha256 ",
@@ -151,7 +169,7 @@ Export[dst, cfgot, "NB"];
 Print["evaluated: ", FileByteCount[dst], " bytes"];
 Print["styles   : ", SortBy[Tally[Cases[Import[dst, "Notebook"], Cell[_, s_String, ___] :> s, Infinity]], -Last[#] &]];
 Print["source unchanged: ", IntegerString[Hash[ReadByteArray[src], "SHA256"], 16]];
-pdf = "C:/Users/nsh/Documents/8-dim/eval-run/evaluated.pdf";
+pdf = cfOut <> "evaluated.pdf";
 UsingFrontEnd[
   nb2 = NotebookOpen[dst, Visible -> False];
   Export[pdf, nb2];
@@ -160,7 +178,8 @@ Print["pdf bytes: ", FileByteCount[pdf], "   pages: ", Import[pdf, "PageCount"]]
 ```
 
 ```bash
-cd "C:/Users/nsh/Documents/8-dim/eval-run"
+WORK="${CF_OUT:-$(dirname "$(git rev-parse --show-toplevel)")/eval-run}"
+mkdir -p "$WORK" && cd "$WORK"
 wolframscript -file fe_full.wls 2>&1 | tee fe_full_1730.log
 ```
 
@@ -173,20 +192,47 @@ cells** inserted — exactly `139 - 29`, the 29 `Input` cells that end in `;` an
 input/output pair in `Cell[CellGroupData[{...}, Open]]`. Use `Infinity`.
 
 ```bash
-cd "C:/Users/nsh/Documents/8-dim/eval-run"
+WORK="${CF_OUT:-$(dirname "$(git rev-parse --show-toplevel)")/eval-run}"
+mkdir -p "$WORK" && cd "$WORK"
 cat > check_out.wls <<'EOF'
-dst = "C:/Users/nsh/Documents/8-dim/eval-run/evaluated.nb";
+
+(* --- self-locating, so this works from a clone at any path --------------------------------- *)
+(* Run in place, from <repo>/claude-fable/render-check.  Output goes to $CF_OUT, or to a folder  *)
+(* in the system temp directory when CF_OUT is unset, so this never writes into the repository.  *)
+cfHere = DirectoryName[ExpandFileName[$InputFileName]];
+cfRepo = ParentDirectory[ParentDirectory[cfHere]];
+cfNB   = FileNameJoin[{cfRepo, "claude-fable", "claude-fable_Einstein-Rosen-2-Planes.nb"}];
+cfOut  = Environment["CF_OUT"];
+If[cfOut === $Failed || cfOut === "", cfOut = FileNameJoin[{$TemporaryDirectory, "cf-render-check"}]];
+Quiet[CreateDirectory[cfOut]];
+cfOut  = cfOut <> "/";
+dst = cfOut <> "evaluated.nb";
 nb  = Import[dst, "Notebook"];
+cells = First[nb];
 outs = Cases[nb, Cell[c_, "Output", ___] :> c, Infinity];
 Print["Output cells            : ", Length[outs]];
 Print["ErrorBox anywhere       : ", Length[Cases[nb, ErrorBox[___], Infinity]]];
+
 txt[e_] := StringJoin[Cases[e, _String, Infinity]];
 bad = {"$Failed", "$Aborted", "Indeterminate", "ComplexInfinity", "DirectedInfinity",
-       "Missing[", "Interrupt"};
+       "Null[", "Missing[", "Interrupt", "$MachinePrecision"};
 Do[Module[{t = txt[outs[[i]]]},
-   Scan[If[StringContainsQ[t, #], Print["  SUSPECT output cell ", i, " contains ", #]] &, bad]],
+   Scan[If[StringContainsQ[t, #], Print["  SUSPECT output cell ", i, " contains ", #,
+           "  ->  ", StringTake[t, Min[200, StringLength[t]]]]] &, bad]],
   {i, Length[outs]}];
 Print["suspect scan done"];
+
+(* unevaluated heads that would mean a cell did not compute *)
+Do[Module[{t = txt[outs[[i]]]},
+   If[StringContainsQ[t, "DSolve[" | "Solve[" | "Integrate[" | "FullSimplify["],
+      Print["  cell ", i, " output still shows an unevaluated head: ",
+            StringTake[t, Min[160, StringLength[t]]]]]],
+  {i, Length[outs]}];
+Print["unevaluated-head scan done"];
+
+Print["---- the last 6 Output cells, as plain text ----"];
+Do[Print["[out ", i, "] ", StringTake[txt[outs[[i]]], Min[1400, StringLength[txt[outs[[i]]]]]]],
+  {i, Length[outs] - 5, Length[outs]}];
 EOF
 wolframscript -file check_out.wls 2>&1 | tee check_out.log
 ```
@@ -202,9 +248,10 @@ To find the page a given result lands on in a rendered PDF, note that
 `Part::partd`. The per-page form works:
 
 ```bash
-cd "C:/Users/nsh/Documents/8-dim/eval-run"
+WORK="${CF_OUT:-$(dirname "$(git rev-parse --show-toplevel)")/eval-run}"
+mkdir -p "$WORK" && cd "$WORK"
 cat > findpage.wls <<'EOF'
-pdf = "C:/Users/nsh/Documents/8-dim/eval-run/evaluated.pdf";
+pdf = cfOut <> "evaluated.pdf";
 n = Import[pdf, "PageCount"];
 Do[t = Quiet@Check[Import[pdf, {"Plaintext", k}], ""];
    If[StringQ[t] && StringContainsQ[t, "difference from canonical"], Print["master table page: ", k]],
@@ -257,8 +304,15 @@ files, written before any of this work began.
 ```wolfram
 (* Compare the eLa/eLazt written by TODAY's two runs against the author's own DumpSave output.
    Clear[] has HoldAll, so plain Clear[eLa] is what clears the symbol; Clear[Evaluate[eLa]] does not. *)
-src = "C:/Users/nsh/Documents/8-dim/Pre-Universe_14SEP26-77/";
-cf  = "C:/Users/nsh/Documents/8-dim/Pre-Universe_14SEP26-77/claude-fable/";
+(* --- self-locating, so this script works from a clone at any path -------------------------- *)
+(* $InputFileName is the path this file was invoked with; ExpandFileName makes it absolute even *)
+(* when wolframscript was given a relative path.  cfHere is this script's own directory,        *)
+(* i.e. <repo>/claude-fable, and cfRepo is the repository root.                                 *)
+cfHere = DirectoryName[ExpandFileName[$InputFileName]];
+cfRepo = ParentDirectory[cfHere];
+cfNB   = FileNameJoin[{cfHere, "claude-fable_Einstein-Rosen-2-Planes.nb"}];
+src = cfRepo <> "/";
+cf  = cfHere <> "/";
 fe  = "C:/Users/nsh/Documents/8-dim/eval-run/";
 
 Get[src <> "Pre-gravityPre-Big_Bang_M6=3-Generations_of_Einstein-Rosen-2-Planes-eLa.mx"];
@@ -283,7 +337,7 @@ Print["eLazt residual author - kernel-run  : ", Union@Flatten@Simplify[srcELazt 
 ```
 
 ```bash
-cd "C:/Users/nsh/Documents/8-dim/Pre-Universe_14SEP26-77/claude-fable"
+cd "$(git rev-parse --show-toplevel)/claude-fable"
 wolframscript -file mx_fidelity2.wls 2>&1 | tee mx_fidelity2.log
 ```
 ```
@@ -302,7 +356,7 @@ size slightly on every run. Their **content** is identical, which is what the ch
 establishes, so after a verification run they are restored rather than committed:
 
 ```bash
-cd "C:/Users/nsh/Documents/8-dim/Pre-Universe_14SEP26-77"
+cd "$(git rev-parse --show-toplevel)"
 git checkout -- claude-fable/claude-fable_Einstein-Rosen-2-Planes-eLa.mx \
                 claude-fable/claude-fable_Einstein-Rosen-2-Planes-eLazt.mx
 ```
@@ -412,7 +466,7 @@ Instrumenting the function — wrapping `cfNumericallyZeroQ`, not `cfAssert`, be
 is not `HoldRest` and its argument is evaluated before it is ever entered — gave:
 
 ```bash
-cd "C:/Users/nsh/Documents/8-dim/Pre-Universe_14SEP26-77/claude-fable"
+cd "$(git rev-parse --show-toplevel)/claude-fable"
 wolframscript -file attribute_certs.wls 2>&1 | tee attribute_certs.log
 ```
 ```
@@ -453,7 +507,7 @@ non-vanishing witnesses                         : 6   (stage 3 returned False in
 ## 8. Rebuild and re-verify after the changes
 
 ```bash
-cd "C:/Users/nsh/Documents/8-dim/Pre-Universe_14SEP26-77/claude-fable"
+cd "$(git rev-parse --show-toplevel)/claude-fable"
 python build_tools.py 2>&1 | tee build_1725.log
 cp -p claude-fable_Einstein-Rosen-2-Planes.nb "C:/Users/nsh/Documents/8-dim/claude-fable_Einstein-Rosen-2-Planes.nb"
 wolframscript -file run_from_nb.wls 2>&1 | tee eval_kernel_1728.log
@@ -493,7 +547,7 @@ session policy, kept unchanged.
 ## 10. Reproducing the whole thing from nothing
 
 ```bash
-cd "C:/Users/nsh/Documents/8-dim/Pre-Universe_14SEP26-77/claude-fable"
+cd "$(git rev-parse --show-toplevel)/claude-fable"
 
 # 1. rebuild the notebook from the manifests
 python build_tools.py 2>&1 | tee build.log
@@ -502,18 +556,19 @@ python build_tools.py 2>&1 | tee build.log
 wolframscript -file run_from_nb.wls 2>&1 | tee eval_kernel.log
 
 # 3. evaluate it in the front end, on a copy, and render it
-cd "C:/Users/nsh/Documents/8-dim/eval-run"
+WORK="${CF_OUT:-$(dirname "$(git rev-parse --show-toplevel)")/eval-run}"
+mkdir -p "$WORK" && cd "$WORK"
 wolframscript -file fe_full.wls 2>&1 | tee fe_full.log
 
 # 4. check the evaluated notebook's outputs
 wolframscript -file check_out.wls 2>&1 | tee check_out.log
 
 # 5. confirm the Euler-Lagrange equations still match the author's own .mx files
-cd "C:/Users/nsh/Documents/8-dim/Pre-Universe_14SEP26-77/claude-fable"
+cd "$(git rev-parse --show-toplevel)/claude-fable"
 wolframscript -file mx_fidelity2.wls 2>&1 | tee mx_fidelity2.log
 
 # 6. restore the regenerated .mx files, whose content is identical but whose bytes are not
-cd "C:/Users/nsh/Documents/8-dim/Pre-Universe_14SEP26-77"
+cd "$(git rev-parse --show-toplevel)"
 git checkout -- claude-fable/claude-fable_Einstein-Rosen-2-Planes-eLa.mx \
                 claude-fable/claude-fable_Einstein-Rosen-2-Planes-eLazt.mx
 git status --porcelain=v1

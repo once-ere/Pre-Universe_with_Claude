@@ -1,7 +1,14 @@
 (* Compare the eLa/eLazt written by TODAY's two runs against the author's own DumpSave output.
    Clear[] has HoldAll, so plain Clear[eLa] is what clears the symbol; Clear[Evaluate[eLa]] does not. *)
-src = "C:/Users/nsh/Documents/8-dim/Pre-Universe_14SEP26-77/";
-cf  = "C:/Users/nsh/Documents/8-dim/Pre-Universe_14SEP26-77/claude-fable/";
+(* --- self-locating, so this script works from a clone at any path -------------------------- *)
+(* $InputFileName is the path this file was invoked with; ExpandFileName makes it absolute even *)
+(* when wolframscript was given a relative path.  cfHere is this script's own directory,        *)
+(* i.e. <repo>/claude-fable, and cfRepo is the repository root.                                 *)
+cfHere = DirectoryName[ExpandFileName[$InputFileName]];
+cfRepo = ParentDirectory[cfHere];
+cfNB   = FileNameJoin[{cfHere, "claude-fable_Einstein-Rosen-2-Planes.nb"}];
+src = cfRepo <> "/";
+cf  = cfHere <> "/";
 fe  = "C:/Users/nsh/Documents/8-dim/eval-run/";
 
 Get[src <> "Pre-gravityPre-Big_Bang_M6=3-Generations_of_Einstein-Rosen-2-Planes-eLa.mx"];

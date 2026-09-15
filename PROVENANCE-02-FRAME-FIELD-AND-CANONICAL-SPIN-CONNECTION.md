@@ -6,7 +6,7 @@ Minkowski metric through a pseudo-orthogonal frame field; and compute the canoni
 connection from the zero-torsion vielbein postulate.
 
 This covers Steps 1 and 2 of the standard procedure, i.e. sections 15 and 16 of
-`C:\Users\nsh\Documents\8-dim\claude-fable_Einstein-Rosen-2-Planes.nb` (Input cells 91–110).
+`claude-fable/claude-fable_Einstein-Rosen-2-Planes.nb` (Input cells 91–110).
 
 Everything needed to repeat this work is on this page. No other file needs to be consulted.
 
@@ -101,13 +101,20 @@ Gamma[rho,mu,nu] = (1/2) g^{rho s} ( d_mu g_{s nu} + d_nu g_{s mu} - d_s g_{mu n
 ## 4. Complete commands to reproduce and display the result
 
 ```bash
-cd "C:/Users/nsh/Documents/8-dim/Pre-Universe_14SEP26-77/claude-fable"
+cd "$(git rev-parse --show-toplevel)/claude-fable"
 cat > prov02_frame_and_connection.wls <<'WLSEOF'
 (* Run the delivered notebook, then print everything about the frame field and the canonical
    spin connection.  Self-contained: it needs only the .nb and the two helper .wl packages. *)
+(* --- self-locating, so this script works from a clone at any path -------------------------- *)
+(* $InputFileName is the path this file was invoked with; ExpandFileName makes it absolute even *)
+(* when wolframscript was given a relative path.  cfHere is this script's own directory,        *)
+(* i.e. <repo>/claude-fable, and cfRepo is the repository root.                                 *)
+cfHere = DirectoryName[ExpandFileName[$InputFileName]];
+cfRepo = ParentDirectory[cfHere];
+cfNB   = FileNameJoin[{cfHere, "claude-fable_Einstein-Rosen-2-Planes.nb"}];
 
-nbfile = "C:/Users/nsh/Documents/8-dim/Pre-Universe_14SEP26-77/claude-fable/claude-fable_Einstein-Rosen-2-Planes.nb";
-SetDirectory["C:/Users/nsh/Documents/8-dim/Pre-Universe_14SEP26-77/claude-fable"];
+nbfile = cfNB;
+SetDirectory[cfHere];
 nb = Import[nbfile, "Notebook"];
 inputs = Cases[nb, Cell[BoxData[s_String], "Input", ___] :> s, Infinity];
 Print["notebook Input cells: ", Length[inputs]];
@@ -300,7 +307,7 @@ form.
 
 ## 7. Reading the same result inside the notebook
 
-Open `C:\Users\nsh\Documents\8-dim\claude-fable_Einstein-Rosen-2-Planes.nb` in Mathematica and
+Open `claude-fable/claude-fable_Einstein-Rosen-2-Planes.nb` in Mathematica and
 evaluate sections 1 through 16. The grid produced by
 
 ```

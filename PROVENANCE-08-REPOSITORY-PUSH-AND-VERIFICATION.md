@@ -24,7 +24,7 @@ Everything needed to repeat this work is on this page. No other file needs to be
 > The rename, which also moved the `main` branch's tracking to the new `origin`:
 >
 > ```bash
-> cd "C:/Users/nsh/Documents/8-dim/Pre-Universe_14SEP26-77"
+> cd "$(git rev-parse --show-toplevel)"
 > git remote rename origin upstream
 > git remote rename claude-fable origin
 > git branch -vv                 # * main ... [origin/main]
@@ -43,7 +43,7 @@ remote was `https://github.com/43d168f3e/Pre-Universe.git`. The target
 is a clean first push of `main`, not a merge.
 
 ```bash
-cd "C:/Users/nsh/Documents/8-dim/Pre-Universe_14SEP26-77"
+cd "$(git rev-parse --show-toplevel)"
 git remote -v
 gh auth status
 gh api repos/once-ere/Pre-Universe_with_Claude --jq '{name,visibility,default_branch,size}'
@@ -71,7 +71,7 @@ All three copies of the file that the notebook can find already carry the packag
 nothing needed syncing:
 
 ```bash
-cd "C:/Users/nsh/Documents/8-dim/Pre-Universe_14SEP26-77"
+cd "$(git rev-parse --show-toplevel)"
 for f in "EtoExp.wl" "claude-fable/EtoExp.wl" "C:/Users/nsh/Documents/8-dim/EtoExp.wl"; do
   printf '%-52s ' "$f"
   stat -c '%s bytes  ' "$f" | tr -d '
@@ -87,7 +87,7 @@ change". That was wrong. Comparing with carriage returns stripped shows 21 genui
 lines:
 
 ```bash
-cd "C:/Users/nsh/Documents/8-dim/Pre-Universe_14SEP26-77"
+cd "$(git rev-parse --show-toplevel)"
 git show HEAD:EtoExp.wl > /tmp/old_etoexp.wl
 diff <(tr -d '
 ' < /tmp/old_etoexp.wl) <(tr -d '
@@ -97,7 +97,7 @@ diff <(tr -d '
 To see exactly this split:
 
 ```bash
-cd "C:/Users/nsh/Documents/8-dim/Pre-Universe_14SEP26-77"
+cd "$(git rev-parse --show-toplevel)"
 git status --porcelain
 git diff --stat EtoExp.wl
 git diff --stat "Pre-gravity_Pre-Big_Bang_M6=3-Generations_of_Einstein-Rosen-2-Planes.nb.pdf"
@@ -114,7 +114,7 @@ What was committed:
 > 2b below, so this page still carries it complete.
 
 ```bash
-cd "C:/Users/nsh/Documents/8-dim/Pre-Universe_14SEP26-77"
+cd "$(git rev-parse --show-toplevel)"
 cat > .gitignore <<'EOF'
 # local backups made before modifying anything
 backups/
@@ -146,7 +146,7 @@ this work began, and the refactored notebook's equations are compared against th
 Without those files in the repository that comparison could not be run from a clone:
 
 ```bash
-cd "C:/Users/nsh/Documents/8-dim/Pre-Universe_14SEP26-77/claude-fable"
+cd "$(git rev-parse --show-toplevel)/claude-fable"
 wolframscript -code '
   src  = "C:/Users/nsh/Documents/8-dim/Pre-Universe_14SEP26-77/";
   mine = "C:/Users/nsh/Documents/8-dim/";
@@ -225,14 +225,14 @@ the file pattern `.env.*` rather than any directory.
 Check that no tracked file is caught by any rule:
 
 ```bash
-cd "C:/Users/nsh/Documents/8-dim/Pre-Universe_14SEP26-77"
+cd "$(git rev-parse --show-toplevel)"
 git ls-files -z | xargs -0 git check-ignore --no-index
 ```
 
 Empty output means every tracked file survives. Then spot-check both directions:
 
 ```bash
-cd "C:/Users/nsh/Documents/8-dim/Pre-Universe_14SEP26-77"
+cd "$(git rev-parse --show-toplevel)"
 for f in Pre.txt Pre-00.txt claude-fable/run8.log claude-fable/final_run.log          claude-fable/extract/cells_dump.txt claude-fable/extract/cells_index.txt; do
   printf '  %-48s ' "$f"
   if git check-ignore --no-index -q "$f"; then echo "IGNORED  <-- WRONG"; else echo "kept"; fi
@@ -247,7 +247,7 @@ Every deliverable prints `kept`; every piece of litter and every credential-shap
 `ignored`. Under the shipped design the same is true of files that do not exist yet:
 
 ```bash
-cd "C:/Users/nsh/Documents/8-dim/Pre-Universe_14SEP26-77"
+cd "$(git rev-parse --show-toplevel)"
 for f in claude-fable/brand_new_run.log PROVENANCE-09-SOMETHING.md NewSpec.txt notes.txt; do
   printf '  %-32s ' "$f"
   if git check-ignore --no-index -q "$f"; then echo "IGNORED <-- trap"; else echo "kept (correct)"; fi
@@ -271,7 +271,7 @@ untracked files, inside the multi-megabyte binaries, or in the nine commits that
 The commands, all of which return nothing:
 
 ```bash
-cd "C:/Users/nsh/Documents/8-dim/Pre-Universe_14SEP26-77"
+cd "$(git rev-parse --show-toplevel)"
 
 # tracked text files
 git grep -n -I -E 'ghp_[A-Za-z0-9]{20,}|gho_[A-Za-z0-9]{20,}|github_pat_[A-Za-z0-9_]{20,}|sk-[A-Za-z0-9]{20,}|sk-ant-[A-Za-z0-9-]{20,}|AKIA[0-9A-Z]{16}|ASIA[0-9A-Z]{16}|xox[baprs]-[A-Za-z0-9-]{10,}|AIza[0-9A-Za-z_-]{35}|-----BEGIN [A-Z ]*PRIVATE KEY-----|glpat-[A-Za-z0-9_-]{20,}' -- .
@@ -565,7 +565,7 @@ Untitled*
 To restore exactly this file:
 
 ```bash
-cd "C:/Users/nsh/Documents/8-dim/Pre-Universe_14SEP26-77"
+cd "$(git rev-parse --show-toplevel)"
 git checkout -- .gitignore
 wc -l .gitignore          # 208
 ```
@@ -573,7 +573,7 @@ wc -l .gitignore          # 208
 ## 3. The commit and the push
 
 ```bash
-cd "C:/Users/nsh/Documents/8-dim/Pre-Universe_14SEP26-77"
+cd "$(git rev-parse --show-toplevel)"
 git commit -F <a file containing the message>
 git remote add claude-fable https://github.com/once-ere/Pre-Universe_with_Claude.git
 git push -u claude-fable main
@@ -598,7 +598,7 @@ them as binary.
 The fix is to tell git never to touch line endings, and to restore the exact bytes in the index:
 
 ```bash
-cd "C:/Users/nsh/Documents/8-dim/Pre-Universe_14SEP26-77"
+cd "$(git rev-parse --show-toplevel)"
 cat > .gitattributes <<'EOF'
 # Store and check out every file byte-for-byte.  Mathematica .nb and .mx files, and the
 # provenance logs that record exact program output, must not have their line endings
@@ -666,7 +666,8 @@ for f in "Pre-gravityPre-Big_Bang_M6=3-Generations_of_Einstein-Rosen-2-Planes.nb
          "claude-fable/cells_part4.wl" \
          "PROVENANCE-06-BRIDGE-3-OCTONIONIC-TORSION-COMPARED.md"; do
   a=$(sha256sum "$VER/$f" | cut -d' ' -f1)
-  b=$(sha256sum "C:/Users/nsh/Documents/8-dim/Pre-Universe_14SEP26-77/$f" | cut -d' ' -f1)
+  b=$(sha256sum "$(git -C "$VER" rev-parse --show-toplevel)/../$f" 2>/dev/null | cut -d' ' -f1)
+  [ -z "$b" ] && b=$(cd "$REPO" && sha256sum "$f" | cut -d' ' -f1)
   if [ "$a" = "$b" ]; then echo "  MATCH   $f"; else echo "  DIFFER  $f"; fi
 done
 ```
@@ -769,7 +770,7 @@ the same bytes:
 
 ```bash
 sha256sum "C:/Users/nsh/Documents/8-dim/claude-fable_Einstein-Rosen-2-Planes.nb" \
-          "C:/Users/nsh/Documents/8-dim/Pre-Universe_14SEP26-77/claude-fable/claude-fable_Einstein-Rosen-2-Planes.nb"
+          "$(git rev-parse --show-toplevel)/claude-fable/claude-fable_Einstein-Rosen-2-Planes.nb"
 ```
 
 Both print `5a12a7b4f1125d786bca279483b02d8c187a2498f50a5c0337f40cbc6cfeaaf1`.

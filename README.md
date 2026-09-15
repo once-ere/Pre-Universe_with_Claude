@@ -66,7 +66,24 @@ python build_tools.py
 ## Provenance
 
 Every stage of the work has a page of its own, each carrying the complete commands for that
-stage, so no page depends on another:
+stage, so no page depends on another.
+
+**The commands are relocatable.** Clone this repository wherever you like. Shell blocks find the
+root with `git rev-parse --show-toplevel`, and every Wolfram script locates itself from
+`$InputFileName`, so nothing is tied to the path it happened to be written on:
+
+```wolfram
+cfHere = DirectoryName[ExpandFileName[$InputFileName]];   (* <repo>/claude-fable *)
+cfRepo = ParentDirectory[cfHere];                        (* the repository root  *)
+cfNB   = FileNameJoin[{cfHere, "claude-fable_Einstein-Rosen-2-Planes.nb"}];
+```
+
+The scripts under `claude-fable/render-check/` are run in place and write their output to the
+directory named by the `CF_OUT` environment variable, defaulting to a folder in the system temp
+directory, so running them never writes into the repository.
+
+The only absolute paths left are the author's own delivery folder, where a second copy of the
+notebook is placed for convenience, and they are marked as optional where they appear.
 
 | page | what it records |
 |---|---|

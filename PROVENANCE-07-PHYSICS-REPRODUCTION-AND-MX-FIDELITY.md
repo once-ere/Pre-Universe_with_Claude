@@ -7,7 +7,7 @@ four, the Maple closed-form solutions, the bilinear invariants, the two solution
 M6 = the 6-plane in which the 3 generations of Einstein–Rosen 2-plane bridges live. Then prove
 the reproduction is faithful, not merely plausible.
 
-This is Part II of `C:\Users\nsh\Documents\8-dim\claude-fable_Einstein-Rosen-2-Planes.nb`,
+This is Part II of `claude-fable/claude-fable_Einstein-Rosen-2-Planes.nb`,
 sections 10 to 14, Input cells 53 to 90.
 
 Everything needed to repeat this work is on this page. No other file needs to be consulted.
@@ -43,11 +43,18 @@ Loading both pairs into one kernel and comparing gives **`SameQ` — identical e
 merely equal ones**. The small byte differences are the stored symbol names, nothing else.
 
 ```bash
-cd "C:/Users/nsh/Documents/8-dim/Pre-Universe_14SEP26-77/claude-fable"
+cd "$(git rev-parse --show-toplevel)/claude-fable"
 cat > prov07_mx_fidelity.wls <<'WLSEOF'
 (* Compare the equations the refactor produces with the author's own DumpSave output. *)
-src  = "C:/Users/nsh/Documents/8-dim/Pre-Universe_14SEP26-77/";
-mine = "C:/Users/nsh/Documents/8-dim/";
+(* --- self-locating, so this script works from a clone at any path -------------------------- *)
+(* $InputFileName is the path this file was invoked with; ExpandFileName makes it absolute even *)
+(* when wolframscript was given a relative path.  cfHere is this script's own directory,        *)
+(* i.e. <repo>/claude-fable, and cfRepo is the repository root.                                 *)
+cfHere = DirectoryName[ExpandFileName[$InputFileName]];
+cfRepo = ParentDirectory[cfHere];
+cfNB   = FileNameJoin[{cfHere, "claude-fable_Einstein-Rosen-2-Planes.nb"}];
+src  = cfRepo <> "/";
+mine = cfHere <> "/";   (* the .mx the notebook writes land beside it, in <repo>/claude-fable *)
 
 Get[src <> "Pre-gravityPre-Big_Bang_M6=3-Generations_of_Einstein-Rosen-2-Planes-eLa.mx"];
 srcELa = eLa; Clear[eLa];
@@ -94,7 +101,7 @@ sixteen field equations are the author's, unchanged.
 To regenerate the refactor's two `.mx` files, run the notebook (section 12 writes them):
 
 ```bash
-cd "C:/Users/nsh/Documents/8-dim/Pre-Universe_14SEP26-77/claude-fable"
+cd "$(git rev-parse --show-toplevel)/claude-fable"
 timeout 3000 wolframscript -file run_from_nb.wls 2>&1 | tee run_from_nb.log
 ls -la "C:/Users/nsh/Documents/8-dim/claude-fable_Einstein-Rosen-2-Planes-eLa.mx" \
        "C:/Users/nsh/Documents/8-dim/claude-fable_Einstein-Rosen-2-Planes-eLazt.mx"
@@ -144,12 +151,19 @@ refactored notebook states and verifies both the identity and the mismatch.
 ## 4. Complete commands to reproduce and display Part II
 
 ```bash
-cd "C:/Users/nsh/Documents/8-dim/Pre-Universe_14SEP26-77/claude-fable"
+cd "$(git rev-parse --show-toplevel)/claude-fable"
 cat > prov07_physics.wls <<'WLSEOF'
 (* Run the delivered notebook, then print the whole of Part II. *)
+(* --- self-locating, so this script works from a clone at any path -------------------------- *)
+(* $InputFileName is the path this file was invoked with; ExpandFileName makes it absolute even *)
+(* when wolframscript was given a relative path.  cfHere is this script's own directory,        *)
+(* i.e. <repo>/claude-fable, and cfRepo is the repository root.                                 *)
+cfHere = DirectoryName[ExpandFileName[$InputFileName]];
+cfRepo = ParentDirectory[cfHere];
+cfNB   = FileNameJoin[{cfHere, "claude-fable_Einstein-Rosen-2-Planes.nb"}];
 
-nbfile = "C:/Users/nsh/Documents/8-dim/Pre-Universe_14SEP26-77/claude-fable/claude-fable_Einstein-Rosen-2-Planes.nb";
-SetDirectory["C:/Users/nsh/Documents/8-dim/Pre-Universe_14SEP26-77/claude-fable"];
+nbfile = cfNB;
+SetDirectory[cfHere];
 nb = Import[nbfile, "Notebook"];
 inputs = Cases[nb, Cell[BoxData[s_String], "Input", ___] :> s, Infinity];
 asOne[h_Hold] := Replace[h, Hold[args___] :> Hold[CompoundExpression[args]]];

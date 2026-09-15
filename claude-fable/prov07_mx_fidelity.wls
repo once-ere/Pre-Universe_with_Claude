@@ -1,6 +1,13 @@
 (* Compare the equations the refactor produces with the author's own DumpSave output. *)
-src  = "C:/Users/nsh/Documents/8-dim/Pre-Universe_14SEP26-77/";
-mine = "C:/Users/nsh/Documents/8-dim/";
+(* --- self-locating, so this script works from a clone at any path -------------------------- *)
+(* $InputFileName is the path this file was invoked with; ExpandFileName makes it absolute even *)
+(* when wolframscript was given a relative path.  cfHere is this script's own directory,        *)
+(* i.e. <repo>/claude-fable, and cfRepo is the repository root.                                 *)
+cfHere = DirectoryName[ExpandFileName[$InputFileName]];
+cfRepo = ParentDirectory[cfHere];
+cfNB   = FileNameJoin[{cfHere, "claude-fable_Einstein-Rosen-2-Planes.nb"}];
+src  = cfRepo <> "/";
+mine = cfHere <> "/";   (* the .mx the notebook writes land beside it, in <repo>/claude-fable *)
 
 Get[src <> "Pre-gravityPre-Big_Bang_M6=3-Generations_of_Einstein-Rosen-2-Planes-eLa.mx"];
 srcELa = eLa; Clear[eLa];

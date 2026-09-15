@@ -25,7 +25,7 @@ directory `render3` as their output. Re-running them writes there, not into the 
 ## 1. The state going in
 
 ```bash
-cd "C:/Users/nsh/Documents/8-dim/Pre-Universe_14SEP26-77"
+cd "$(git rev-parse --show-toplevel)"
 tasklist | grep -i wolfram
 sha256sum claude-fable/claude-fable_Einstein-Rosen-2-Planes.nb ../claude-fable_Einstein-Rosen-2-Planes.nb
 stat -c '%s bytes  mtime %y' claude-fable/claude-fable_Einstein-Rosen-2-Planes.nb
@@ -102,7 +102,21 @@ parse that string into boxes when it opens the file. A cell it cannot parse eith
 ```wolfram
 (* Open the delivered notebook in a front end and inspect what the front end actually made of
    it.  Read-only: opened Visible->False and closed without saving. *)
-src = "C:/Users/nsh/Documents/8-dim/claude-fable_Einstein-Rosen-2-Planes.nb";
+(* --- self-locating, so this works from a clone at any path --------------------------------- *)
+(* Run this script IN PLACE, from <repo>/claude-fable/render-check.  cfRepo is then the           *)
+(* repository root and cfNB the delivered notebook.  Output goes to the directory named by the    *)
+(* CF_OUT environment variable, or to a folder in the system temp directory if CF_OUT is unset,   *)
+(* so that running this never writes into the repository.                                        *)
+cfHere = DirectoryName[ExpandFileName[$InputFileName]];
+cfRepo = ParentDirectory[ParentDirectory[cfHere]];
+cfNB   = FileNameJoin[{cfRepo, "claude-fable", "claude-fable_Einstein-Rosen-2-Planes.nb"}];
+cfOut  = Environment["CF_OUT"];
+If[cfOut === $Failed || cfOut === "", cfOut = FileNameJoin[{$TemporaryDirectory, "cf-render-check"}]];
+Quiet[CreateDirectory[cfOut]];
+cfOut  = cfOut <> "/";
+Print["repo   : ", cfRepo];
+Print["output : ", cfOut];
+src = cfNB;
 Print["file      : ", FileByteCount[src], " bytes  sha256 ",
       IntegerString[Hash[ReadByteArray[src], "SHA256"], 16]];
 UsingFrontEnd[
@@ -132,7 +146,8 @@ Print["source unchanged: ", IntegerString[Hash[ReadByteArray[src], "SHA256"], 16
 ```
 
 ```bash
-cd "C:/Users/nsh/Documents/8-dim/render3"
+WORK="${CF_OUT:-$(dirname "$(git rev-parse --show-toplevel)")/render3}"
+mkdir -p "$WORK" && cd "$WORK"
 wolframscript -file probe.wls 2>&1 | tee probe.log
 ```
 
@@ -166,8 +181,22 @@ survive into the refactored notebook.
    Cell[CellGroupData[{...}, Open]], so First[] would return a whole group rather than the cell
    asked for, and two needles inside one group would silently produce the same picture twice.
    Cell[_, _String, ___] matches LEAF cells only, because a group has no String style in slot 2. *)
-src = "C:/Users/nsh/Documents/8-dim/claude-fable_Einstein-Rosen-2-Planes.nb";
-out = "C:/Users/nsh/Documents/8-dim/render3/";
+(* --- self-locating, so this works from a clone at any path --------------------------------- *)
+(* Run this script IN PLACE, from <repo>/claude-fable/render-check.  cfRepo is then the           *)
+(* repository root and cfNB the delivered notebook.  Output goes to the directory named by the    *)
+(* CF_OUT environment variable, or to a folder in the system temp directory if CF_OUT is unset,   *)
+(* so that running this never writes into the repository.                                        *)
+cfHere = DirectoryName[ExpandFileName[$InputFileName]];
+cfRepo = ParentDirectory[ParentDirectory[cfHere]];
+cfNB   = FileNameJoin[{cfRepo, "claude-fable", "claude-fable_Einstein-Rosen-2-Planes.nb"}];
+cfOut  = Environment["CF_OUT"];
+If[cfOut === $Failed || cfOut === "", cfOut = FileNameJoin[{$TemporaryDirectory, "cf-render-check"}]];
+Quiet[CreateDirectory[cfOut]];
+cfOut  = cfOut <> "/";
+Print["repo   : ", cfRepo];
+Print["output : ", cfOut];
+src = cfNB;
+out = cfOut;
 
 (* The yZ-split assertions and the sigma16 assertions are both in the five-bilinears Input cell,
    so they are ONE picture, not two. *)
@@ -198,7 +227,8 @@ UsingFrontEnd[
 ```
 
 ```bash
-cd "C:/Users/nsh/Documents/8-dim/render3"
+WORK="${CF_OUT:-$(dirname "$(git rev-parse --show-toplevel)")/render3}"
+mkdir -p "$WORK" && cd "$WORK"
 wolframscript -file shots.wls 2>&1 | tee shots.log
 sha256sum *.png
 ```
@@ -238,7 +268,7 @@ picture. That turned out to be correct, not a second bug: both new assertion blo
 *same* `Input` cell. Checked directly against the manifest rather than assumed:
 
 ```bash
-cd "C:/Users/nsh/Documents/8-dim/Pre-Universe_14SEP26-77/claude-fable"
+cd "$(git rev-parse --show-toplevel)/claude-fable"
 awk '/^\(\* ::Input:: \*\)/{n++} \
      /the yZ split at 8 is NOT/{print "  yZ assertions      -> Input cell #"n} \
      /sigma16 alone is SYMMETRIC/{print "  sigma16 assertions -> Input cell #"n}' cells_part3.wl
@@ -309,8 +339,23 @@ Both captures are kept:
 `<repo>\claude-fable\render-check\pdf.wls`, in full:
 
 ```wolfram
-src = "C:/Users/nsh/Documents/8-dim/claude-fable_Einstein-Rosen-2-Planes.nb";
-pdf = "C:/Users/nsh/Documents/8-dim/render3/rendered.pdf";
+
+(* --- self-locating, so this works from a clone at any path --------------------------------- *)
+(* Run this script IN PLACE, from <repo>/claude-fable/render-check.  cfRepo is then the           *)
+(* repository root and cfNB the delivered notebook.  Output goes to the directory named by the    *)
+(* CF_OUT environment variable, or to a folder in the system temp directory if CF_OUT is unset,   *)
+(* so that running this never writes into the repository.                                        *)
+cfHere = DirectoryName[ExpandFileName[$InputFileName]];
+cfRepo = ParentDirectory[ParentDirectory[cfHere]];
+cfNB   = FileNameJoin[{cfRepo, "claude-fable", "claude-fable_Einstein-Rosen-2-Planes.nb"}];
+cfOut  = Environment["CF_OUT"];
+If[cfOut === $Failed || cfOut === "", cfOut = FileNameJoin[{$TemporaryDirectory, "cf-render-check"}]];
+Quiet[CreateDirectory[cfOut]];
+cfOut  = cfOut <> "/";
+Print["repo   : ", cfRepo];
+Print["output : ", cfOut];
+src = cfNB;
+pdf = cfOut <> "rendered.pdf";
 UsingFrontEnd[
   nb = NotebookOpen[src, Visible -> False];
   Export[pdf, nb];
@@ -331,7 +376,8 @@ Print["source unchanged: ", IntegerString[Hash[ReadByteArray[src], "SHA256"], 16
 ```
 
 ```bash
-cd "C:/Users/nsh/Documents/8-dim/render3"
+WORK="${CF_OUT:-$(dirname "$(git rev-parse --show-toplevel)")/render3}"
+mkdir -p "$WORK" && cd "$WORK"
 wolframscript -file pdf.wls 2>&1 | tee pdf.log
 ```
 
@@ -359,7 +405,7 @@ works, and is what the loop above uses.
 confirming that only the author's window is left, and that the file is still untouched:
 
 ```bash
-cd "C:/Users/nsh/Documents/8-dim/Pre-Universe_14SEP26-77"
+cd "$(git rev-parse --show-toplevel)"
 tasklist | grep -iE "WolframNB.exe|WolframKernel.exe|wolframscript"
 sha256sum ../claude-fable_Einstein-Rosen-2-Planes.nb
 git status --porcelain=v1
@@ -372,7 +418,7 @@ One `WolframNB.exe` (the author's window) and its kernel; hash unchanged; tree c
 ```bash
 # 1. the file is what it should be.  This is the copy git tracks, so these lines work
 #    against a fresh clone; the identical copy under 8-dim is outside the repository.
-cd "C:/Users/nsh/Documents/8-dim/Pre-Universe_14SEP26-77"
+cd "$(git rev-parse --show-toplevel)"
 sha256sum claude-fable/claude-fable_Einstein-Rosen-2-Planes.nb
 git status --porcelain=v1 -- claude-fable/claude-fable_Einstein-Rosen-2-Planes.nb
 
@@ -382,15 +428,17 @@ NB="$(pwd -W 2>/dev/null || pwd)/claude-fable/claude-fable_Einstein-Rosen-2-Plan
 ("$FE" "$NB" >/dev/null 2>&1 &)
 
 # 3. the three checks
-mkdir -p "C:/Users/nsh/Documents/8-dim/render3"
-cp claude-fable/render-check/*.wls "C:/Users/nsh/Documents/8-dim/render3/"
-cd "C:/Users/nsh/Documents/8-dim/render3"
+WORK="${CF_OUT:-$(dirname "$(git rev-parse --show-toplevel)")/render3}"
+mkdir -p "$WORK"
+# the render-check scripts are run IN PLACE and honour $CF_OUT for their output
+WORK="${CF_OUT:-$(dirname "$(git rev-parse --show-toplevel)")/render3}"
+mkdir -p "$WORK" && cd "$WORK"
 wolframscript -file probe.wls 2>&1 | tee probe.log
 wolframscript -file shots.wls 2>&1 | tee shots.log
 wolframscript -file pdf.wls   2>&1 | tee pdf.log
 
 # 4. nothing was written to the notebook
-cd "C:/Users/nsh/Documents/8-dim/Pre-Universe_14SEP26-77"
+cd "$(git rev-parse --show-toplevel)"
 sha256sum claude-fable/claude-fable_Einstein-Rosen-2-Planes.nb
 ```
 
