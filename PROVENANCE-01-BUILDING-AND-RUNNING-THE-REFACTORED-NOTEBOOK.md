@@ -470,8 +470,8 @@ The three numbers that matter:
 Wall-clock time is roughly 128 s on this machine; it will vary.
 
 The assertion total has grown as the notebook gained checks: it was 175 when the repository was
-first pushed, 178 after the review of commit `35ff142`, and 182 after the evaluation of
-`2da615d` added four. If a future change adds more, this number moves with it; what must stay
+first pushed, 178 after the review of commit `3e8dc4c`, and 182 after the evaluation of
+`5232d89` added four. If a future change adds more, this number moves with it; what must stay
 true is that **passed** equals **assertions run** and **FAILED** is zero.
 
 To see the individual assertion verdicts:
