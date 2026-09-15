@@ -37,6 +37,14 @@ Everything needed to repeat this work is on this page. No other file needs to be
 
 ## 1. The state before the push
 
+> **Note added 2026-09-14.** `Pre.txt` and `Pre-00.txt` are no longer tracked. They are the
+> author's task specification and working notes, they were committed by mistake, and they were
+> removed at his instruction. Where the commands below add or hash them, that is the record of
+> what was done at the time; re-running those commands today will simply not find them in
+> `git ls-files`. They were in the public history from commit `6359576` until they were
+> removed, so removing them from the tip does not remove them from the history.
+
+
 The working repository is `C:\Users\nsh\Documents\8-dim\Pre-Universe_14SEP26-77`. Its `origin`
 remote was `https://github.com/43d168f3e/Pre-Universe.git`. The target
 `https://github.com/once-ere/Pre-Universe_with_Claude.git` existed but was **empty**, so the push
@@ -61,7 +69,7 @@ actually is was checked first rather than assumed:
 | path | pre-existing change |
 |---|---|
 | `EtoExp.wl` | the author rewrote it as a proper Wolfram package: `BeginPackage`, two `::usage` strings, `Begin["\`Private\`"]`, and a matching `End[]` / `EndPackage[]`. 21 added lines, nothing removed. |
-| `Pre.txt` | the task specification, grown from 16 KB to 50 KB |
+| `Pre.txt` | the task specification, grown from 16 KB to 50 KB. **Removed from tracking on 2026-09-14** at the author's instruction: it is his private working material, not a deliverable. The same applies to `Pre-00.txt`. Both remain on disk and are now named explicitly in `.gitignore`. Commands elsewhere on this page that mention them are the record of when they were tracked. |
 | `Pre-gravity_Pre-Big_Bang_M6=3-Generations_of_Einstein-Rosen-2-Planes.nb.pdf` | rebuilt, 19.4 MB → 13.7 MB |
 | `Pre-gravity_Pre-Big_Bang_M6=3-Generations_of_Einstein-Rosen-2-Planes.nb` | deleted from the working tree by the author before this work began |
 | `2026-02-20-Pre-U-mmM4p.nb` and its two `.mx` files | a separate 25 MB working notebook, untracked |
@@ -364,7 +372,7 @@ lines. Verify it with `cat .gitignore` or `sha256sum .gitignore`.
 #       an exception list somebody has to remember to update.
 #
 #  Job 3 is why there is no blanket "*.txt" or "*.log" rule.  This repository is
-#  mostly provenance: 46 of its 119 tracked files are .txt or .log, and they are
+#  mostly provenance: 44 of its 120 tracked files are .txt or .log, and they are
 #  the record of exactly what the notebook printed.  Ignoring them by extension
 #  and rescuing them by name would mean every new one is dropped in silence.
 #  Scratch is named instead.  See section 3 for the full reasoning.
@@ -436,6 +444,13 @@ ActivationKey*
 .idea/
 *.code-workspace
 
+
+# the author's own task specification and working notes.  These are his private
+# working material, not a deliverable, and must not be published.  They were
+# tracked by mistake and were removed from tracking on 2026-09-14; the files
+# stay on disk.
+Pre.txt
+Pre-00.txt
 
 # -----------------------------------------------------------------------------
 # 2.  LITTER

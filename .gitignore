@@ -9,7 +9,7 @@
 #       an exception list somebody has to remember to update.
 #
 #  Job 3 is why there is no blanket "*.txt" or "*.log" rule.  This repository is
-#  mostly provenance: 46 of its 119 tracked files are .txt or .log, and they are
+#  mostly provenance: 44 of its 120 tracked files are .txt or .log, and they are
 #  the record of exactly what the notebook printed.  Ignoring them by extension
 #  and rescuing them by name would mean every new one is dropped in silence.
 #  Scratch is named instead.  See section 3 for the full reasoning.
@@ -81,6 +81,13 @@ ActivationKey*
 .idea/
 *.code-workspace
 
+
+# the author's own task specification and working notes.  These are his private
+# working material, not a deliverable, and must not be published.  They were
+# tracked by mistake and were removed from tracking on 2026-09-14; the files
+# stay on disk.
+Pre.txt
+Pre-00.txt
 
 # -----------------------------------------------------------------------------
 # 2.  LITTER
