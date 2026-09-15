@@ -9,6 +9,32 @@ Everything needed to repeat this work is on this page. No other file needs to be
 
 ---
 
+> **Note added 2026-09-14, after this work was done: the remotes have been renamed.**
+>
+> When the push described below was made, the remote names were the other way round from what
+> they are now. A bare `git push` went to the author's own repository, and was rejected as
+> non-fast-forward — which is how the problem came to light. The commands on this page are
+> recorded exactly as they were run; the names they use are the *old* ones.
+>
+> | repository | name then | name now |
+> |---|---|---|
+> | `https://github.com/once-ere/Pre-Universe_with_Claude.git` (the target of this work) | `claude-fable` | **`origin`** |
+> | `https://github.com/43d168f3e/Pre-Universe.git` (the author's own repository) | `origin` | **`upstream`** |
+>
+> The rename, which also moved the `main` branch's tracking to the new `origin`:
+>
+> ```bash
+> cd "C:/Users/nsh/Documents/8-dim/Pre-Universe_14SEP26-77"
+> git remote rename origin upstream
+> git remote rename claude-fable origin
+> git branch -vv                 # * main ... [origin/main]
+> git push --dry-run -v          # Pushing to https://github.com/once-ere/Pre-Universe_with_Claude.git
+> ```
+>
+> So to repeat anything below today, read `claude-fable` as `origin`. A bare `git push` now goes
+> to `once-ere/Pre-Universe_with_Claude`, and reaching the author's repository takes naming
+> `upstream` explicitly.
+
 ## 1. The state before the push
 
 The working repository is `C:\Users\nsh\Documents\8-dim\Pre-Universe_14SEP26-77`. Its `origin`
