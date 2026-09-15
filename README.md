@@ -82,8 +82,11 @@ The scripts under `claude-fable/render-check/` are run in place and write their 
 directory named by the `CF_OUT` environment variable, defaulting to a folder in the system temp
 directory, so running them never writes into the repository.
 
-The only absolute paths left are the author's own delivery folder, where a second copy of the
-notebook is placed for convenience, and they are marked as optional where they appear.
+No committed Wolfram script contains an absolute path at all. The only absolute paths left in
+the provenance pages are the author's own delivery folder, where a second copy of the notebook
+is placed for convenience and which is marked optional where it appears; a temp directory one
+page creates for itself; and prose recording where the working repository sat when a page was
+written.
 
 | page | what it records |
 |---|---|

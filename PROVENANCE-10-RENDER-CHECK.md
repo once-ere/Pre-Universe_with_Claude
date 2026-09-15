@@ -17,10 +17,14 @@ Everything needed to repeat this work is on this page. No other file needs to be
 | the notebook that was opened | `C:\Users\nsh\Documents\8-dim\claude-fable_Einstein-Rosen-2-Planes.nb` |
 | its in-repo twin, byte-identical | `<repo>\claude-fable\claude-fable_Einstein-Rosen-2-Planes.nb` |
 | scripts, logs and images from this effort | `<repo>\claude-fable\render-check\` |
-| scratch the scripts write to | `C:\Users\nsh\Documents\8-dim\render3\` |
+| where the scripts write their output | `$CF_OUT`, or a folder in the system temp directory when `CF_OUT` is unset. Never inside the repository. |
 
 The three `.wls` files are committed exactly as they were run, so they still name the scratch
-directory `render3` as their output. Re-running them writes there, not into the repository.
+environment variable `CF_OUT` for their output, defaulting to a folder in the system temp
+directory. They are run IN PLACE, from `<repo>/claude-fable/render-check`, so that they can
+locate the repository from their own path. Nothing is written into the repository. The
+transcripts quoted on this page were produced with `CF_OUT` set to a folder called `render3`
+beside the repository, which is what the command blocks below default it to; any directory works.
 
 ## 1. The state going in
 
@@ -146,9 +150,11 @@ Print["source unchanged: ", IntegerString[Hash[ReadByteArray[src], "SHA256"], 16
 ```
 
 ```bash
-WORK="${CF_OUT:-$(dirname "$(git rev-parse --show-toplevel)")/render3}"
-mkdir -p "$WORK" && cd "$WORK"
-wolframscript -file probe.wls 2>&1 | tee probe.log
+# the scripts are run IN PLACE, from the repository; CF_OUT says where their output goes
+export CF_OUT="${CF_OUT:-$(dirname "$(git rev-parse --show-toplevel)")/render3}"
+mkdir -p "$CF_OUT"
+cd "$(git rev-parse --show-toplevel)/claude-fable/render-check"
+wolframscript -file probe.wls 2>&1 | tee "$CF_OUT/probe.log"
 ```
 
 ```
@@ -227,10 +233,12 @@ UsingFrontEnd[
 ```
 
 ```bash
-WORK="${CF_OUT:-$(dirname "$(git rev-parse --show-toplevel)")/render3}"
-mkdir -p "$WORK" && cd "$WORK"
-wolframscript -file shots.wls 2>&1 | tee shots.log
-sha256sum *.png
+# the scripts are run IN PLACE, from the repository; CF_OUT says where their output goes
+export CF_OUT="${CF_OUT:-$(dirname "$(git rev-parse --show-toplevel)")/render3}"
+mkdir -p "$CF_OUT"
+cd "$(git rev-parse --show-toplevel)/claude-fable/render-check"
+wolframscript -file shots.wls 2>&1 | tee "$CF_OUT/shots.log"
+sha256sum "$CF_OUT"/*.png
 ```
 
 ```
@@ -376,9 +384,11 @@ Print["source unchanged: ", IntegerString[Hash[ReadByteArray[src], "SHA256"], 16
 ```
 
 ```bash
-WORK="${CF_OUT:-$(dirname "$(git rev-parse --show-toplevel)")/render3}"
-mkdir -p "$WORK" && cd "$WORK"
-wolframscript -file pdf.wls 2>&1 | tee pdf.log
+# the scripts are run IN PLACE, from the repository; CF_OUT says where their output goes
+export CF_OUT="${CF_OUT:-$(dirname "$(git rev-parse --show-toplevel)")/render3}"
+mkdir -p "$CF_OUT"
+cd "$(git rev-parse --show-toplevel)/claude-fable/render-check"
+wolframscript -file pdf.wls 2>&1 | tee "$CF_OUT/pdf.log"
 ```
 
 ```
@@ -428,14 +438,13 @@ NB="$(pwd -W 2>/dev/null || pwd)/claude-fable/claude-fable_Einstein-Rosen-2-Plan
 ("$FE" "$NB" >/dev/null 2>&1 &)
 
 # 3. the three checks
-WORK="${CF_OUT:-$(dirname "$(git rev-parse --show-toplevel)")/render3}"
-mkdir -p "$WORK"
-# the render-check scripts are run IN PLACE and honour $CF_OUT for their output
-WORK="${CF_OUT:-$(dirname "$(git rev-parse --show-toplevel)")/render3}"
-mkdir -p "$WORK" && cd "$WORK"
-wolframscript -file probe.wls 2>&1 | tee probe.log
-wolframscript -file shots.wls 2>&1 | tee shots.log
-wolframscript -file pdf.wls   2>&1 | tee pdf.log
+# the scripts are run IN PLACE, from the repository; CF_OUT says where their output goes
+export CF_OUT="${CF_OUT:-$(dirname "$(git rev-parse --show-toplevel)")/render3}"
+mkdir -p "$CF_OUT"
+cd "$(git rev-parse --show-toplevel)/claude-fable/render-check"
+wolframscript -file probe.wls 2>&1 | tee "$CF_OUT/probe.log"
+wolframscript -file shots.wls 2>&1 | tee "$CF_OUT/shots.log"
+wolframscript -file pdf.wls   2>&1 | tee "$CF_OUT/pdf.log"
 
 # 4. nothing was written to the notebook
 cd "$(git rev-parse --show-toplevel)"

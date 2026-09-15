@@ -120,9 +120,11 @@ truncated notebook showed the cause: `NotebookEvaluate` had inserted the `Output
 correctly, and it was the save that silently failed.
 
 ```bash
-WORK="${CF_OUT:-$(dirname "$(git rev-parse --show-toplevel)")/eval-run}"
-mkdir -p "$WORK" && cd "$WORK"
-wolframscript -file probe_prefix.wls 2>&1 | tee probe_prefix.log
+# the render-check scripts are run IN PLACE; CF_OUT says where their output goes
+export CF_OUT="${CF_OUT:-$(dirname "$(git rev-parse --show-toplevel)")/eval-run}"
+mkdir -p "$CF_OUT"
+cd "$(git rev-parse --show-toplevel)/claude-fable/render-check"
+wolframscript -file probe_prefix.wls 2>&1 | tee "$CF_OUT/probe_prefix.log"
 ```
 ```
 cells now in memory: {{Title,1},{Subtitle,1},{Subsubtitle,1},{Text,8},{Section,3},{Input,12},{Output,8}}
@@ -178,9 +180,11 @@ Print["pdf bytes: ", FileByteCount[pdf], "   pages: ", Import[pdf, "PageCount"]]
 ```
 
 ```bash
-WORK="${CF_OUT:-$(dirname "$(git rev-parse --show-toplevel)")/eval-run}"
-mkdir -p "$WORK" && cd "$WORK"
-wolframscript -file fe_full.wls 2>&1 | tee fe_full_1730.log
+# the render-check scripts are run IN PLACE; CF_OUT says where their output goes
+export CF_OUT="${CF_OUT:-$(dirname "$(git rev-parse --show-toplevel)")/eval-run}"
+mkdir -p "$CF_OUT"
+cd "$(git rev-parse --show-toplevel)/claude-fable/render-check"
+wolframscript -file fe_full.wls 2>&1 | tee "$CF_OUT/fe_full_1730.log"
 ```
 
 The front end agrees with the kernel: same 182 assertions, same 0 failures, and **110 `Output`
@@ -192,8 +196,10 @@ cells** inserted — exactly `139 - 29`, the 29 `Input` cells that end in `;` an
 input/output pair in `Cell[CellGroupData[{...}, Open]]`. Use `Infinity`.
 
 ```bash
-WORK="${CF_OUT:-$(dirname "$(git rev-parse --show-toplevel)")/eval-run}"
-mkdir -p "$WORK" && cd "$WORK"
+# the render-check scripts are run IN PLACE; CF_OUT says where their output goes
+export CF_OUT="${CF_OUT:-$(dirname "$(git rev-parse --show-toplevel)")/eval-run}"
+mkdir -p "$CF_OUT"
+cd "$(git rev-parse --show-toplevel)/claude-fable/render-check"
 cat > check_out.wls <<'EOF'
 
 (* --- self-locating, so this works from a clone at any path --------------------------------- *)
@@ -234,7 +240,7 @@ Print["---- the last 6 Output cells, as plain text ----"];
 Do[Print["[out ", i, "] ", StringTake[txt[outs[[i]]], Min[1400, StringLength[txt[outs[[i]]]]]]],
   {i, Length[outs] - 5, Length[outs]}];
 EOF
-wolframscript -file check_out.wls 2>&1 | tee check_out.log
+wolframscript -file check_out.wls 2>&1 | tee "$CF_OUT/check_out.log"
 ```
 
 `Output cells: 110`, `ErrorBox anywhere: 0`, no suspects.
@@ -248,16 +254,30 @@ To find the page a given result lands on in a rendered PDF, note that
 `Part::partd`. The per-page form works:
 
 ```bash
-WORK="${CF_OUT:-$(dirname "$(git rev-parse --show-toplevel)")/eval-run}"
-mkdir -p "$WORK" && cd "$WORK"
+# the render-check scripts are run IN PLACE; CF_OUT says where their output goes
+export CF_OUT="${CF_OUT:-$(dirname "$(git rev-parse --show-toplevel)")/eval-run}"
+mkdir -p "$CF_OUT"
+cd "$(git rev-parse --show-toplevel)/claude-fable/render-check"
 cat > findpage.wls <<'EOF'
+(* --- self-locating, so this works from a clone at any path --------------------------------- *)
+(* Run in place, from <repo>/claude-fable/render-check.  Output goes to $CF_OUT, or a folder in *)
+(* the system temp directory when CF_OUT is unset, so this never writes into the repository.    *)
+cfHere = DirectoryName[ExpandFileName[$InputFileName]];
+cfRepo = ParentDirectory[ParentDirectory[cfHere]];
+cfNB   = FileNameJoin[{cfRepo, "claude-fable", "claude-fable_Einstein-Rosen-2-Planes.nb"}];
+cfOut  = Environment["CF_OUT"];
+If[cfOut === $Failed || cfOut === "", cfOut = FileNameJoin[{$TemporaryDirectory, "cf-render-check"}]];
+Quiet[CreateDirectory[cfOut]];
+cfOut  = cfOut <> "/";
+Print["repo   : ", cfRepo];
+Print["output : ", cfOut];
 pdf = cfOut <> "evaluated.pdf";
 n = Import[pdf, "PageCount"];
 Do[t = Quiet@Check[Import[pdf, {"Plaintext", k}], ""];
    If[StringQ[t] && StringContainsQ[t, "difference from canonical"], Print["master table page: ", k]],
   {k, n}];
 EOF
-wolframscript -file findpage.wls 2>&1 | tee findpage.log
+wolframscript -file findpage.wls 2>&1 | tee "$CF_OUT/findpage.log"
 ```
 
 ## 5. The results the run produces
@@ -561,12 +581,14 @@ python build_tools.py 2>&1 | tee build.log
 wolframscript -file run_from_nb.wls 2>&1 | tee eval_kernel.log
 
 # 3. evaluate it in the front end, on a copy, and render it
-WORK="${CF_OUT:-$(dirname "$(git rev-parse --show-toplevel)")/eval-run}"
-mkdir -p "$WORK" && cd "$WORK"
-wolframscript -file fe_full.wls 2>&1 | tee fe_full.log
+# the render-check scripts are run IN PLACE; CF_OUT says where their output goes
+export CF_OUT="${CF_OUT:-$(dirname "$(git rev-parse --show-toplevel)")/eval-run}"
+mkdir -p "$CF_OUT"
+cd "$(git rev-parse --show-toplevel)/claude-fable/render-check"
+wolframscript -file fe_full.wls 2>&1 | tee "$CF_OUT/fe_full.log"
 
 # 4. check the evaluated notebook's outputs
-wolframscript -file check_out.wls 2>&1 | tee check_out.log
+wolframscript -file check_out.wls 2>&1 | tee "$CF_OUT/check_out.log"
 
 # 5. confirm the Euler-Lagrange equations still match the author's own .mx files
 cd "$(git rev-parse --show-toplevel)/claude-fable"

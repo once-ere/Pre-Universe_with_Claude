@@ -1,10 +1,16 @@
 (* Run the delivered notebook straight out of a fresh clone, with nothing from the
    development machine on the path.  The helper packages come from the clone too. *)
-dir = DirectoryName[$InputFileName];
-SetDirectory[FileNameJoin[{dir, "claude-fable"}]];
+(* Self-locating and depth-independent: this file is committed at <repo>/claude-fable, but is
+   also meant to be copied to a clone root.  Work out which, rather than assuming. *)
+cfHere = DirectoryName[ExpandFileName[$InputFileName]];
+cfCF   = If[FileExistsQ[FileNameJoin[{cfHere, "runner_header.wl"}]],
+            cfHere,                                   (* run from inside claude-fable *)
+            FileNameJoin[{cfHere, "claude-fable"}]];   (* run from the clone root      *)
+dir    = ParentDirectory[cfCF];
+SetDirectory[cfCF];
 Print["working directory : ", Directory[]];
 Get["runner_header.wl"];
-nbfile = FileNameJoin[{dir, "claude-fable", "claude-fable_Einstein-Rosen-2-Planes.nb"}];
+nbfile = FileNameJoin[{cfCF, "claude-fable_Einstein-Rosen-2-Planes.nb"}];
 Print["notebook          : ", nbfile];
 Print["bytes             : ", FileByteCount[nbfile]];
 nb = Import[nbfile, "Notebook"];

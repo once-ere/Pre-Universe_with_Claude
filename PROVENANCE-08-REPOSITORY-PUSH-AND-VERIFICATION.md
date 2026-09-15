@@ -363,7 +363,7 @@ lines. Verify it with `cat .gitignore` or `sha256sum .gitignore`.
 #       an exception list somebody has to remember to update.
 #
 #  Job 3 is why there is no blanket "*.txt" or "*.log" rule.  This repository is
-#  mostly provenance: 43 of its 114 tracked files are .txt or .log, and they are
+#  mostly provenance: 46 of its 119 tracked files are .txt or .log, and they are
 #  the record of exactly what the notebook printed.  Ignoring them by extension
 #  and rescuing them by name would mean every new one is dropped in silence.
 #  Scratch is named instead.  See section 3 for the full reasoning.
@@ -553,7 +553,7 @@ Untitled*
 # LaTeX is the one tool that would argue for *.log, since it writes <doc>.log
 # beside <doc>.tex.  Section 2 covers its other products (*.aux, *.toc, *.out and
 # the rest) but NOT its log, precisely because *.log cannot be scoped by
-# extension without catching the 39 provenance logs.  There are no .tex sources
+# extension without catching the 42 provenance logs.  There are no .tex sources
 # in this repository, so nothing writes a LaTeX log today.  If one is ever added,
 # scope the rule to it by name, for example
 #
@@ -693,11 +693,17 @@ cd "$VER"
 cat > run_from_clone.wls <<'WLSEOF'
 (* Run the delivered notebook straight out of a fresh clone, with nothing from the
    development machine on the path.  The helper packages come from the clone too. *)
-dir = DirectoryName[$InputFileName];
-SetDirectory[FileNameJoin[{dir, "claude-fable"}]];
+(* Self-locating and depth-independent: this file is committed at <repo>/claude-fable, but is
+   also meant to be copied to a clone root.  Work out which, rather than assuming. *)
+cfHere = DirectoryName[ExpandFileName[$InputFileName]];
+cfCF   = If[FileExistsQ[FileNameJoin[{cfHere, "runner_header.wl"}]],
+            cfHere,                                   (* run from inside claude-fable *)
+            FileNameJoin[{cfHere, "claude-fable"}]];   (* run from the clone root      *)
+dir    = ParentDirectory[cfCF];
+SetDirectory[cfCF];
 Print["working directory : ", Directory[]];
 Get["runner_header.wl"];
-nbfile = FileNameJoin[{dir, "claude-fable", "claude-fable_Einstein-Rosen-2-Planes.nb"}];
+nbfile = FileNameJoin[{cfCF, "claude-fable_Einstein-Rosen-2-Planes.nb"}];
 Print["notebook          : ", nbfile];
 Print["bytes             : ", FileByteCount[nbfile]];
 nb = Import[nbfile, "Notebook"];
