@@ -490,7 +490,7 @@ Non-zero component counts of the objects this review added: `GammaSpinCanonical`
 
 ## 8a. Commit and push, and verification from a fresh clone
 
-*(recorded in section 10 at the end of this page)*
+Recorded in section 10 at the end of this page, after the hard-rules section.
 
 ## 9. The hard rules, and how each was honoured
 
@@ -512,3 +512,85 @@ Non-zero component counts of the objects this review added: `GammaSpinCanonical`
    raising messages; the one message that fires by design (`Simplify::time` on the boosted-frame
    fable-5.1 solver, whose budget is the original's) is announced before it can fire and quieted
    for that computation only, exactly as Section 14 of the original handles its own.
+
+## 10. Commit, push, and verification from a fresh clone
+
+Everything of this revision was staged by name — the modified tracked files with `git add -u`
+and the new deliverables explicitly — so that nothing else on the author's disk could be swept
+in. `git check-ignore` confirmed that no deliverable is ignored, and `git ls-files` that no
+`.txt` is tracked.
+
+```bash
+cd "$(git rev-parse --show-toplevel)"
+git add -u
+git add PROVENANCE-11-REVIEW-AND-REFACTOR-OF-THE-OPUS-SOLUTION.md PROVENANCE-12-FABLE-5.1-BRIDGE-COMPARED.md \
+        STUDENT-GUIDE-FABLE-5.1-BRIDGE.md claude-fable/cells_part5.wl \
+        claude-fable/nb_section_map.wls claude-fable/nb_section_map.log \
+        claude-fable/run_fable51_second.log claude-fable/run_fable51_third.log claude-fable/run_fable51_fourth.log \
+        claude-fable/student_fable51.wls claude-fable/student_fable51.log claude-fable/verify_nb_fable51.log
+git ls-files | grep -ci '\.txt$'        # 0
+git commit -F - <<'MSG'
+Review and refactor the Opus-5 solution; add Part V, the fable-5.1 bridge
+[... the message is in the history: git log -1 d2042f8 ...]
+MSG
+git push origin main
+```
+
+The commit is `d2042f8`, *"Review and refactor the Opus-5 solution; add Part V, the fable-5.1
+bridge"*, on `main` of `https://github.com/once-ere/Pre-Universe_with_Claude.git`.
+
+**Verification 1 — a fresh clone holds exactly the pushed tree.**
+
+```bash
+V="$(mktemp -d)/verify-clone"
+git clone -q https://github.com/once-ere/Pre-Universe_with_Claude.git "$V"
+cd "$V"
+git log --oneline -1                    # d2042f8 Review and refactor the Opus-5 solution; add Part V, the fable-5.1 bridge
+git ls-files | wc -l                    # 130
+git ls-files | grep -ci '\.txt$'        # 0
+sha256sum claude-fable/claude-fable_Einstein-Rosen-2-Planes.nb claude-fable/cells_part5.wl \
+          PROVENANCE-11*.md PROVENANCE-12*.md STUDENT-GUIDE*.md README.md
+```
+
+The six hashes from the clone, and the same six from the working tree the commit was made in,
+are identical:
+
+```
+3de54f2e3dea8e457faec8449d5e938fa84cc5dc4ff21e8628506f6a1be7867f  claude-fable/claude-fable_Einstein-Rosen-2-Planes.nb
+69e8a501e2dd716e0134f9f342389c1c099e812fe62a149cf7eff01828bdf809  claude-fable/cells_part5.wl
+1b556f97a86fe1321207716970fb8ce73a66e85713ee1c4971b3d8f75664e966  PROVENANCE-11-REVIEW-AND-REFACTOR-OF-THE-OPUS-SOLUTION.md
+e48932ccbc4f90e8bd2ac33d47e679999616b2e107cc4a0f2c6e65c837faf5ea  PROVENANCE-12-FABLE-5.1-BRIDGE-COMPARED.md
+567ffc2a46ab062bdf68a149316b6411ac5205d5634265105563703397f3baaa  STUDENT-GUIDE-FABLE-5.1-BRIDGE.md
+d2b64d0cb0cc50970343b5d897b2b309197ff16221086ca46451935a184c67ea  README.md
+```
+
+The notebook's hash is also the one the render probe of section 7a reported before and after
+opening the file, so the file that renders, the file that was evaluated, and the file in the
+repository are one and the same.
+
+**Verification 2 — the notebook evaluates straight out of the clone.**
+
+```bash
+cd "$V/claude-fable"
+wolframscript -file run_from_nb.wls 2>&1 | tee run_from_clone.log
+tail -n 20 run_from_clone.log
+```
+
+The tail of `run_from_clone.log`, evaluated out of the clone at `d2042f8`:
+
+```
+==================== ASSERTIONS ====================
+assertions run  : 250
+passed          : 250
+FAILED          : 0
+====================================================
+```
+
+The same 250 assertions pass out of the clone as out of the working tree; the clone needed no
+file that is not in the repository.
+
+**A small repair made while recording this.** The `.gitignore` carried a rule for the author's
+own Gmail printout on dark energy, `Gmail - w = equation of state parameter … .pdf`, written
+with surrounding double quotes. Quotes are literal characters in `.gitignore`, so the rule
+matched nothing and the file showed as untracked. The quotes were removed; the file is now
+ignored as intended and stays on the author's disk, unpublished, like `Pre.txt`.
