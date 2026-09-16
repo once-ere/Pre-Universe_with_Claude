@@ -1,0 +1,13 @@
+
+Part::partd: Part specification gammaCurvedCanonical[[1]] is longer than depth of object.
+
+Part::partd: Part specification gammaCurvedCanonical[[1]] is longer than depth of object.
+
+Part::partd: Part specification gammaCurvedCanonical[[2]] is longer than depth of object.
+
+General::stop: Further output of Part::partd will be suppressed during this calculation.
+notebook state loaded through Input cell 116
+Dirac_LC[Sqrt[Sin] Psi'] - Sqrt[Sin] gamma^mu d_mu Psi'  ==  {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}
+the two equations differ by: {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}
+given Psi' solving  gamma^mu d_mu Psi' + m Psi' == 0,  the Levi-Civita solution is  Psi = Sqrt[Sin[6*H*x0]] Psi'
+given Psi solving the Levi-Civita equation, the connection-free solution is  Psi' = Psi / Sqrt[Sin[6*H*x0]]

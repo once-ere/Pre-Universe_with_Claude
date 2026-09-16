@@ -283,7 +283,7 @@ Ricci scalar                  : -3*H^2*((55 + 7*Cos[12*H*x0])*Cot[6*H*x0]^2*Csc[
 ```
 
 The Ricci scalar depends on `a4` only through `a4'[H x4]^2`, which is why it is the right
-invariant to compare the three new bridges against: it is a single scalar that no change of
+invariant to compare the bridges of Parts IV and V against: it is a single scalar that no change of
 frame can alter. An equivalent form, which `Simplify` sometimes prefers, is
 `-6 H^2 (24 Cot[6 H x0]^2 + 31 Cot[6 H x0]^4 - a4'[H x4]^2)`; the two differ only in surface
 form.

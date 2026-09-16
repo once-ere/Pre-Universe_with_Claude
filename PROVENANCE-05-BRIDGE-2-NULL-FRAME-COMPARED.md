@@ -1,4 +1,4 @@
-# Provenance 05 — New bridge 2, the null (light-cone) frame, compared to the canonical spin connection
+# Provenance 05 — Bridge 2, the null (light-cone) frame, compared to the canonical spin connection
 
 **Effort.** Invent a second, different way of bridging curved spacetime indices to flat
 tangent-space indices — this time by changing the flat tangent metric rather than the frame's
@@ -6,7 +6,7 @@ orientation — derive its spin connection from the same vielbein postulate, and
 component by component with the canonical one.
 
 This is section 19 of `claude-fable/claude-fable_Einstein-Rosen-2-Planes.nb`
-(Input cells 123–127).
+(Input cells 126–130).
 
 Everything needed to repeat this work is on this page. No other file needs to be consulted.
 
@@ -19,7 +19,28 @@ repository and nothing on this page depends on it.
 
 ---
 
-## 1. The new bridge
+## 0. Status after the fable-5.1 review (2026-09-16)
+
+This page was written when the notebook still called Bridges 1, 2 and 3 "three new spin
+connections". The review that produced Part V of the notebook (Section 21, the fable-5.1 bridge)
+re-examined all three, and the verdict is recorded here so that nobody reads the page below with
+the wrong expectation.
+
+**Bridge 2 is not a new connection, and is the weakest of the four.** Its frame is
+`frameCanonical . U` with `U` a *constant* matrix, so its connection is the canonical one
+conjugated by `U`, with no inhomogeneous term at all: the same connection in a constant gauge.
+What survives the review is the fact this bridge turned up — that the null form of the 4+4 flat
+metric is exactly the split-octonion spinor metric `sigma` — and that fact is about the flat
+metric, not about the connection.
+
+The commands, the assertions and the numbers on this page are unchanged and still pass; what
+changed is the label. The notebook's own text now carries the same verdict, in the Part IV
+introduction and at the head of Section 19 ("WHAT THIS BRIDGE IS, AND IS NOT"), and the master
+comparison of Section 22 classifies every connection in its last column.
+
+---
+
+## 1. The bridge
 
 Pair the eight flat directions as `(0,4)`, `(1,5)`, `(2,6)`, `(3,7)` — one spacelike with one
 timelike in each pair — and replace each pair by its two **null** combinations. The constant

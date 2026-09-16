@@ -1,4 +1,4 @@
-# Provenance 06 — New bridge 3, the triality frame with octonionic torsion, compared to the canonical spin connection
+# Provenance 06 — Bridge 3, the triality frame with octonionic torsion, compared to the canonical spin connection
 
 **Effort.** Invent a third way of bridging curved spacetime indices to flat tangent-space indices,
 this time one whose flat index is not a vector index at all but a split-octonion **spinor** index;
@@ -6,7 +6,7 @@ give it a spin connection that is **not** the Levi-Civita one; and compare it, c
 component, with the canonical spin connection of section 16.
 
 This is section 20 of `claude-fable/claude-fable_Einstein-Rosen-2-Planes.nb`
-(Input cells 128–135).
+(Input cells 131–139).
 
 Everything needed to repeat this work is on this page. No other file needs to be consulted.
 
@@ -19,7 +19,33 @@ repository and nothing on this page depends on it.
 
 ---
 
-## 1. The new bridge
+## 0. Status after the fable-5.1 review (2026-09-16)
+
+This page was written when the notebook still called Bridges 1, 2 and 3 "three new spin
+connections". The review that produced Part V of the notebook (Section 21, the fable-5.1 bridge)
+re-examined all three, and the verdict is recorded here so that nobody reads the page below with
+the wrong expectation.
+
+**Bridge 3 is a different connection**, and the review confirms it: the contortion
+`lambda mSkew[a,b,c] frameTri[[mu,c]]` is a tensor, the torsion `-2 lambda mSkew` is non-zero
+(now certified by a numerical witness that must evaluate to an actual number, not by a test that
+passes vacuously), and — new in this revision — its curvature `RiemannOct` is computed: at
+`lambda = 0` it is the triality conjugate of the canonical curvature, and its dependence on
+`lambda` is exactly quadratic. One sentence of this page was overstated and has been corrected in
+the notebook: the analogy with the Cartan–Schouten connections on a Lie group. Those are flat and
+their torsion is the anholonomy of a frame; `omegaOct` is not flat for any `lambda`, and the
+octonion structure constants violate the Jacobi identity, so they are not the anholonomy of any
+frame. The fable-5.1 bridge of Part V is the complementary case: its torsion is purely
+non-axial and comes from the geometry rather than being inserted by hand.
+
+The commands, the assertions and the numbers on this page are unchanged and still pass; what
+changed is the label. The notebook's own text now carries the same verdict, in the Part IV
+introduction and at the head of Section 20 ("WHAT THIS BRIDGE IS, AND IS NOT"), and the master
+comparison of Section 22 classifies every connection in its last column.
+
+---
+
+## 1. The bridge
 
 Section 9 of the notebook builds the constant **triality bridge**
 
@@ -272,8 +298,8 @@ non-zero entries in the extra coupling : 160
 
 ## 6. Reading the comparison
 
-This is the only one of the three new bridges that is a different **connection** rather than a
-different description of the same one. The other two are gauge-equivalent to the canonical
+This is the only one of the three Part IV bridges that is a different **connection** rather than
+a different description of the same one; the fable-5.1 bridge of Part V is the other one. The other two are gauge-equivalent to the canonical
 connection; this one is not, and the certificate that says so is its non-zero torsion.
 
 The difference from the canonical connection splits cleanly into two pieces:
@@ -335,7 +361,7 @@ caught a wrong Dirac basis, and it is in the notebook.
 - The full difference from the canonical spin connection was computed in closed form, and the
   torsion in closed form: `T[a,b,c] == -2 lambda mSkew[a,b,c]`.
 
-## 8. How the three new bridges differ from one another
+## 8. How the three Part IV bridges differ from one another
 
 | | bridge 1 | bridge 2 | bridge 3 |
 |---|---|---|---|

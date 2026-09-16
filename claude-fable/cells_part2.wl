@@ -67,6 +67,13 @@ cfAssert["PL + PR == ID16", PL + PR === ID16];
 cfAssert["PL is idempotent", PL . PL === PL];
 cfAssert["PR is idempotent", PR . PR === PR];
 cfAssert["PL . PR == PR . PL == 0", {PL . PR === ZERO16, PR . PL === ZERO16}];
+(* Which half is which.  T16[8] is diag(-ID8, +ID8), so PL is the projector onto the UPPER    *)
+(* eight components -- the type-1 spinor -- and PR onto the LOWER eight, the type-2 spinor.  *)
+(* Part III uses this: the 16-component covariant derivative is a direct sum of a type-1 and  *)
+(* a type-2 piece precisely because the connection commutes with T16[8].                      *)
+cfAssert["PL projects onto the upper (type-1) components, PR onto the lower (type-2) components",
+  {PL === DiagonalMatrix[Join[ConstantArray[1, 8], ConstantArray[0, 8]]],
+   PR === DiagonalMatrix[Join[ConstantArray[0, 8], ConstantArray[1, 8]]]}];
 {MatrixForm[PL], MatrixForm[PR]}
 
 (* ::Text:: *)
@@ -94,6 +101,8 @@ cfAssert["sigma16 . SAB is antisymmetric",
   Table[\[Sigma]16 . SAB[[A1, B1]] === -Transpose[\[Sigma]16 . SAB[[A1, B1]]], {A1, 1, 8}, {B1, 1, 8}]];
 cfAssert["sigma16 is symmetric and sigma16 . sigma16 == ID16",
   {\[Sigma]16 === Transpose[\[Sigma]16], \[Sigma]16 . \[Sigma]16 === ID16}];
+cfAssert["T16[8] commutes with every SAB: the chiral halves are each Spin(4,4)-invariant",
+  Table[T16[8] . SAB[[A1, B1]] === SAB[[A1, B1]] . T16[8], {A1, 1, 8}, {B1, 1, 8}]];
 Dimensions[SAB]
 
 (* ::Input:: *)
@@ -336,6 +345,12 @@ ClearAll[evalues, evecs, uEig, hUSE, unit];
 uEig = ExpandAll[(1/Sqrt[2]) evecs];
 hUSE = 8;
 unit = uEig[[hUSE]];
+(* Pin it.  Everything downstream -- the triality bridge, the octonion structure constants,   *)
+(* the split into type 1 and type 2 -- is built on this one spinor, and Eigensystem promises   *)
+(* nothing about the order of its rows.  If a future kernel reorders them this line fails      *)
+(* loudly instead of silently changing every table that follows.                              *)
+cfAssert["unit is pinned to the author's spinor {1/Sqrt[2],0,0,0,1/Sqrt[2],0,0,0} -- the row order of Eigensystem is not relied on silently",
+  unit === {1/Sqrt[2], 0, 0, 0, 1/Sqrt[2], 0, 0, 0}];
 Protect[hUSE, unit];
 cfAssert["each uEig row is sigma-normalized to +/-1",
   MemberQ[{1, -1}, #] & /@ Table[uEig[[h]] . \[Sigma] . uEig[[h]], {h, 1, 8}]];

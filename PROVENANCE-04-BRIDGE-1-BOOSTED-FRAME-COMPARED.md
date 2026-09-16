@@ -1,11 +1,11 @@
-# Provenance 04 — New bridge 1, a locally boosted frame, compared to the canonical spin connection
+# Provenance 04 — Bridge 1, a locally boosted frame, compared to the canonical spin connection
 
 **Effort.** Invent a new way of bridging curved spacetime indices to flat tangent-space indices;
 derive its spin connection from the same vielbein postulate; and compare that new spin connection,
 component by component, with the canonical one of section 16.
 
 This is section 18 of `claude-fable/claude-fable_Einstein-Rosen-2-Planes.nb`
-(Input cells 117–122).
+(Input cells 118–125).
 
 Everything needed to repeat this work is on this page. No other file needs to be consulted.
 
@@ -18,7 +18,32 @@ repository and nothing on this page depends on it.
 
 ---
 
-## 1. The new bridge
+## 0. Status after the fable-5.1 review (2026-09-16)
+
+This page was written when the notebook still called Bridges 1, 2 and 3 "three new spin
+connections". The review that produced Part V of the notebook (Section 21, the fable-5.1 bridge)
+re-examined all three, and the verdict is recorded here so that nobody reads the page below with
+the wrong expectation.
+
+**Bridge 1 is not a new connection.** Its frame is `frameCanonical . Lambda(x)` with `Lambda(x)`
+in `O(4,4)`, which is by definition a local gauge transformation of the canonical frame, and the
+"comparison" it proves — `omegaBoost == M omegaCanonical M^-1 - dM M^-1` — is the gauge
+transformation law of the spin connection, not a new object. It is kept because the law is real,
+is written out in closed form for this geometry, and because Part V of the notebook shows what
+its inhomogeneous term `-d(theta) K` actually is: the fable-5.1 (Weitzenböck) connection of the
+boosted frame, whose curvature is identically zero. Section 18 of the notebook now also builds
+the 16×16 spinor connection of this bridge and verifies the spinor gauge law with the explicit
+spin lift `S = MatrixExp[theta SAB[[1,5]]]`, and runs both spin-connection solvers on a
+non-symmetric frame, which the diagonal canonical frame could not test.
+
+The commands, the assertions and the numbers on this page are unchanged and still pass; what
+changed is the label. The notebook's own text now carries the same verdict, in the Part IV
+introduction and at the head of Section 18 ("WHAT THIS BRIDGE IS, AND IS NOT"), and the master
+comparison of Section 22 classifies every connection in its last column.
+
+---
+
+## 1. The bridge
 
 Introduce an object that does not appear in the original notebook: a **rapidity field**
 `cfBoostRapidity[x0,x4]`, an arbitrary differentiable scalar function of the hidden-space
@@ -41,7 +66,8 @@ frameBoost = frameCanonical . Lambda
 two different local flat Minkowski coordinate systems at each point, related by a different boost
 at every point, over one and the same geometry.
 
-This is the most physically pointed of the three new bridges, because it exhibits the spin
+Of the three Part IV bridges this is the one that exhibits the gauge structure most directly:
+it is the canonical connection in a local gauge (see section 0 above), and it exhibits the spin
 connection as **the gauge field of local Lorentz transformations**: a pure change of local frame
 must shift it by an inhomogeneous term, exactly as a change of phase shifts the electromagnetic
 vector potential.
@@ -214,7 +240,8 @@ matter, and it returns True.
 
 ## 6. What this proves
 
-- A genuinely different frame field over the same metric exists and was constructed.
+- A locally rotated frame field over the same metric was constructed. It is the canonical frame
+  in a local `O(4,4)` gauge, so what follows is the gauge law, not a new connection.
 - Its spin connection, derived independently from the zero-torsion vielbein postulate, is still
   `so(4,4)`-valued and still torsion-free.
 - It differs from the canonical spin connection by a pure gauge term, and that term was computed

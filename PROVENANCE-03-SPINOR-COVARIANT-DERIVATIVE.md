@@ -11,7 +11,7 @@ Dcov[mu] psi  ==  D[psi, x[mu]]  +  (1/8) omega[mu,a,b] Commutator[gamma[a], gam
 where `gamma[a]` are the 16×16 Dirac matrices, which had to be defined first.
 
 This is section 17 of `claude-fable/claude-fable_Einstein-Rosen-2-Planes.nb`
-(Input cells 111–116), resting on section 5 (cells 22–29) for the Dirac matrices.
+(Input cells 111–117), resting on section 5 (cells 22–29) for the Dirac matrices.
 
 Everything needed to repeat this work is on this page. No other file needs to be consulted.
 

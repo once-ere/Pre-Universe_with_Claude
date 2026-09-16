@@ -17,8 +17,10 @@ Original mathematics and physics: Patrick L. Nash, Ph.D. (c) 2022, under the GNU
 Professor, UTSA Physics and Astronomy, Retired.  Patrick299Nash at gmail.
 Please cite that work, and this web page, if you use it.
 
-Refactoring, the frame-field / spin-connection chapters, and the three new bridges:
-prepared with Claude (Anthropic) at the author's direction, 2026-09-14.
+Refactoring, the frame-field / spin-connection chapters and the three bridges of Part IV:
+prepared with Claude (Anthropic, Opus) at the author's direction, 2026-09-14.
+Review and refactoring of all of that, and the fable-5.1 bridge of Part V:
+prepared with Claude (Anthropic, Fable 5.1) at the author's direction, 2026-09-16.
 
 WARNING (from the original): syncope, presyncope AHEAD.
 
@@ -56,9 +58,22 @@ e, and then computes
 
 A vielbein here is simply an 8-dimensional vierbein, i.e. an 8-dimensional frame field.
 
-PART IV (Sections 18-21) is also new.  It invents three further ways of bridging curved
-spacetime indices to flat tangent-space indices, derives a new spin connection for each, and
-compares every one of them, component by component, to the canonical spin connection of Part III.
+PART IV (Sections 18-20) is also new.  It builds three further ways of bridging curved spacetime
+indices to flat tangent-space indices, derives the spin connection of each with the same
+solver, and compares every one of them, component by component, to the canonical spin
+connection of Part III.  Two of the three (Bridges 1 and 2) turn out to be the canonical
+connection in a different gauge -- a local one and a constant one -- and are labelled as such;
+the third (Bridge 3) is a different connection, with totally antisymmetric torsion built from
+the split-octonion structure constants.
+
+PART V (Sections 21-22) is the fable-5.1 bridge: the Weitzenboeck (teleparallel) connection in
+which the canonical frame itself is parallel.  Its spin connection in that frame is zero, its
+curvature is identically zero, and the whole geometry sits in its torsion; the canonical spin
+connection of Part III is proved to be exactly minus the contortion of that torsion, the
+Levi-Civita scalar curvature is proved to equal minus the torsion scalar plus a boundary term
+(R == -T + B, in closed form), and at the spinor level the connection-free Dirac operator of
+this bridge is proved equivalent to the canonical one by an exact rescaling of the spinor.
+Section 22 collects all five connections in one table.
 
 (* ::Section:: *)
 1.  Session setup

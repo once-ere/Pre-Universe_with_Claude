@@ -405,7 +405,7 @@ Column[\[CapitalPsi]16a]
 (* ::Text:: *)
 One more structural result of the original notebook.  The relabelling Z -> yZ is a linear map;
 extracting its matrix with CoefficientArrays shows that the map is an ORTHOGONAL 16x16 matrix,
-so it preserves the Euclidean form, but it does NOT preserve sigma16, so it is not a Spin(8,8)
+so it preserves the Euclidean form, but it does NOT preserve sigma16, so it is not a O(8,8)
 transformation; and it is not block diagonal, so it mixes the type-1 and type-2 spinors.
 
 (* ::Input:: *)
@@ -417,7 +417,7 @@ almightyS = -Transpose[caZ2];
 cfAssert["the yZ coefficient matrix is the identity", Normal[cayZ[[2]]] === ID16];
 cfAssert["ORTHOGONAL: Transpose[S] . S == ID16", Transpose[almightyS] . almightyS === ID16];
 cfAssert["ORTHOGONAL: S . Transpose[S] == ID16", almightyS . Transpose[almightyS] === ID16];
-cfAssert["but NOT a Spin(8,8) transformation: it does not preserve sigma16",
+cfAssert["but NOT a O(8,8) transformation: it does not preserve sigma16",
   Transpose[almightyS] . \[Sigma]16 . almightyS =!= \[Sigma]16];
 cfAssert["and NOT a direct sum: it mixes type-1 with type-2",
   caZ2 =!= ArrayFlatten[{{caZ2[[1 ;; 8, 1 ;; 8]], 0}, {0, caZ2[[9 ;; 16, 9 ;; 16]]}}]];

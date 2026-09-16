@@ -316,6 +316,13 @@ cfAssert["PL + PR == ID16", PL + PR === ID16];
 cfAssert["PL is idempotent", PL . PL === PL];
 cfAssert["PR is idempotent", PR . PR === PR];
 cfAssert["PL . PR == PR . PL == 0", {PL . PR === ZERO16, PR . PL === ZERO16}];
+(* Which half is which.  T16[8] is diag(-ID8, +ID8), so PL is the projector onto the UPPER    *)
+(* eight components -- the type-1 spinor -- and PR onto the LOWER eight, the type-2 spinor.  *)
+(* Part III uses this: the 16-component covariant derivative is a direct sum of a type-1 and  *)
+(* a type-2 piece precisely because the connection commutes with T16[8].                      *)
+cfAssert["PL projects onto the upper (type-1) components, PR onto the lower (type-2) components",
+  {PL === DiagonalMatrix[Join[ConstantArray[1, 8], ConstantArray[0, 8]]],
+   PR === DiagonalMatrix[Join[ConstantArray[0, 8], ConstantArray[1, 8]]]}];
 {MatrixForm[PL], MatrixForm[PR]}
 ]];
 
@@ -336,6 +343,8 @@ cfAssert["sigma16 . SAB is antisymmetric",
   Table[\[Sigma]16 . SAB[[A1, B1]] === -Transpose[\[Sigma]16 . SAB[[A1, B1]]], {A1, 1, 8}, {B1, 1, 8}]];
 cfAssert["sigma16 is symmetric and sigma16 . sigma16 == ID16",
   {\[Sigma]16 === Transpose[\[Sigma]16], \[Sigma]16 . \[Sigma]16 === ID16}];
+cfAssert["T16[8] commutes with every SAB: the chiral halves are each Spin(4,4)-invariant",
+  Table[T16[8] . SAB[[A1, B1]] === SAB[[A1, B1]] . T16[8], {A1, 1, 8}, {B1, 1, 8}]];
 Dimensions[SAB]
 ]];
 
@@ -563,6 +572,12 @@ ClearAll[evalues, evecs, uEig, hUSE, unit];
 uEig = ExpandAll[(1/Sqrt[2]) evecs];
 hUSE = 8;
 unit = uEig[[hUSE]];
+(* Pin it.  Everything downstream -- the triality bridge, the octonion structure constants,   *)
+(* the split into type 1 and type 2 -- is built on this one spinor, and Eigensystem promises   *)
+(* nothing about the order of its rows.  If a future kernel reorders them this line fails      *)
+(* loudly instead of silently changing every table that follows.                              *)
+cfAssert["unit is pinned to the author's spinor {1/Sqrt[2],0,0,0,1/Sqrt[2],0,0,0} -- the row order of Eigensystem is not relied on silently",
+  unit === {1/Sqrt[2], 0, 0, 0, 1/Sqrt[2], 0, 0, 0}];
 Protect[hUSE, unit];
 cfAssert["each uEig row is sigma-normalized to +/-1",
   MemberQ[{1, -1}, #] & /@ Table[uEig[[h]] . \[Sigma] . uEig[[h]], {h, 1, 8}]];
@@ -1005,7 +1020,7 @@ almightyS = -Transpose[caZ2];
 cfAssert["the yZ coefficient matrix is the identity", Normal[cayZ[[2]]] === ID16];
 cfAssert["ORTHOGONAL: Transpose[S] . S == ID16", Transpose[almightyS] . almightyS === ID16];
 cfAssert["ORTHOGONAL: S . Transpose[S] == ID16", almightyS . Transpose[almightyS] === ID16];
-cfAssert["but NOT a Spin(8,8) transformation: it does not preserve sigma16",
+cfAssert["but NOT a O(8,8) transformation: it does not preserve sigma16",
   Transpose[almightyS] . \[Sigma]16 . almightyS =!= \[Sigma]16];
 cfAssert["and NOT a direct sum: it mixes type-1 with type-2",
   caZ2 =!= ArrayFlatten[{{caZ2[[1 ;; 8, 1 ;; 8]], 0}, {0, caZ2[[9 ;; 16, 9 ;; 16]]}}]];
@@ -1323,10 +1338,23 @@ cfZeroQ[e_] := Module[{s, r},
   s = Simplify[e, cfGeomAssume, TimeConstraint -> 5];
   If[s === 0, Return[True]];
   r = cfNumericallyZeroQ[s];
-  (* Count the two outcomes apart.  Incrementing one counter BEFORE the call, as this cell   *)
-  (* used to, made every non-vanishing assertion look like an identity accepted on numerics. *)
-  If[r, $cfNumericCertificates++, $cfNonVanishingWitnesses++];
+  (* A True here is an identity accepted on numerical evidence alone; count it.  A False    *)
+  (* here is NOT counted as a witness of non-vanishing: it may only mean the probe did not   *)
+  (* reduce to a number.  Genuine witnesses come from cfNonZeroWitnessQ below.               *)
+  If[r, $cfNumericCertificates++];
   r];
+(* cfNonZeroWitnessQ is how this notebook states that something is NOT identically zero.     *)
+(* It succeeds only if, at some probe point, EVERY entry evaluates to an actual number and    *)
+(* at least one of them has magnitude above 10^-10.  A non-numeric leftover -- an undefined  *)
+(* function that the probe rules do not reach, say -- makes it FAIL, not pass.  That is the   *)
+(* difference between this and the pattern ! TrueQ[cfZeroArrayQ[...]], which a previous      *)
+(* version of this notebook used and which passes vacuously on exactly such a leftover.       *)
+ClearAll[cfNonZeroWitnessQ];
+cfNonZeroWitnessQ[expr_] := Block[{$MaxExtraPrecision = 200}, Module[{vals, ok},
+  vals = Quiet[N[Flatten[{expr}] /. cfProbeRules /. #, 30], {N::meprec, General::stop}] & /@ cfProbePoints;
+  ok = AnyTrue[vals, Function[v, AllTrue[v, NumericQ] && Max[Abs[Chop[v, 10^-22]]] > 10^-10]];
+  If[ok, $cfNonVanishingWitnesses++];
+  ok]];
 cfZeroArrayQ[arr_] := Module[{flat = Flatten[{arr}], s},
   (* stage 1 *)
   If[AllTrue[flat, # === 0 &], Return[True]];
@@ -1341,7 +1369,11 @@ cfZeroArrayQ[arr_] := Module[{flat = Flatten[{arr}], s},
   (* still inconclusive: test entry by entry so we learn which entries fail *)
   AllTrue[s, cfZeroQ]];
 {cfZeroQ[0], cfZeroQ[Tan[6 H x0] Cot[6 H x0] - 1], cfZeroQ[x0 - x4],
- cfZeroArrayQ[{{0, Sin[x0]^2 + Cos[x0]^2 - 1}, {Exp[a4[H x4]] Exp[-a4[H x4]] - 1, 0}}]}
+ cfZeroArrayQ[{{0, Sin[x0]^2 + Cos[x0]^2 - 1}, {Exp[a4[H x4]] Exp[-a4[H x4]] - 1, 0}}],
+ cfNonZeroWitnessQ[x0 - x4], cfNonZeroWitnessQ[Sin[x0]^2 + Cos[x0]^2 - 1],
+ cfNonZeroWitnessQ[cfSomeUndefinedFunction[x0]]}
+(* the self-tests above are demonstrations, not claims about the geometry: reset the tally *)
+$cfNumericCertificates = 0; $cfNonVanishingWitnesses = 0;
 ]];
 
 (* ---------- Input cell 97 ---------- *)
@@ -1391,7 +1423,7 @@ cfRunCell[98, Hold[
 ClearAll[detgCanonical, sqrtDetgCanonical];
 detgCanonical = cfSimp[Det[gCanonical]];
 sqrtDetgCanonical = cfSimp[Sqrt[Abs[detgCanonical]]];
-cfAssert["the metric is non-degenerate", ! TrueQ[cfZeroQ[detgCanonical]]];
+cfAssert["the metric is non-degenerate", cfNonZeroWitnessQ[detgCanonical]];
 {detgCanonical, sqrtDetgCanonical}
 ]];
 
@@ -1596,9 +1628,19 @@ Dimensions[GammaSpinCanonical]
 (* ---------- Input cell 112 ---------- *)
 cfRunCell[112, Hold[
 (* --- it equals (1/2) omega[mu,a,b] SAB, as it must --------------------------------------- *)
-cfAssert["(1/8) omega [gamma^a, gamma^b] == (1/2) omega SAB",
+cfAssert["[definition] (1/8) omega [gamma^a, gamma^b] == (1/2) omega SAB  (SAB is defined as (1/4)[gamma,gamma], so this cannot fail)",
   cfZeroArrayQ[Table[GammaSpinCanonical[[mu]]
       - (1/2) Sum[omegaCanonical[[mu, a, b]] SAB[[a, b]], {a, 8}, {b, 8}], {mu, 8}]]];
+(* The check with content.  The spinor connection is the RIGHT one only if it rotates the     *)
+(* Dirac matrices exactly as omega rotates a vector: [Gamma^spin_mu, gamma^a] must equal      *)
+(* - omega_mu^a_b gamma^b.  That fixes the coefficient 1/8 AND its sign against the sign       *)
+(* convention of the vielbein postulate; the wrong sign, or 1/4 instead of 1/8, fails it.     *)
+cfAssert["[has content] the spinor connection is compatible with omega: [Gamma^spin_mu, gamma^a] + omega_mu^a_b gamma^b == 0",
+  cfZeroArrayQ[Table[GammaSpinCanonical[[mu]] . T16[a - 1] - T16[a - 1] . GammaSpinCanonical[[mu]]
+      + Sum[omegaCanonicalMixed[[mu, a, b]] T16[b - 1], {b, 8}], {mu, 8}, {a, 8}]]];
+cfAssert["[control] with the opposite sign the compatibility check FAILS (witnessed): the sign is fixed by the vielbein postulate, not free",
+  cfNonZeroWitnessQ[Table[GammaSpinCanonical[[mu]] . T16[a - 1] - T16[a - 1] . GammaSpinCanonical[[mu]]
+      - Sum[omegaCanonicalMixed[[mu, a, b]] T16[b - 1], {b, 8}], {mu, 8}, {a, 8}]]];
 ]];
 
 (* ---------- Input cell 113 ---------- *)
@@ -1659,11 +1701,37 @@ cfAssert["{gammaCurved[mu], gammaCurved[nu]} == 2 gInv[mu,nu] ID16",
       + gammaCurvedCanonical[[nu]] . gammaCurvedCanonical[[mu]]
       - 2 gInvCanonical[[mu, nu]] ID16, {mu, 8}, {nu, 8}]]];
 cfDiracOperator[psi_List] := Sum[gammaCurvedCanonical[[mu]] . cfDcov16[psi, mu], {mu, 8}];
+(* the check that ties the three connections together: the Christoffel symbols acting on the  *)
+(* curved index, the spinor connection acting by commutator, and the frame in between.  If any  *)
+(* one of them had the wrong sign or index order, the curved Dirac matrices would not be        *)
+(* covariantly constant.                                                                        *)
+cfAssert["[has content] and therefore the curved Dirac matrices are covariantly constant: D_mu gammaCurved^nu == 0",
+  cfZeroArrayQ[Table[D[gammaCurvedCanonical[[nu]], X[[mu]]]
+      + Sum[GammaCanonical[[nu, mu, rho]] gammaCurvedCanonical[[rho]], {rho, 8}]
+      + GammaSpinCanonical[[mu]] . gammaCurvedCanonical[[nu]] - gammaCurvedCanonical[[nu]] . GammaSpinCanonical[[mu]],
+      {mu, 8}, {nu, 8}]]];
 Dimensions[gammaCurvedCanonical]
 ]];
 
 (* ---------- Input cell 117 ---------- *)
 cfRunCell[117, Hold[
+(* --- and now on the wave function of the model itself, Psi16 of Section 11 ---------------- *)
+(* Psi16 depends only on x0 and x4, so in the other six directions the covariant derivative   *)
+(* IS the connection term, and in x0 and x4 it is the flat derivative plus that term.         *)
+ClearAll[DcovPsi16, DiracPsi16];
+DcovPsi16 = Table[cfDcov16[\[CapitalPsi]16, mu], {mu, 8}];
+cfAssert["[definition] Dcov[mu] Psi16 - D[Psi16, x_mu] == Gamma^spin[mu] . Psi16",
+  cfZeroArrayQ[Table[DcovPsi16[[mu]] - D[\[CapitalPsi]16, X[[mu]]] - GammaSpinCanonical[[mu]] . \[CapitalPsi]16, {mu, 8}]]];
+cfAssert["in the six directions on which Psi16 does not depend, Dcov Psi16 is purely the connection term",
+  cfZeroArrayQ[Table[DcovPsi16[[mu]] - GammaSpinCanonical[[mu]] . \[CapitalPsi]16, {mu, {2, 3, 4, 6, 7, 8}}]]];
+cfAssert["the connection term does not vanish on Psi16: the connection matrices themselves are non-zero (witnessed)",
+  cfNonZeroWitnessQ[Table[GammaSpinCanonical[[mu]], {mu, 8}]]];
+DiracPsi16 = cfTimed["the curved-space Dirac operator applied to Psi16", cfDiracOperator[\[CapitalPsi]16]];
+Column[{Short[DcovPsi16[[1]], 4], Short[DiracPsi16, 6]}]
+]];
+
+(* ---------- Input cell 118 ---------- *)
+cfRunCell[118, Hold[
 ClearAll[cfBoostRapidity, cfLambda, cfLambdaOf, cfBoostGenerator, frameBoost];
 cfBoostGenerator = Module[{K = ConstantArray[0, {8, 8}]}, K[[1, 5]] = 1; K[[5, 1]] = 1; K];
 cfLambdaOf[th_] := Module[{L = IdentityMatrix[8]},
@@ -1674,14 +1742,14 @@ cfLambda = cfLambdaOf[cfBoostRapidity[x0, x4]];
 cfAssert["Lambda is in O(4,4): Lambda . eta . Transpose[Lambda] == eta",
   cfZeroArrayQ[cfLambda . \[Eta]4488 . Transpose[cfLambda] - \[Eta]4488]];
 cfAssert["Lambda is NOT in O(8): it is a genuine boost, not a rotation",
-  ! TrueQ[cfZeroArrayQ[cfLambda . Transpose[cfLambda] - ID8]]];
+  cfNonZeroWitnessQ[cfLambda . Transpose[cfLambda] - ID8]];
 cfAssert["Lambda == MatrixExp[theta K] with K the (0,4) boost generator",
   cfZeroArrayQ[cfLambdaOf[\[Theta]] - MatrixExp[\[Theta] cfBoostGenerator]]];
 MatrixForm[cfLambda]
 ]];
 
-(* ---------- Input cell 118 ---------- *)
-cfRunCell[118, Hold[
+(* ---------- Input cell 119 ---------- *)
+cfRunCell[119, Hold[
 frameBoost = cfSimpArray[frameCanonical . cfLambda];
 cfAssert["BRIDGE 1 reproduces the SAME curved metric g",
   cfZeroArrayQ[frameBoost . \[Eta]4488 . Transpose[frameBoost] - gCanonical]];
@@ -1690,8 +1758,8 @@ cfAssert["BRIDGE 1 frame really is different from the canonical frame",
 MatrixForm[frameBoost]
 ]];
 
-(* ---------- Input cell 119 ---------- *)
-cfRunCell[119, Hold[
+(* ---------- Input cell 120 ---------- *)
+cfRunCell[120, Hold[
 (* --- the new spin connection, derived from the same vielbein postulate ------------------- *)
 ClearAll[omegaBoostMixed, omegaBoost];
 omegaBoostMixed = cfTimed["BRIDGE 1 spin connection",
@@ -1706,8 +1774,29 @@ cfAssert["BRIDGE 1: torsion still vanishes",
 {Count[Flatten[omegaBoost], Except[0]], " non-zero components"}
 ]];
 
-(* ---------- Input cell 120 ---------- *)
-cfRunCell[120, Hold[
+(* ---------- Input cell 121 ---------- *)
+cfRunCell[121, Hold[
+(* --- the test Section 16 could not make: both solvers on a NON-symmetric frame ------------ *)
+(* A constant boost by a fixed rapidity gives a frame that is not equal to its transpose and   *)
+(* contains no undetermined function, so this is cheap and it is discriminating: any          *)
+(* transposition of the frame's curved and flat slots, in either solver, fails here.           *)
+ClearAll[frameSlotTest, omegaSlotTestA, omegaSlotTestB];
+frameSlotTest = cfSimpArray[frameCanonical . cfLambdaOf[1/3]];
+cfAssert["the slot-test frame is genuinely not symmetric", cfNonZeroWitnessQ[frameSlotTest - Transpose[frameSlotTest]]];
+omegaSlotTestA = cfTimed["vielbein-postulate solver on the non-symmetric frame",
+  cfSpinConnection[frameSlotTest, X, \[Eta]4488, GammaCanonical]];
+omegaSlotTestB = cfTimed["frame-only formula on the non-symmetric frame",
+  cfSpinConnectionFromFrame[frameSlotTest, X, \[Eta]4488]];
+cfAssert["INDEPENDENT CHECK on a non-symmetric frame: the two solvers agree, so the curved/flat slots are placed correctly in both",
+  cfZeroArrayQ[Table[Sum[omegaSlotTestB[[mu, a, c]] \[Eta]4488[[c, b]], {c, 8}] - omegaSlotTestA[[mu, a, b]],
+    {mu, 8}, {a, 8}, {b, 8}]]];
+cfAssert["and the result is the canonical connection conjugated by the constant boost, as the gauge law demands",
+  cfZeroArrayQ[Table[omegaSlotTestA[[mu]] - Transpose[cfLambdaOf[1/3]] . omegaCanonicalMixed[[mu]] . Inverse[Transpose[cfLambdaOf[1/3]]],
+    {mu, 8}]]];
+]];
+
+(* ---------- Input cell 122 ---------- *)
+cfRunCell[122, Hold[
 (* --- COMPARISON 1: the new connection is the canonical one plus a pure gauge term -------- *)
 ClearAll[cfM, cfMinv, omegaBoostPredicted, deltaBoost, gaugeTermBoost];
 cfM = Transpose[cfLambda];
@@ -1724,8 +1813,8 @@ cfAssert["COMPARISON 1: the WHOLE difference is the inhomogeneous gauge term",
 {Count[Flatten[deltaBoost], Except[0]], " non-zero components in the difference"}
 ]];
 
-(* ---------- Input cell 121 ---------- *)
-cfRunCell[121, Hold[
+(* ---------- Input cell 123 ---------- *)
+cfRunCell[123, Hold[
 (* --- the gauge term written out: it is -d(rapidity) times the boost generator ------------ *)
 (* Because Lambda == MatrixExp[theta K], D[Lambda,x_mu] . Inverse[Lambda] == D[theta,x_mu] K  *)
 (* exactly, with no residual theta dependence.  The whole difference between the two spin     *)
@@ -1740,8 +1829,8 @@ Grid[Prepend[
     {mu, 8}], {"direction mu", "coefficient", "structure"}], Frame -> All, Alignment -> Left]
 ]];
 
-(* ---------- Input cell 122 ---------- *)
-cfRunCell[122, Hold[
+(* ---------- Input cell 124 ---------- *)
+cfRunCell[124, Hold[
 (* --- and the curvature is only conjugated: same geometry, new gauge ---------------------- *)
 ClearAll[RiemannBoost, RicciScalarBoost];
 RiemannBoost = cfTimed["BRIDGE 1 curvature 2-form", cfCurvature[omegaBoostMixed, X]];
@@ -1755,8 +1844,46 @@ cfAssert["COMPARISON 1: BRIDGE 1 has the SAME Ricci scalar as the canonical fram
 {RicciScalarCanonical, RicciScalarBoost}
 ]];
 
-(* ---------- Input cell 123 ---------- *)
-cfRunCell[123, Hold[
+(* ---------- Input cell 125 ---------- *)
+cfRunCell[125, Hold[
+ClearAll[cfSpinLiftBoost, cfSpinLiftBoostInv, GammaSpinBoost, gammaCurvedBoost];
+cfSpinLiftBoost    = MatrixExp[ cfBoostRapidity[x0, x4] SAB[[1, 5]]];
+cfSpinLiftBoostInv = MatrixExp[-cfBoostRapidity[x0, x4] SAB[[1, 5]]];
+cfAssert["BRIDGE 1 spin lift: Inverse[S] . S == ID16",
+  cfZeroArrayQ[cfSpinLiftBoostInv . cfSpinLiftBoost - ID16]];
+cfAssert["BRIDGE 1 spin lift: S preserves the spinor metric, Transpose[S] . sigma16 . S == sigma16",
+  cfZeroArrayQ[Transpose[cfSpinLiftBoost] . \[Sigma]16 . cfSpinLiftBoost - \[Sigma]16]];
+cfAssert["BRIDGE 1 spin lift [has content]: Inverse[S] . gamma^a . S == Lambda^a_b gamma^b  (S is the spin lift of Lambda)",
+  cfZeroArrayQ[Table[cfSpinLiftBoostInv . T16[a - 1] . cfSpinLiftBoost
+     - Sum[cfLambda[[a, b]] T16[b - 1], {b, 8}], {a, 8}]]];
+GammaSpinBoost = cfTimed["BRIDGE 1 16x16 spin-connection matrices",
+  Table[cfSimpArray[cfSpinMatrix[omegaBoost, mu]], {mu, 8}]];
+cfAssert["COMPARISON 1 at the spinor level [THE GAUGE LAW]: Gamma'_mu == S Gamma_mu Inverse[S] - D[S,x_mu] Inverse[S]",
+  cfZeroArrayQ[Table[GammaSpinBoost[[mu]]
+     - (cfSpinLiftBoost . GammaSpinCanonical[[mu]] . cfSpinLiftBoostInv
+        - D[cfSpinLiftBoost, X[[mu]]] . cfSpinLiftBoostInv), {mu, 8}]]];
+cfAssert["COMPARISON 1 at the spinor level: the inhomogeneous term is -D[theta,x_mu] SAB[[1,5]], the spin image of -D[theta,x_mu] K",
+  cfZeroArrayQ[Table[GammaSpinBoost[[mu]] - cfSpinLiftBoost . GammaSpinCanonical[[mu]] . cfSpinLiftBoostInv
+     + D[cfBoostRapidity[x0, x4], X[[mu]]] SAB[[1, 5]], {mu, 8}]]];
+cfAssert["COMPARISON 1 at the spinor level: and that is exactly cfSpinMatrix applied to the vector difference deltaBoost",
+  cfZeroArrayQ[Table[GammaSpinBoost[[mu]] - cfSpinLiftBoost . GammaSpinCanonical[[mu]] . cfSpinLiftBoostInv
+     - cfSpinMatrix[cfLowerFirstFlat[deltaBoost, \[Eta]4488], mu], {mu, 8}]]];
+cfAssert["BRIDGE 1 [has content]: D'_mu (S psi) == S D_mu psi for a generic spinor -- one covariant derivative, two gauges",
+  cfZeroArrayQ[Table[D[cfSpinLiftBoost . psiGeneric, X[[mu]]] + GammaSpinBoost[[mu]] . (cfSpinLiftBoost . psiGeneric)
+     - cfSpinLiftBoost . (D[psiGeneric, X[[mu]]] + GammaSpinCanonical[[mu]] . psiGeneric), {mu, 8}]]];
+gammaCurvedBoost = cfSimpArray @ Table[Sum[Inverse[frameBoost][[a, mu]] T16[a - 1], {a, 8}], {mu, 8}];
+cfAssert["BRIDGE 1: the curved Dirac matrices of the boosted frame are S gamma^mu Inverse[S]",
+  cfZeroArrayQ[Table[gammaCurvedBoost[[mu]]
+     - cfSpinLiftBoost . gammaCurvedCanonical[[mu]] . cfSpinLiftBoostInv, {mu, 8}]]];
+cfAssert["BRIDGE 1: so the Dirac operator is one operator in two gauges, Dirac'[S psi] == S Dirac[psi]",
+  cfZeroArrayQ[Sum[gammaCurvedBoost[[mu]] . (D[cfSpinLiftBoost . psiGeneric, X[[mu]]]
+       + GammaSpinBoost[[mu]] . (cfSpinLiftBoost . psiGeneric)), {mu, 8}]
+     - cfSpinLiftBoost . cfDiracOperator[psiGeneric]]];
+{Count[Flatten[GammaSpinBoost], Except[0]], " non-zero entries in the eight 16x16 spinor-connection matrices"}
+]];
+
+(* ---------- Input cell 126 ---------- *)
+cfRunCell[126, Hold[
 ClearAll[cfU, \[Eta]Null, frameNull];
 cfU = (1/Sqrt[2]) ArrayFlatten[{{ID4, ID4}, {ID4, -ID4}}];
 cfAssert["U is an involution: U . U == ID8", cfZeroArrayQ[cfU . cfU - ID8]];
@@ -1770,16 +1897,16 @@ cfAssert["all eight frame directions are null: etaNull has zero diagonal",
 MatrixForm[\[Eta]Null]
 ]];
 
-(* ---------- Input cell 124 ---------- *)
-cfRunCell[124, Hold[
+(* ---------- Input cell 127 ---------- *)
+cfRunCell[127, Hold[
 frameNull = cfSimpArray[frameCanonical . cfU];
 cfAssert["BRIDGE 2 reproduces the SAME curved metric g",
   cfZeroArrayQ[frameNull . \[Eta]Null . Transpose[frameNull] - gCanonical]];
 MatrixForm[frameNull]
 ]];
 
-(* ---------- Input cell 125 ---------- *)
-cfRunCell[125, Hold[
+(* ---------- Input cell 128 ---------- *)
+cfRunCell[128, Hold[
 (* --- the new spin connection ------------------------------------------------------------- *)
 ClearAll[omegaNullMixed, omegaNull];
 omegaNullMixed = cfTimed["BRIDGE 2 spin connection",
@@ -1794,8 +1921,8 @@ cfAssert["BRIDGE 2: torsion vanishes",
 {Count[Flatten[omegaNull], Except[0]], " non-zero components"}
 ]];
 
-(* ---------- Input cell 126 ---------- *)
-cfRunCell[126, Hold[
+(* ---------- Input cell 129 ---------- *)
+cfRunCell[129, Hold[
 (* --- COMPARISON 2: a CONSTANT similarity, with no inhomogeneous term --------------------- *)
 (* Here L == U, so M == Transpose[U] == U and Inverse[M] == U; and because U is constant the  *)
 (* gauge term D[M,x_mu] . Inverse[M] is identically zero.                                     *)
@@ -1809,8 +1936,8 @@ cfAssert["COMPARISON 2: the inhomogeneous gauge term is ZERO because U is consta
 cfShowConnection[omegaNull, "omegaNull"]
 ]];
 
-(* ---------- Input cell 127 ---------- *)
-cfRunCell[127, Hold[
+(* ---------- Input cell 130 ---------- *)
+cfRunCell[130, Hold[
 (* --- the curvature is the constant conjugate, so again the same geometry ----------------- *)
 ClearAll[RiemannNull, RicciScalarNull];
 RiemannNull = cfTimed["BRIDGE 2 curvature 2-form", cfCurvature[omegaNullMixed, X]];
@@ -1824,12 +1951,14 @@ cfAssert["COMPARISON 2: BRIDGE 2 has the SAME Ricci scalar as the canonical fram
 {RicciScalarCanonical, RicciScalarNull}
 ]];
 
-(* ---------- Input cell 128 ---------- *)
-cfRunCell[128, Hold[
+(* ---------- Input cell 131 ---------- *)
+cfRunCell[131, Hold[
 ClearAll[frameTri, \[Eta]TriFlat];
 \[Eta]TriFlat = \[Eta]Tri;                       (* == sigma, proved in Section 9 *)
-cfAssert["the triality bridge is ORTHOGONAL: Transpose[P] == Inverse[P]",
+cfAssert["the triality bridge is Euclidean-orthogonal: Transpose[P] == Inverse[P]",
   cfZeroArrayQ[Transpose[triVecToSpin] - triSpinToVec]];
+cfAssert["but it is NOT in O(4,4): P . eta4488 . Transpose[P] != eta4488 (it carries eta4488 to sigma)",
+  cfNonZeroWitnessQ[triVecToSpin . \[Eta]4488 . Transpose[triVecToSpin] - \[Eta]4488]];
 frameTri = cfSimpArray[frameCanonical . triVecToSpin];
 cfAssert["BRIDGE 3 reproduces the SAME curved metric g",
   cfZeroArrayQ[frameTri . \[Eta]TriFlat . Transpose[frameTri] - gCanonical]];
@@ -1837,8 +1966,8 @@ cfAssert["the triality tangent metric is sigma", \[Eta]TriFlat === \[Sigma]];
 MatrixForm[frameTri]
 ]];
 
-(* ---------- Input cell 129 ---------- *)
-cfRunCell[129, Hold[
+(* ---------- Input cell 132 ---------- *)
+cfRunCell[132, Hold[
 (* --- the totally antisymmetric structure constants, transported to the spinor basis ------ *)
 (* The antisymmetrization is written out over the six permutations of the three POSITIONS,    *)
 (* with the standard signs.  Writing it as a sum over Permutations of the index VALUES would  *)
@@ -1868,8 +1997,8 @@ cfAssert["mSkewSpin is totally antisymmetric",
 {Dimensions[mSkewSpin], Count[Flatten[mSkewSpin], Except[0]], " non-zero components"}
 ]];
 
-(* ---------- Input cell 130 ---------- *)
-cfRunCell[130, Hold[
+(* ---------- Input cell 133 ---------- *)
+cfRunCell[133, Hold[
 (* --- first the Levi-Civita connection in the triality frame (the lambda = 0 case) -------- *)
 ClearAll[omegaTriLCMixed, omegaTriLC];
 omegaTriLCMixed = cfTimed["BRIDGE 3 Levi-Civita part",
@@ -1886,8 +2015,8 @@ cfAssert["BRIDGE 3 (lambda=0) is the constant triality conjugate of the canonica
 {Count[Flatten[omegaTriLC], Except[0]], " non-zero components"}
 ]];
 
-(* ---------- Input cell 131 ---------- *)
-cfRunCell[131, Hold[
+(* ---------- Input cell 134 ---------- *)
+cfRunCell[134, Hold[
 (* --- now the NEW octonionic connection with totally antisymmetric torsion ---------------- *)
 ClearAll[\[Lambda]Oct, contortionOct, omegaOct, omegaOctMixed];
 (* lambda is a free real torsion-strength parameter introduced here, not in the original *)
@@ -1904,15 +2033,15 @@ cfAssert["BRIDGE 3: at lambda = 0 it reduces to the Levi-Civita connection",
 {Count[Flatten[contortionOct], Except[0]], " non-zero contortion components"}
 ]];
 
-(* ---------- Input cell 132 ---------- *)
-cfRunCell[132, Hold[
+(* ---------- Input cell 135 ---------- *)
+cfRunCell[135, Hold[
 (* --- the torsion of the octonionic connection is non-zero and totally antisymmetric ------ *)
 ClearAll[torsionOct, torsionOctFlat];
 torsionOct = cfTimed["BRIDGE 3 torsion 2-form", cfTorsion[frameTri, X, omegaOctMixed]];
 cfAssert["BRIDGE 3: torsion vanishes at lambda = 0",
   cfZeroArrayQ[torsionOct /. \[Lambda]Oct -> 0]];
 cfAssert["BRIDGE 3: torsion is NOT zero for lambda != 0",
-  ! TrueQ[cfZeroArrayQ[torsionOct /. \[Lambda]Oct -> 1]]];
+  cfNonZeroWitnessQ[torsionOct /. \[Lambda]Oct -> 1]];
 (* pull the torsion back to all-flat indices: T_{abc} = eta_{ad} T^d_{mu nu} e_b^mu e_c^nu *)
 torsionOctFlat = cfTimed["BRIDGE 3 torsion with all indices flat",
   Module[{cofr = cfSimpArray[Inverse[frameTri]]},
@@ -1930,8 +2059,8 @@ cfAssert["BRIDGE 3: T[a,b,c] == -2 lambda mSkewSpin[a,b,c]",
 {Count[Flatten[torsionOctFlat], Except[0]], " non-zero flat torsion components"}
 ]];
 
-(* ---------- Input cell 133 ---------- *)
-cfRunCell[133, Hold[
+(* ---------- Input cell 136 ---------- *)
+cfRunCell[136, Hold[
 (* --- COMPARISON 3: the difference from the canonical connection is exactly the contortion - *)
 ClearAll[deltaOct, contortionOctMixed];
 contortionOctMixed = Table[Sum[\[Eta]TriFlat[[a, c]] contortionOct[[mu, c, b]], {c, 8}],
@@ -1945,21 +2074,61 @@ cfAssert["COMPARISON 3: the difference is linear in lambda and vanishes at lambd
 {Count[Flatten[deltaOct], Except[0]], " non-zero components in the difference"}
 ]];
 
-(* ---------- Input cell 134 ---------- *)
-cfRunCell[134, Hold[
+(* ---------- Input cell 137 ---------- *)
+cfRunCell[137, Hold[
+ClearAll[RiemannOct, RicciScalarOct, contortionOctUnit, mSkewNormSq, torsionOctNormSq];
+RiemannOct = cfTimed["BRIDGE 3 curvature 2-form", cfCurvature[omegaOctMixed, X]];
+cfAssert["BRIDGE 3: at lambda = 0 the curvature is the triality conjugate of the canonical curvature",
+  cfZeroArrayQ[Table[(RiemannOct[[mu, nu]] /. \[Lambda]Oct -> 0)
+      - triSpinToVec . RiemannCanonical[[mu, nu]] . triVecToSpin, {mu, 8}, {nu, 8}]]];
+cfAssert["BRIDGE 3 [has content]: the curvature DOES depend on lambda (witnessed)",
+  cfNonZeroWitnessQ[D[RiemannOct, \[Lambda]Oct]]];
+cfAssert["BRIDGE 3: the lambda-dependence is a polynomial of degree exactly two",
+  cfZeroArrayQ[D[RiemannOct, {\[Lambda]Oct, 3}]]];
+contortionOctUnit = contortionOctMixed /. \[Lambda]Oct -> 1;                    (* K at lambda = 1 *)
+cfAssert["BRIDGE 3: the lambda^1 term is the Levi-Civita covariant exterior derivative of the contortion, dK + [omegaTriLC, K]",
+  cfZeroArrayQ[Table[(D[RiemannOct[[mu, nu]], \[Lambda]Oct] /. \[Lambda]Oct -> 0)
+      - (D[contortionOctUnit[[nu]], X[[mu]]] - D[contortionOctUnit[[mu]], X[[nu]]]
+         + omegaTriLCMixed[[mu]] . contortionOctUnit[[nu]] - contortionOctUnit[[nu]] . omegaTriLCMixed[[mu]]
+         + contortionOctUnit[[mu]] . omegaTriLCMixed[[nu]] - omegaTriLCMixed[[nu]] . contortionOctUnit[[mu]]),
+      {mu, 8}, {nu, 8}]]];
+cfAssert["BRIDGE 3: the lambda^2 term is [K_mu, K_nu], the contortion commuted with itself",
+  cfZeroArrayQ[Table[(1/2) D[RiemannOct[[mu, nu]], {\[Lambda]Oct, 2}]
+      - (contortionOctUnit[[mu]] . contortionOctUnit[[nu]] - contortionOctUnit[[nu]] . contortionOctUnit[[mu]]),
+      {mu, 8}, {nu, 8}]]];
+RicciScalarOct = cfTimed["BRIDGE 3 Ricci scalar", cfRicciScalar[frameTri, RiemannOct, gInvCanonical]];
+cfAssert["BRIDGE 3: at lambda = 0 the Ricci scalar is the canonical one",
+  cfZeroQ[(RicciScalarOct /. \[Lambda]Oct -> 0) - RicciScalarCanonical]];
+mSkewNormSq = Sum[mSkewSpin[[a, b, c]] mSkewSpin[[d, e, f]]
+     \[Eta]TriFlat[[a, d]] \[Eta]TriFlat[[b, e]] \[Eta]TriFlat[[c, f]],
+   {a, 8}, {b, 8}, {c, 8}, {d, 8}, {e, 8}, {f, 8}];                             (* mSkew . mSkew *)
+torsionOctNormSq = Sum[torsionOctFlat[[a, b, c]] torsionOctFlat[[d, e, f]]
+     \[Eta]TriFlat[[a, d]] \[Eta]TriFlat[[b, e]] \[Eta]TriFlat[[c, f]],
+   {a, 8}, {b, 8}, {c, 8}, {d, 8}, {e, 8}, {f, 8}];                             (* T_{abc} T^{abc} *)
+cfAssert["BRIDGE 3 [THE RESULT]: R(omegaOct) - R(canonical) == -(1/4) T_{abc} T^{abc}, a constant shift set by the torsion alone",
+  cfZeroQ[RicciScalarOct - RicciScalarCanonical + (1/4) torsionOctNormSq]];
+cfAssert["BRIDGE 3: equivalently -lambda^2 (mSkew . mSkew), with mSkew . mSkew == 42, so the shift is exactly -42 lambda^2",
+  {cfZeroQ[RicciScalarOct - RicciScalarCanonical + \[Lambda]Oct^2 mSkewNormSq], mSkewNormSq === 42,
+   cfZeroQ[RicciScalarOct - RicciScalarCanonical + 42 \[Lambda]Oct^2]}];
+{Count[Flatten[RiemannOct], Except[0]], " non-zero curvature components;   R(omegaOct) - R(canonical) = ",
+ FullSimplify[RicciScalarOct - RicciScalarCanonical]}
+]];
+
+(* ---------- Input cell 138 ---------- *)
+cfRunCell[138, Hold[
 ClearAll[T16Tri, cfSpinMatrixTri];
 T16Tri[a_Integer] := T16Tri[a] = Sum[triSpinToVec[[a, A1]] T16[A1 - 1], {A1, 8}];
 cfAssert["THE TRIALITY DIRAC MATRICES OBEY THE sigma CLIFFORD RELATION: {T16Tri[a],T16Tri[b]} == 2 sigma[[a,b]] ID16",
   cfZeroArrayQ[Table[T16Tri[a] . T16Tri[b] + T16Tri[b] . T16Tri[a]
      - 2 \[Eta]TriFlat[[a, b]] ID16, {a, 8}, {b, 8}]]];
 cfAssert["they are NOT the vector-frame Dirac matrices, so the distinction is real",
-  ! TrueQ[cfZeroArrayQ[Table[T16Tri[a] - T16[a - 1], {a, 8}]]]];
+  cfNonZeroWitnessQ[Table[T16Tri[a] - T16[a - 1], {a, 8}]]];
 cfSpinMatrixTri[om_, mu_Integer] :=
   (1/8) Sum[om[[mu, a, b]] (T16Tri[a] . T16Tri[b] - T16Tri[b] . T16Tri[a]), {a, 8}, {b, 8}];
 ]];
 
-(* ---------- Input cell 135 ---------- *)
-cfRunCell[135, Hold[
+(* ---------- Input cell 139 ---------- *)
+cfRunCell[139, Hold[
 (* --- the effect on the spinor covariant derivative: the torsion's so(4,4) piece ---------- *)
 (* Dcov picks up (lambda/8) mSkew[a,b,c] frameTri[[mu,c]] Commutator[gammaTri^a, gammaTri^b]. *)
 (* Count the gammas: that expression is QUADRATIC in gamma, not cubic.  The third structure-  *)
@@ -1977,13 +2146,14 @@ GammaSpinOct = cfTimed["BRIDGE 3 16x16 spin-connection matrices",
 GammaSpinOctExtra = cfTimed["BRIDGE 3 extra spinor coupling from the torsion",
   Table[cfSimpArray[cfSpinMatrixTri[contortionOct, mu]], {mu, 8}]];
 (* consistency: at lambda = 0 the Bridge 3 spinor connection must be the SAME 16x16 matrix as *)
-(* the canonical one, because the two frames differ only by a constant O(4,4) rotation.       *)
+(* the canonical one, because the two frames differ by a constant change of basis under which *)
+(* omega and the Dirac matrices are transported together (T16Tri is the transport of T16).    *)
 cfAssert["at lambda = 0 the Bridge 3 spinor connection equals the canonical one",
   cfZeroArrayQ[Table[(GammaSpinOct[[mu]] /. \[Lambda]Oct -> 0) - GammaSpinCanonical[[mu]], {mu, 8}]]];
 cfAssert["the extra spinor coupling vanishes at lambda = 0",
   cfZeroArrayQ[GammaSpinOctExtra /. \[Lambda]Oct -> 0]];
 cfAssert["the extra spinor coupling is non-zero for lambda != 0",
-  ! TrueQ[cfZeroArrayQ[GammaSpinOctExtra /. \[Lambda]Oct -> 1]]];
+  cfNonZeroWitnessQ[GammaSpinOctExtra /. \[Lambda]Oct -> 1]];
 cfAssert["the extra spinor coupling is still block diagonal (type-1 + type-2 preserved)",
   cfZeroArrayQ[Table[GammaSpinOctExtra[[mu]]
       - ArrayFlatten[{{GammaSpinOctExtra[[mu]][[1 ;; 8, 1 ;; 8]], 0},
@@ -1991,73 +2161,341 @@ cfAssert["the extra spinor coupling is still block diagonal (type-1 + type-2 pre
 {Count[Flatten[GammaSpinOctExtra], Except[0]], " non-zero entries in the extra coupling"}
 ]];
 
-(* ---------- Input cell 136 ---------- *)
-cfRunCell[136, Hold[
-ClearAll[cfConnectionSummary];
-cfConnectionSummary = {
-  {"connection", "frame field", "flat metric", "same g?", "antisymmetric?", "torsion zero?",
-   "difference from canonical"},
-  {"omegaCanonical", "frameCanonical (diagonal)", "eta4488", "yes (reference)", "yes", "yes",
-   "-- (reference)"},
-  {"omegaBoost", "frameCanonical . Lambda(x)", "eta4488", "yes", "yes", "yes",
-   "inhomogeneous gauge term  -D[theta,x_mu] K"},
-  {"omegaNull", "frameCanonical . U", "etaNull == sigma", "yes", "yes", "yes",
-   "constant similarity only:  U omega U"},
-  {"omegaOct", "frameCanonical . triVecToSpin", "etaTri == sigma", "yes", "yes",
-   "NO: torsion == -2 lambda mSkew",
-   "contortion  lambda mSkew[a,b,c] frameTri[[mu,c]]"}};
-Grid[cfConnectionSummary, Frame -> All, Alignment -> Left,
-  Background -> {None, {LightGray, None, None, None, None}}]
+(* ---------- Input cell 140 ---------- *)
+cfRunCell[140, Hold[
+(* --- the Weitzenboeck affine connection: the frame is parallel ---------------------------- *)
+(* Gamma^W[[rho,mu,nu]] = e_a^rho d_mu e_nu^a.  With this affine connection the covariant       *)
+(* derivative of every frame vector vanishes identically, which is the DEFINITION of the       *)
+(* fable-5.1 bridge.  It uses the same frame, the same coframe and the same coordinates as     *)
+(* Section 15; nothing new is introduced except the transport rule.                           *)
+ClearAll[GammaWeitzenboeck, cfFable51Frame, cfFable51Coframe];
+cfFable51Frame   = frameCanonical;
+cfFable51Coframe = coframeCanonical;
+GammaWeitzenboeck = cfTimed["fable-5.1: Weitzenboeck affine connection Gamma^W = e_a^rho d_mu e_nu^a",
+  cfSimpArray @ Table[Sum[cfFable51Coframe[[a, r]] D[cfFable51Frame[[p, a]], X[[m]]], {a, 8}],
+    {r, 8}, {m, 8}, {p, 8}]];
+cfAssert["FABLE-5.1 [definition]: the frame is parallel  --  nabla^W e == 0 for all eight frame vectors",
+  cfZeroArrayQ[Table[D[cfFable51Frame[[nu, a]], X[[mu]]]
+      - Sum[GammaWeitzenboeck[[r, mu, nu]] cfFable51Frame[[r, a]], {r, 8}], {mu, 8}, {nu, 8}, {a, 8}]]];
+cfAssert["FABLE-5.1 [has content]: Gamma^W is metric compatible, nabla^W g == 0",
+  cfZeroArrayQ[Table[D[gCanonical[[m, p]], X[[k]]]
+      - Sum[GammaWeitzenboeck[[s, k, m]] gCanonical[[s, p]] + GammaWeitzenboeck[[s, k, p]] gCanonical[[m, s]],
+          {s, 8}], {k, 8}, {m, 8}, {p, 8}]]];
+cfAssert["FABLE-5.1 [has content]: Gamma^W is NOT symmetric in its lower indices -- it has torsion",
+  cfNonZeroWitnessQ[Table[GammaWeitzenboeck[[r, m, p]] - GammaWeitzenboeck[[r, p, m]],
+      {r, 8}, {m, 8}, {p, 8}]]];
+cfAssert["FABLE-5.1 [has content]: Gamma^W is NOT the Levi-Civita connection",
+  cfNonZeroWitnessQ[GammaWeitzenboeck - GammaCanonical]];
+{Dimensions[GammaWeitzenboeck], Count[Flatten[GammaWeitzenboeck], Except[0]], " non-zero components"}
 ]];
 
-(* ---------- Input cell 137 ---------- *)
-cfRunCell[137, Hold[
+(* ---------- Input cell 141 ---------- *)
+cfRunCell[141, Hold[
+ClearAll[omegaFable51Mixed, omegaFable51];
+omegaFable51Mixed = cfTimed["fable-5.1 spin connection from the vielbein postulate, with Gamma^W",
+  cfSpinConnection[cfFable51Frame, X, \[Eta]4488, GammaWeitzenboeck]];
+omegaFable51 = cfLowerFirstFlat[omegaFable51Mixed, \[Eta]4488];
+cfAssert["FABLE-5.1 [solver regression]: vielbein postulate residual is zero",
+  cfZeroArrayQ[cfVielbeinResidual[cfFable51Frame, X, GammaWeitzenboeck, omegaFable51Mixed]]];
+cfAssert["FABLE-5.1 [THE RESULT]: the spin connection in the canonical frame is IDENTICALLY ZERO",
+  cfZeroArrayQ[omegaFable51Mixed]];
+cfAssert["FABLE-5.1: trivially antisymmetric, so trivially metric compatible",
+  cfZeroArrayQ[Table[omegaFable51[[mu, a, b]] + omegaFable51[[mu, b, a]], {mu, 8}, {a, 8}, {b, 8}]]];
+{Count[Flatten[omegaFable51], Except[0]], " non-zero components  (zero: the frame is parallel)"}
+]];
+
+(* ---------- Input cell 142 ---------- *)
+cfRunCell[142, Hold[
+(* --- the torsion of the fable-5.1 bridge, and its curvature ------------------------------ *)
+(* With omega == 0 the torsion 2-form of Section 16 reduces to the exterior derivative of the  *)
+(* frame, T^a_{mu nu} = d_mu e_nu^a - d_nu e_mu^a, and the curvature 2-form reduces to zero.  *)
+ClearAll[torsionFable51, torsionFable51Curved, RiemannFable51];
+torsionFable51 = cfTimed["fable-5.1 torsion 2-form  T^a_{mu nu} = d_mu e_nu^a - d_nu e_mu^a",
+  cfTorsion[cfFable51Frame, X, omegaFable51Mixed]];
+torsionFable51Curved = cfSimpArray @ Table[Sum[cfFable51Coframe[[a, r]] torsionFable51[[a, m, p]], {a, 8}],
+   {r, 8}, {m, 8}, {p, 8}];
+cfAssert["FABLE-5.1 [has content]: the torsion is NOT zero",
+  cfNonZeroWitnessQ[torsionFable51]];
+cfAssert["FABLE-5.1: T^rho_{mu nu} == Gamma^W[rho,mu,nu] - Gamma^W[rho,nu,mu]  (torsion is the antisymmetric part of Gamma^W)",
+  cfZeroArrayQ[torsionFable51Curved
+     - Table[GammaWeitzenboeck[[r, m, p]] - GammaWeitzenboeck[[r, p, m]], {r, 8}, {m, 8}, {p, 8}]]];
+RiemannFable51 = cfTimed["fable-5.1 curvature 2-form", cfCurvature[omegaFable51Mixed, X]];
+cfAssert["FABLE-5.1 [THE RESULT]: the curvature is IDENTICALLY ZERO -- a flat connection on a curved metric",
+  cfZeroArrayQ[RiemannFable51]];
+{Count[Flatten[torsionFable51], Except[0]], " non-zero torsion components;   curvature components: ",
+ Count[Flatten[RiemannFable51], Except[0]]}
+]];
+
+(* ---------- Input cell 143 ---------- *)
+cfRunCell[143, Hold[
+ClearAll[contortionFable51, contortionFable51Formula, torsionFable51Low, omegaCanonicalFromTorsion];
+contortionFable51 = cfSimpArray[GammaWeitzenboeck - GammaCanonical];              (* K^rho_{mu nu} *)
+torsionFable51Low = cfSimpArray @ Table[Sum[gCanonical[[r, s]] torsionFable51Curved[[s, m, p]], {s, 8}],
+   {r, 8}, {m, 8}, {p, 8}];                                                        (* T_{rho mu nu}  *)
+contortionFable51Formula = cfSimpArray @ Table[
+   (1/2) Sum[gInvCanonical[[r, s]] (torsionFable51Low[[s, m, p]] + torsionFable51Low[[m, s, p]]
+       + torsionFable51Low[[p, s, m]]), {s, 8}], {r, 8}, {m, 8}, {p, 8}];
+cfAssert["COMPARISON F [has content]: Gamma^W - Gamma^LC == (1/2)(T_{rmn} + T_{mrn} + T_{nrm}) with the index raised, the contortion formula",
+  cfZeroArrayQ[contortionFable51 - contortionFable51Formula]];
+omegaCanonicalFromTorsion = cfSimpArray @ Table[
+   -Sum[contortionFable51[[r, mu, nu]] cfFable51Frame[[r, a]] cfFable51Coframe[[b, nu]], {r, 8}, {nu, 8}],
+   {mu, 8}, {a, 8}, {b, 8}];
+cfAssert["COMPARISON F [THE RESULT]: omegaCanonical == - contortion(fable-5.1 torsion), pulled back to flat indices, exactly",
+  cfZeroArrayQ[omegaCanonicalFromTorsion - omegaCanonicalMixed]];
+cfAssert["COMPARISON F: so omegaCanonical - omegaFable51 is a TENSOR, not a gauge term (omegaFable51 == 0)",
+  cfZeroArrayQ[(omegaCanonicalMixed - omegaFable51Mixed) - omegaCanonicalFromTorsion]];
+{Count[Flatten[contortionFable51], Except[0]], " non-zero contortion components  ==  ",
+ Count[Flatten[omegaCanonical], Except[0]], " non-zero canonical spin-connection components"}
+]];
+
+(* ---------- Input cell 144 ---------- *)
+cfRunCell[144, Hold[
+ClearAll[torsionVectorFable51, torsionPotentialFable51, torsionFable51Flat, torsionAxialFable51];
+torsionVectorFable51 = cfSimpArray @ Table[Sum[torsionFable51Curved[[nu, nu, mu]], {nu, 8}], {mu, 8}];
+torsionPotentialFable51 = Log[Sin[6 H x0]];
+cfAssert["FABLE-5.1 torsion vector T[mu] = T[nu,nu,mu] is a GRADIENT: T[mu] == D[Log[Sin[6 H x0]], x[mu]]",
+  cfZeroArrayQ[torsionVectorFable51 - Table[D[torsionPotentialFable51, X[[mu]]], {mu, 8}]]];
+cfAssert["FABLE-5.1 torsion vector has exactly one non-zero component, 6 H Cot[6 H x0] along x0",
+  cfZeroArrayQ[torsionVectorFable51 - {6 H Cot[6 H x0], 0, 0, 0, 0, 0, 0, 0}]];
+(* pull the torsion to all-flat lowered indices, as Section 20 did for Bridge 3 *)
+torsionFable51Flat = cfSimpArray @ Table[
+   Sum[\[Eta]4488[[a, d]] torsionFable51[[d, mu, nu]] cfFable51Coframe[[b, mu]] cfFable51Coframe[[c, nu]],
+     {d, 8}, {mu, 8}, {nu, 8}], {a, 8}, {b, 8}, {c, 8}];
+torsionAxialFable51 = cfSimpArray @ Table[
+   (1/6) (torsionFable51Flat[[a, b, c]] + torsionFable51Flat[[b, c, a]] + torsionFable51Flat[[c, a, b]]
+        - torsionFable51Flat[[b, a, c]] - torsionFable51Flat[[a, c, b]] - torsionFable51Flat[[c, b, a]]),
+   {a, 8}, {b, 8}, {c, 8}];
+cfAssert["FABLE-5.1: the AXIAL (totally antisymmetric) part of the torsion vanishes -- the complement of Bridge 3",
+  cfZeroArrayQ[torsionAxialFable51]];
+cfAssert["FABLE-5.1: the torsion itself does not vanish, so the tensor part carries the rest",
+  cfNonZeroWitnessQ[torsionFable51Flat]];
+Grid[Prepend[Table[{Row[{"T[", mu - 1, "]"}], torsionVectorFable51[[mu]]}, {mu, 8}],
+  {"torsion vector component", "value"}], Frame -> All, Alignment -> Left]
+]];
+
+(* ---------- Input cell 145 ---------- *)
+cfRunCell[145, Hold[
+ClearAll[torsionScalarFable51, sqrtDetgTele, boundaryTermFable51, torsionFable51Up, torsionVectorFable51Up];
+sqrtDetgTele = Sec[6 H x0];
+cfAssert["FABLE-5.1: det g == Sec[6 H x0]^2  (positive, as signature 4+4 requires)",
+  cfZeroQ[detgCanonical - sqrtDetgTele^2]];
+torsionFable51Up = cfSimpArray @ Table[
+   Sum[gInvCanonical[[m, mm]] gInvCanonical[[p, pp]] torsionFable51Curved[[r, mm, pp]], {mm, 8}, {pp, 8}],
+   {r, 8}, {m, 8}, {p, 8}];                                                        (* T^{r m p} *)
+torsionVectorFable51Up = cfSimpArray @ Table[Sum[gInvCanonical[[m, k]] torsionVectorFable51[[k]], {k, 8}], {m, 8}];
+torsionScalarFable51 = cfTimed["fable-5.1 torsion scalar T",
+  FullSimplify[
+    (1/4) Sum[torsionFable51Up[[r, m, p]] torsionFable51Low[[r, m, p]], {r, 8}, {m, 8}, {p, 8}]
+    + (1/2) Sum[torsionFable51Up[[r, m, p]] torsionFable51Low[[p, m, r]], {r, 8}, {m, 8}, {p, 8}]
+    - Sum[torsionVectorFable51Up[[m]] torsionVectorFable51[[m]], {m, 8}], cfGeomAssume]];
+boundaryTermFable51 = cfTimed["fable-5.1 boundary term B = (2/sqrt g) d_mu(sqrt g T^mu)",
+  FullSimplify[(2/sqrtDetgTele) Sum[D[sqrtDetgTele torsionVectorFable51Up[[m]], X[[m]]], {m, 8}], cfGeomAssume]];
+cfAssert["COMPARISON F [THE RESULT]: R == -T + B  --  the teleparallel equivalent of GR, in closed form for this geometry",
+  cfZeroQ[RicciScalarCanonical - (-torsionScalarFable51 + boundaryTermFable51)]];
+cfAssert["FABLE-5.1: T is not zero and B is not zero -- neither side is trivial",
+  {cfNonZeroWitnessQ[torsionScalarFable51], cfNonZeroWitnessQ[boundaryTermFable51]}];
+Grid[{{"R  (Levi-Civita scalar curvature, Section 16)", RicciScalarCanonical},
+      {"T  (fable-5.1 torsion scalar)", torsionScalarFable51},
+      {"B  (boundary term)", boundaryTermFable51},
+      {"R + T - B", FullSimplify[RicciScalarCanonical + torsionScalarFable51 - boundaryTermFable51, cfGeomAssume]}},
+  Frame -> All, Alignment -> Left]
+]];
+
+(* ---------- Input cell 146 ---------- *)
+cfRunCell[146, Hold[
+ClearAll[cfDiracConnectionTerm, cfPsiPrime, cfDiracFable51];
+cfDiracConnectionTerm = cfTimed["gamma^mu Gamma^spin[mu], the connection part of the canonical Dirac operator",
+  cfSimpArray[Sum[gammaCurvedCanonical[[mu]] . GammaSpinCanonical[[mu]], {mu, 8}]]];
+cfAssert["FABLE-5.1 [THE RESULT]: gamma^mu Gamma^spin[mu] == -(1/2) T[mu] gamma^mu, one vector term",
+  cfZeroArrayQ[cfDiracConnectionTerm
+     + (1/2) Sum[torsionVectorFable51[[mu]] gammaCurvedCanonical[[mu]], {mu, 8}]]];
+cfAssert["FABLE-5.1: equivalently -(1/2) D[Log[Sin[6 H x0]], x_mu] gamma^mu",
+  cfZeroArrayQ[cfDiracConnectionTerm
+     + (1/2) Sum[D[torsionPotentialFable51, X[[mu]]] gammaCurvedCanonical[[mu]], {mu, 8}]]];
+cfPsiPrime = Table[cfPsiP[k] @@ X, {k, 0, 15}];                (* a generic 16-component spinor *)
+cfDiracFable51[psi_List] := Sum[gammaCurvedCanonical[[mu]] . D[psi, X[[mu]]], {mu, 8}];   (* no connection *)
+cfAssert["FABLE-5.1 [THE RESULT]: DiracCanonical[ Sqrt[Sin[6Hx0]] Psi' ] == Sqrt[Sin[6Hx0]] DiracFable51[Psi'], for a generic Psi'",
+  cfZeroArrayQ[cfSimpArray[
+    cfDiracOperator[Sqrt[Sin[6 H x0]] cfPsiPrime] - Sqrt[Sin[6 H x0]] cfDiracFable51[cfPsiPrime]]]];
+(* witnessed on a concrete spinor, the constant one, because a witness must reduce to numbers *)
+cfAssert["FABLE-5.1: the rescaling is NOT a no-op -- the two Dirac operators differ on the constant spinor",
+  cfNonZeroWitnessQ[cfDiracOperator[ConstantArray[1, 16]] - cfDiracFable51[ConstantArray[1, 16]]]];
+Short[cfDiracConnectionTerm, 4]
+]];
+
+(* ---------- Input cell 147 ---------- *)
+cfRunCell[147, Hold[
+ClearAll[cfLagrangianConnectionTerm];
+cfLagrangianConnectionTerm = cfTimed["the connection term of the Dirac Lagrangian, for a generic spinor",
+  cfSimp[sqrtDetgTele Transpose[cfPsiPrime] . \[Sigma]16 . (cfDiracConnectionTerm . cfPsiPrime)]];
+cfAssert["FABLE-5.1 [THE RESULT]: Psi^T sigma16 gamma^mu Gamma^spin[mu] Psi == 0 for EVERY Psi -- the spin connection drops out of the Lagrangian",
+  cfZeroQ[cfLagrangianConnectionTerm]];
+cfAssert["FABLE-5.1: the reason is Section 11's identity, Psi^T sigma16 T16[a] Psi == 0 (sigma16 T16[a] antisymmetric)",
+  cfZeroArrayQ[Table[Expand[Transpose[cfPsiPrime] . \[Sigma]16 . T16[a - 1] . cfPsiPrime], {a, 8}]]];
+cfAssert["FABLE-5.1: but the connection term does NOT drop out of the Dirac OPERATOR (it is -(1/2) T[mu] gamma^mu, non-zero)",
+  cfNonZeroWitnessQ[cfDiracConnectionTerm]];
+(* What the author's flat Lagrangian La omits: exactly the volume factor and the coframe.        *)
+(* The covariant Lagrangian is written as a function of the frame and the volume factor, with   *)
+(* the author's own 1/H normalization kept, so that setting frame -> ID8 and sqrtg -> 1 is a    *)
+(* genuine substitution and not a no-op on already-evaluated symbols.                            *)
+ClearAll[cfLagrangianCovariant, cfLagrangianAuthorForm];
+cfLagrangianCovariant[psi_List, frame_, sqrtg_] := Module[{cofr = Inverse[frame]},
+  (1/H) sqrtg Transpose[psi] . \[Sigma]16 .
+      Sum[Sum[cofr[[a, mu]] T16[a - 1], {a, 8}] . D[psi, X[[mu]]], {mu, 8}]
+  + 2 (M/H) sqrtg Transpose[psi] . \[Sigma]16 . psi];
+(* The outer parentheses are load-bearing.  Without them the second line, which begins with   *)
+(* "+", is a complete expression on its own and Mathematica evaluates it as one: the definition *)
+(* silently loses its mass term.  Section 11's La[] has the same parentheses for the same reason. *)
+cfLagrangianAuthorForm[psi_List] := ((1/H) Transpose[psi] . \[Sigma]16 . Sum[T16[a - 1] . D[psi, X[[a]]], {a, 8}]
+  + 2 (M/H) Transpose[psi] . \[Sigma]16 . psi);
+cfAssert["FABLE-5.1: the author-form helper applied to Psi16 IS Section 11's La[] (the two are the same expression)",
+  cfZeroQ[cfLagrangianAuthorForm[\[CapitalPsi]16] - La[]]];
+cfAssert["FABLE-5.1: the covariant Lagrangian with frame -> ID8 and volume factor -> 1 IS the author's La of Section 11, term for term",
+  Expand[cfLagrangianCovariant[cfPsiPrime, ID8, 1] - cfLagrangianAuthorForm[cfPsiPrime]] === 0];
+(* witnessed on a constant spinor: the kinetic terms vanish and the mass terms differ by the    *)
+(* volume factor.  Not the all-ones spinor, for which psi^T sigma16 psi == 0; e1 + e5 gives -2. *)
+(* The mass M is a free constant of the model with no probe value, and a witness must reduce to *)
+(* a number, so M is set to 1 inside this one test and nowhere else.                            *)
+cfAssert["FABLE-5.1: with the real frame and volume factor it is NOT the author's La -- witnessed on the constant spinor e1 + e5 (at M = 1)",
+  cfNonZeroWitnessQ[(cfLagrangianCovariant[UnitVector[16, 1] + UnitVector[16, 5], cfFable51Frame, sqrtDetgTele]
+      - cfLagrangianAuthorForm[UnitVector[16, 1] + UnitVector[16, 5]]) /. M -> 1]];
+cfAssert["FABLE-5.1: and the covariant Lagrangian has NO connection term to omit -- its kinetic term is already the fable-5.1 one",
+  Expand[cfLagrangianCovariant[cfPsiPrime, cfFable51Frame, sqrtDetgTele]
+     - ((1/H) sqrtDetgTele Transpose[cfPsiPrime] . \[Sigma]16 . cfDiracFable51[cfPsiPrime]
+        + 2 (M/H) sqrtDetgTele Transpose[cfPsiPrime] . \[Sigma]16 . cfPsiPrime)] === 0];
+{"connection term of the Lagrangian, simplified: ", cfLagrangianConnectionTerm}
+]];
+
+(* ---------- Input cell 148 ---------- *)
+cfRunCell[148, Hold[
+ClearAll[omegaFable51BoostMixed, omegaFable51BoostPredicted];
+(* Simplify::time is EXPECTED here and only here in Part V: the solver simplifies each entry     *)
+(* under Section 1's 1-second budget, and entries built from Cosh and Sinh of the undetermined   *)
+(* rapidity exceed it.  A budget that is reached returns a correct, merely less-simplified,      *)
+(* result; the assertions below then close every identity symbolically.  The message is         *)
+(* announced first and suppressed for this one computation, exactly as Section 14 does.          *)
+Print["  EXPECTED MESSAGE  Simplify::time may fire while solving the vielbein postulate in the"];
+Print["                    boosted frame; the 1-second budget is Section 1's, and a budget that"];
+Print["                    is reached still returns a correct, merely less-simplified, result."];
+omegaFable51BoostMixed = cfTimed["fable-5.1 spin connection in Bridge 1's boosted frame",
+  Quiet[cfSpinConnection[frameBoost, X, \[Eta]4488, GammaWeitzenboeck], {Simplify::time, General::stop}]];
+(* the independent route: Part IV's lemma with omegaOld == 0 predicts omegaNew == -D[M] Inverse[M] *)
+omegaFable51BoostPredicted = Table[cfSimpArray[-D[cfM, X[[mu]]] . cfMinv], {mu, 8}];
+cfAssert["FABLE-5.1 in the boosted frame: vielbein postulate residual is zero",
+  Quiet[cfZeroArrayQ[cfVielbeinResidual[frameBoost, X, GammaWeitzenboeck, omegaFable51BoostMixed]], {Simplify::time, General::stop}]];
+cfAssert["FABLE-5.1 in the boosted frame [THE RESULT]: omega == -D[M,x_mu] Inverse[M], pure gauge and nothing else",
+  cfZeroArrayQ[Table[omegaFable51BoostMixed[[mu]] - omegaFable51BoostPredicted[[mu]], {mu, 8}]]];
+cfAssert["FABLE-5.1 in the boosted frame: the lemma's prediction itself satisfies the vielbein postulate with Gamma^W",
+  Quiet[cfZeroArrayQ[cfVielbeinResidual[frameBoost, X, GammaWeitzenboeck, omegaFable51BoostPredicted]], {Simplify::time, General::stop}]];
+cfAssert["FABLE-5.1 in the boosted frame: the curvature is STILL identically zero",
+  Quiet[cfZeroArrayQ[cfCurvature[omegaFable51BoostMixed, X]], {Simplify::time, General::stop}]];
+cfAssert["and Bridge 1's inhomogeneous term of Section 18 IS this object: deltaBoost == omegaFable51Boost",
+  cfZeroArrayQ[Table[deltaBoost[[mu]] - omegaFable51BoostMixed[[mu]], {mu, 8}]]];
+cfAssert["so omegaBoost == (canonical, conjugated) + (fable-5.1 in the boosted frame)",
+  cfZeroArrayQ[Table[omegaBoostMixed[[mu]]
+     - (cfM . omegaCanonicalMixed[[mu]] . cfMinv + omegaFable51BoostMixed[[mu]]), {mu, 8}]]];
+{Count[Flatten[omegaFable51BoostMixed], Except[0]], " non-zero components, all pure gauge"}
+]];
+
+(* ---------- Input cell 149 ---------- *)
+cfRunCell[149, Hold[
+ClearAll[cfConnectionSummary];
+cfConnectionSummary = {
+  {"connection", "frame field", "flat metric", "same g?", "metric compatible?",
+   "torsion zero?", "curvature zero?", "difference from canonical", "verdict"},
+  {"omegaCanonical", "frameCanonical (diagonal)", "eta4488", "yes (reference)", "yes",
+   "yes", "no", "-- (reference)", "Levi-Civita"},
+  {"omegaBoost  (Bridge 1)", "frameCanonical . Lambda(x)", "eta4488", "yes", "yes",
+   "yes", "no", "gauge term  -D[theta,x_mu] K  (a Weitzenboeck connection, see Part V)",
+   "SAME connection, local gauge"},
+  {"omegaNull  (Bridge 2)", "frameCanonical . U", "etaNull == sigma", "yes", "yes",
+   "yes", "no", "constant similarity  U omega U", "SAME connection, constant gauge"},
+  {"omegaOct  (Bridge 3)", "frameCanonical . triVecToSpin", "etaTri == sigma", "yes", "yes",
+   "NO: axial torsion  -2 lambda mSkew", "no",
+   "contortion  lambda mSkew[a,b,c] frameTri[[mu,c]], a tensor",
+   "DIFFERENT connection"},
+  {"omegaFable51  (fable-5.1)", "frameCanonical (parallel)", "eta4488", "yes", "yes",
+   "NO: vector + tensor torsion, axial part zero", "YES: flat",
+   "omegaCanonical == - contortion(T_fable51), a tensor; omegaFable51 == 0",
+   "DIFFERENT connection"}};
+Grid[cfConnectionSummary, Frame -> All, Alignment -> Left,
+  Background -> {None, {LightGray, None, None, None, None, None}}]
+]];
+
+(* ---------- Input cell 150 ---------- *)
+cfRunCell[150, Hold[
 (* --- numerical fingerprint: the count of non-zero components of each object -------------- *)
 Grid[{
   {"object", "non-zero components"},
-  {"Gamma (Christoffel)", Count[Flatten[GammaCanonical], Except[0]]},
+  {"Gamma (Christoffel, Levi-Civita)", Count[Flatten[GammaCanonical], Except[0]]},
+  {"Gamma^W (Weitzenboeck, fable-5.1)", Count[Flatten[GammaWeitzenboeck], Except[0]]},
   {"omegaCanonical", Count[Flatten[omegaCanonical], Except[0]]},
   {"omegaBoost", Count[Flatten[omegaBoost], Except[0]]},
   {"omegaNull", Count[Flatten[omegaNull], Except[0]]},
   {"omegaTriLC (lambda=0)", Count[Flatten[omegaTriLC], Except[0]]},
-  {"contortionOct", Count[Flatten[contortionOct], Except[0]]},
+  {"GammaSpinCanonical (16x16 spinor connection)", Count[Flatten[GammaSpinCanonical], Except[0]]},
+  {"GammaSpinBoost  (Bridge 1)", Count[Flatten[GammaSpinBoost], Except[0]]},
+  {"omegaFable51 (canonical frame)", Count[Flatten[omegaFable51], Except[0]]},
+  {"contortionOct  (Bridge 3)", Count[Flatten[contortionOct], Except[0]]},
+  {"contortionFable51  (== Gamma^W - Gamma^LC)", Count[Flatten[contortionFable51], Except[0]]},
   {"RiemannCanonical", Count[Flatten[RiemannCanonical], Except[0]]},
   {"RiemannBoost", Count[Flatten[RiemannBoost], Except[0]]},
   {"RiemannNull", Count[Flatten[RiemannNull], Except[0]]},
-  {"torsionOctFlat", Count[Flatten[torsionOctFlat], Except[0]]}
+  {"RiemannOct  (Bridge 3)", Count[Flatten[RiemannOct], Except[0]]},
+  {"RiemannFable51", Count[Flatten[RiemannFable51], Except[0]]},
+  {"torsionOctFlat  (Bridge 3)", Count[Flatten[torsionOctFlat], Except[0]]},
+  {"torsionFable51Flat", Count[Flatten[torsionFable51Flat], Except[0]]}
  }, Frame -> All, Alignment -> Left]
 ]];
 
-(* ---------- Input cell 138 ---------- *)
-cfRunCell[138, Hold[
-(* --- the three comparisons, side by side ------------------------------------------------ *)
+(* ---------- Input cell 151 ---------- *)
+cfRunCell[151, Hold[
+(* --- the four comparisons, side by side -------------------------------------------------- *)
 Grid[{
-  {"comparison", "statement proved above"},
+  {"comparison", "statement proved above", "content?"},
   {"BRIDGE 1 vs canonical",
-   "omegaBoost_mu == M omegaCanonical_mu Inverse[M] - D[M,x_mu] Inverse[M],  M = Transpose[Lambda];"
-   <> "  the whole difference is -D[theta,x_mu] K, one scalar gradient times one fixed generator"},
+   "omegaBoost_mu == M omegaCanonical_mu Inverse[M] - D[M,x_mu] Inverse[M],  M = Transpose[Lambda]",
+   "the gauge transformation law; no new connection"},
   {"BRIDGE 2 vs canonical",
-   "omegaNull_mu == U omegaCanonical_mu U   exactly, with no inhomogeneous term"},
+   "omegaNull_mu == U omegaCanonical_mu U   exactly, U constant",
+   "a constant change of basis; no new connection"},
   {"BRIDGE 3 vs canonical",
-   "omegaOct_mu == Inverse[P] omegaCanonical_mu P + lambda mSkew . frameTri,  P = triVecToSpin"},
+   "omegaOct_mu == Inverse[P] omegaCanonical_mu P + lambda mSkew . frameTri,  P = triVecToSpin",
+   "a tensor (contortion with axial torsion); a different connection"},
+  {"FABLE-5.1 vs canonical",
+   "omegaCanonical == - K(T_fable51) pulled to flat indices;  omegaFable51 == 0;  R == -T + B;"
+   <> "  gamma^mu Gamma_mu == -(1/2) T_mu gamma^mu;  Dirac_LC[Sqrt[Sin] Psi'] == Sqrt[Sin] Dirac_fable51[Psi']",
+   "a tensor (contortion with vector torsion); a different, FLAT connection; exact spinor equivalence"},
   {"curvature",
-   "R transforms covariantly under bridges 1 and 2, so all three describe the same geometry; "
-   <> "bridge 3 adds a torsion-dependent piece"},
-  {"Ricci scalar", "identical for the canonical frame and bridges 1 and 2"},
+   "conjugated under bridges 1 and 2;  for bridge 3 a polynomial of degree exactly 2 in lambda (lambda^0: the conjugated canonical curvature,"
+   <> " lambda^1: dK + [omega,K],  lambda^2: [K,K]);  IDENTICALLY ZERO for fable-5.1",
+   ""},
+  {"Ricci scalar / torsion scalar",
+   "R identical for canonical and bridges 1, 2;  R - 42 lambda^2 for bridge 3 (== R - (1/4) T_{abc} T^{abc});"
+   <> "  R == -T + B for fable-5.1 with T, B in closed form",
+   ""},
+  {"spinor level",
+   "bridge 1: Gamma' == S Gamma S^-1 - dS S^-1 with the explicit spin lift S, Dirac'[S psi] == S Dirac[psi];"
+   <> "  bridge 3: an extra so(4,4)-valued coupling from the axial torsion;"
+   <> "  fable-5.1: no connection term at all, Dirac_LC[Sqrt[Sin] Psi'] == Sqrt[Sin] gamma^mu d_mu Psi'",
+   ""},
   {"torsion",
-   "zero for the canonical connection and for bridges 1 and 2;  -2 lambda mSkew for bridge 3"}
+   "zero for canonical and bridges 1, 2;  -2 lambda mSkew (axial) for bridge 3;  d e^a (vector + tensor, axial part zero) for fable-5.1",
+   ""}
  }, Frame -> All, Alignment -> Left]
 ]];
 
-(* ---------- Input cell 139 ---------- *)
-cfRunCell[139, Hold[
+(* ---------- Input cell 152 ---------- *)
+cfRunCell[152, Hold[
 (* --- final tally of every assertion made in this notebook -------------------------------- *)
 Print["identities accepted on numerical evidence alone : ", $cfNumericCertificates,
       "   (stage 3 returned True)"];
 Print["non-vanishing witnesses                         : ", $cfNonVanishingWitnesses,
-      "   (stage 3 returned False inside a ! TrueQ[...] assertion;"];
-Print["                                                     a sample point with a non-zero",
-      " value is a complete proof of non-vanishing)"];
+      "   (cfNonZeroWitnessQ found a probe point at which every entry is a"];
+Print["                                                     number and one of them is non-zero: a complete",
+      " proof of non-vanishing)"];
+cfAssert["no identity in this notebook was accepted on numerical evidence alone",
+  $cfNumericCertificates === 0];
 cfAssertSummary[]
 ]];
 

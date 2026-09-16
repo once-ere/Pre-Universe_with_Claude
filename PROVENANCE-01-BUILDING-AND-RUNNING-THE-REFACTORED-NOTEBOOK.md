@@ -18,11 +18,12 @@ Everything needed to repeat this work is on this page. No other file needs to be
 | `Pre-Universe_14SEP26-77\claude-fable\cells_part1.wl` | — | source manifest, sections 0–4 |
 | `Pre-Universe_14SEP26-77\claude-fable\cells_part2.wl` | — | source manifest, sections 5–9 |
 | `Pre-Universe_14SEP26-77\claude-fable\cells_part3.wl` | — | source manifest, sections 10–14 |
-| `Pre-Universe_14SEP26-77\claude-fable\cells_part4.wl` | — | source manifest, sections 15–21 |
+| `Pre-Universe_14SEP26-77\claude-fable\cells_part4.wl` | — | source manifest, sections 15–20 |
+| `Pre-Universe_14SEP26-77\claude-fable\cells_part5.wl` | — | source manifest, sections 21–22 (added 2026-09-16) |
 | `Pre-Universe_14SEP26-77\claude-fable\build_tools.py` | — | turns the manifests into the `.nb` and into a runnable `.wls` |
 | `Pre-Universe_14SEP26-77\claude-fable\runner_header.wl` | — | the test harness that times each cell and collects every message |
 
-The notebook is generated from the four manifests rather than edited by hand. That is what
+The notebook is generated from the five manifests rather than edited by hand. That is what
 guarantees that the code inside the notebook and the code that was tested are the same bytes.
 
 ## 2. Structure of the notebook
@@ -31,8 +32,9 @@ guarantees that the code inside the notebook and the code that was tested are th
 |---|---|---|---|
 | I | 1–9 | 1–52 | flat metric, SO(4) blocks, 8×8 `τ`, 16×16 `T16`, `SAB`, the 256/64/16-element matrix bases, 4×4 Dirac, Cartan triality |
 | II | 10–14 | 53–90 | `Ψ16`, the Lagrangian, Euler–Lagrange, the (z,t) chart, the four coupled blocks, the Maple solutions, bilinears, M6 |
-| III | 15–17 | 91–116 | the frame field, the canonical spin connection, the 16-component spinor covariant derivative |
-| IV | 18–21 | 117–139 | three new bridges, three new spin connections, and the master comparison |
+| III | 15–17 | 91–117 | the frame field, the canonical spin connection, the 16-component spinor covariant derivative (now applied to `Ψ16`) |
+| IV | 18–20 | 118–139 | three bridges: two gauge transformations of the canonical connection (labelled as such), and one new connection with octonionic torsion |
+| V | 21–22 | 140–152 | the fable-5.1 bridge — the Weitzenböck connection of the canonical frame — and the master comparison of the five connections |
 
 Exact section-to-cell map:
 
@@ -54,11 +56,17 @@ Exact section-to-cell map:
 | 14. Bilinears, the two branches, M6 = 3 generations | 79–90 |
 | 15. The local flat Minkowski system at every point (the frame field) | 91–99 |
 | 16. Christoffel symbols and the canonical spin connection | 100–110 |
-| 17. The gauge-covariant derivative of the 16-component spinor | 111–116 |
-| 18. Bridge 1 — locally boosted frame | 117–122 |
-| 19. Bridge 2 — null (light-cone) frame | 123–127 |
-| 20. Bridge 3 — triality frame with octonionic torsion | 128–135 |
-| 21. Master comparison | 136–139 |
+| 17. The gauge-covariant derivative of the 16-component spinor | 111–117 |
+| 18. Bridge 1 — locally boosted frame: the same connection in a local gauge | 118–125 |
+| 19. Bridge 2 — null (light-cone) frame: the same connection in a constant gauge | 126–130 |
+| 20. Bridge 3 — triality frame with octonionic torsion | 131–139 |
+| 21. The fable-5.1 bridge — the Weitzenböck connection of the canonical frame | 140–148 |
+| 22. Master comparison of the five spin connections | 149–152 |
+
+This map is that of the 2026-09-16 revision (238 cells, 152 `Input`, 250 assertions). The build
+output and run quoted further down this page are those of the 2026-09-14 revision (213 cells,
+139 `Input`, 182 assertions) and are kept as the record of that build; the generator is
+unchanged and picks up the fifth manifest, `cells_part5.wl`, by its glob.
 
 ## 3. Prerequisites
 
@@ -311,7 +319,7 @@ Development scratch, superseded but kept:
 | `run_all_12.wls` | an early partial build, sections 1–12 only; superseded by `run_all.wls` |
 | `probe2.wls`, `probe3.wls`, `probe4.wls` | one-off probes run against those partial builds while the manifests were being written |
 | `probe_sig.wls`, `probe_sig2.wls` | probes used to work out why `Sign[Exp[a4[…]]]` is undecidable, which is what led to the explicit `cfSignatureAssume` in Section 15 |
-| `check_deltas.wls` | an early component-by-component diff of two spin connections, before the master comparison of Section 21 existed |
+| `check_deltas.wls` | an early component-by-component diff of two spin connections, before the master comparison (now Section 22) existed |
 | `cmp_mx.wls` | the first `.mx` comparison, superseded by `prov07_mx_fidelity.wls` and `mx_fidelity2.wls` |
 | `report_results.wls` | prints a headline summary of the metric, `Det[g]` and both Ricci scalars; its output is `report_results.log` |
 

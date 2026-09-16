@@ -10,6 +10,14 @@ computed value.
 Everything needed to repeat this work is on this page. No other file needs to be consulted.
 
 ---
+> **Revision note (2026-09-16).** The numbers on this page — 213 cells, 139 `Input` cells,
+> 182 assertions — are those of the notebook as it stood on 2026-09-14, when this page was
+> written, and the commands reproduce that state from the commit of that date. The current
+> notebook, after the review that added Part V, has 238 cells, 152 `Input` cells and 250
+> assertions (250 passing, 0 cells raising messages). Its build and run are the same two
+> commands as on this page — `python build_tools.py` and `wolframscript -file run_from_nb.wls`,
+> both in `<repo>/claude-fable` — and its run log is `claude-fable/run_fable51_fourth.log`.
+
 
 ## 0. Where things are
 
@@ -282,7 +290,10 @@ wolframscript -file findpage.wls 2>&1 | tee "$CF_OUT/findpage.log"
 
 ## 5. The results the run produces
 
-Non-zero component counts, from the Section 21 fingerprint table:
+Non-zero component counts, from the fingerprint table of the master comparison (Section 21 on
+2026-09-14; Section 22 since 2026-09-16, when the rows `GammaSpinCanonical`, `GammaSpinBoost`,
+`Gamma^W`, `omegaFable51`, `contortionFable51`, `RiemannOct`, `RiemannFable51` and
+`torsionFable51Flat` were added — the values below are unchanged):
 
 | object | non-zero components |
 |---|---|

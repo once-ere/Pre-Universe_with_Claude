@@ -123,19 +123,23 @@ because a single number lumping them together was actively misleading.
                           evidence alone.  This is the number that measures how much of the
                           notebook is NOT symbolic, and the smaller it is the better.
 
-  $cfNonVanishingWitnesses  counts the times stage 3 returned FALSE inside an assertion of the
-                          form  ! TrueQ[cfZeroArrayQ[...]],  which is how this notebook states
-                          that something is NOT identically zero -- that the Bridge 3 torsion
-                          really is present, that the triality Dirac matrices really do differ
-                          from the vector ones, that Lambda really is a boost and not a
-                          rotation.  A single sample point at which an expression evaluates to
-                          a non-zero number is a COMPLETE proof that it is not identically
-                          zero, so these are not weakened results; they are the strongest form
-                          the claim can take.
+  $cfNonVanishingWitnesses  counts the assertions of the form cfNonZeroWitnessQ[...], which is
+                          how this notebook states that something is NOT identically zero --
+                          that the Bridge 3 torsion really is present, that the triality Dirac
+                          matrices really do differ from the vector ones, that Lambda really is
+                          a boost and not a rotation, that the fable-5.1 torsion is there.  A
+                          witness is a probe point at which every entry is an actual NUMBER and
+                          at least one is non-zero; that is a COMPLETE proof of non-vanishing,
+                          the strongest form the claim can take.  A probe that does not reduce
+                          to numbers is a FAILED witness, not a passed one -- an earlier version
+                          of this notebook got that backwards, and it is the reason the test is
+                          written as it is.
 
-Both are printed by the final summary.  At the time of writing the run reports
-$cfNumericCertificates == 0 and $cfNonVanishingWitnesses == 6: every identity in this notebook
-is closed symbolically, and stage 3 is used only to witness the six non-vanishing claims.
+Both are printed by the final summary.  The run reports $cfNumericCertificates == 0: every
+identity in this notebook is closed symbolically, and stage 3 is used only to witness the
+non-vanishing claims.  The number of those witnesses is whatever the summary prints; it grows
+whenever a new "this is NOT zero" assertion is added, as Part V adds several, and a larger
+count means more non-vanishing facts were proved, not that more was taken on trust.
 
 One detail about stage 3.  Evaluating an expression that is IDENTICALLY ZERO in arbitrary
 precision always ends by raising N::meprec, because no amount of extra working precision can
@@ -179,10 +183,23 @@ cfZeroQ[e_] := Module[{s, r},
   s = Simplify[e, cfGeomAssume, TimeConstraint -> 5];
   If[s === 0, Return[True]];
   r = cfNumericallyZeroQ[s];
-  (* Count the two outcomes apart.  Incrementing one counter BEFORE the call, as this cell   *)
-  (* used to, made every non-vanishing assertion look like an identity accepted on numerics. *)
-  If[r, $cfNumericCertificates++, $cfNonVanishingWitnesses++];
+  (* A True here is an identity accepted on numerical evidence alone; count it.  A False    *)
+  (* here is NOT counted as a witness of non-vanishing: it may only mean the probe did not   *)
+  (* reduce to a number.  Genuine witnesses come from cfNonZeroWitnessQ below.               *)
+  If[r, $cfNumericCertificates++];
   r];
+(* cfNonZeroWitnessQ is how this notebook states that something is NOT identically zero.     *)
+(* It succeeds only if, at some probe point, EVERY entry evaluates to an actual number and    *)
+(* at least one of them has magnitude above 10^-10.  A non-numeric leftover -- an undefined  *)
+(* function that the probe rules do not reach, say -- makes it FAIL, not pass.  That is the   *)
+(* difference between this and the pattern ! TrueQ[cfZeroArrayQ[...]], which a previous      *)
+(* version of this notebook used and which passes vacuously on exactly such a leftover.       *)
+ClearAll[cfNonZeroWitnessQ];
+cfNonZeroWitnessQ[expr_] := Block[{$MaxExtraPrecision = 200}, Module[{vals, ok},
+  vals = Quiet[N[Flatten[{expr}] /. cfProbeRules /. #, 30], {N::meprec, General::stop}] & /@ cfProbePoints;
+  ok = AnyTrue[vals, Function[v, AllTrue[v, NumericQ] && Max[Abs[Chop[v, 10^-22]]] > 10^-10]];
+  If[ok, $cfNonVanishingWitnesses++];
+  ok]];
 cfZeroArrayQ[arr_] := Module[{flat = Flatten[{arr}], s},
   (* stage 1 *)
   If[AllTrue[flat, # === 0 &], Return[True]];
@@ -197,7 +214,11 @@ cfZeroArrayQ[arr_] := Module[{flat = Flatten[{arr}], s},
   (* still inconclusive: test entry by entry so we learn which entries fail *)
   AllTrue[s, cfZeroQ]];
 {cfZeroQ[0], cfZeroQ[Tan[6 H x0] Cot[6 H x0] - 1], cfZeroQ[x0 - x4],
- cfZeroArrayQ[{{0, Sin[x0]^2 + Cos[x0]^2 - 1}, {Exp[a4[H x4]] Exp[-a4[H x4]] - 1, 0}}]}
+ cfZeroArrayQ[{{0, Sin[x0]^2 + Cos[x0]^2 - 1}, {Exp[a4[H x4]] Exp[-a4[H x4]] - 1, 0}}],
+ cfNonZeroWitnessQ[x0 - x4], cfNonZeroWitnessQ[Sin[x0]^2 + Cos[x0]^2 - 1],
+ cfNonZeroWitnessQ[cfSomeUndefinedFunction[x0]]}
+(* the self-tests above are demonstrations, not claims about the geometry: reset the tally *)
+$cfNumericCertificates = 0; $cfNonVanishingWitnesses = 0;
 
 (* ::Input:: *)
 (* --- [d] the bridge g = e . eta . Transpose[e] ------------------------------------------- *)
@@ -243,7 +264,7 @@ MatrixForm[gCanonical]
 ClearAll[detgCanonical, sqrtDetgCanonical];
 detgCanonical = cfSimp[Det[gCanonical]];
 sqrtDetgCanonical = cfSimp[Sqrt[Abs[detgCanonical]]];
-cfAssert["the metric is non-degenerate", ! TrueQ[cfZeroQ[detgCanonical]]];
+cfAssert["the metric is non-degenerate", cfNonZeroWitnessQ[detgCanonical]];
 {detgCanonical, sqrtDetgCanonical}
 
 (* ::Input:: *)
@@ -372,7 +393,11 @@ establish, because two of the three obvious ones are weaker than they look.
 So we run all three, labelled honestly, and then add a fourth check that is genuinely
 independent: re-derive the spin connection from the FRAME ALONE, by the standard closed formula
 in terms of the anholonomy of the coframe, which never mentions Gamma or the metric, and compare.
-If cfChristoffel or cfSpinConnection had an index slot wrong, that comparison would fail.
+If cfChristoffel had a slot wrong, that comparison would fail.  One class of error it CANNOT
+see, on this frame, is a transposition of the frame's own two slots (curved row versus flat
+column): the canonical frame is diagonal, so it equals its own transpose and every such error
+is invisible here.  That case is certified in Section 18, where both solvers are run on a
+frame that is not symmetric.
 
 (* ::Input:: *)
 (* --- what the three obvious checks actually establish ------------------------------------ *)
@@ -465,13 +490,23 @@ Acting on it, ordinary partial derivatives are replaced by the gauge-covariant d
 
     Dcov[mu] Psi  ==  D[Psi, x[mu]]  +  (1/8) omega[mu,a,b] Commutator[gamma[a], gamma[b]] . Psi
 
+What this section does and does not do, stated plainly.  It CONSTRUCTS the operator, verifies
+its coefficient and sign, verifies its direct-sum structure on a generic spinor, and then
+APPLIES it to the model's own Psi16 of Section 11.  It does NOT re-derive the field equations
+of Part II from a covariant Lagrangian: those equations, and the closed-form solutions that
+satisfy them, are the flat ones of Section 12, exactly as in the original notebook.  Part V
+makes the relation between the two precise.
+
 where gamma[a] = T16[a] are the 16x16 Dirac matrices of Section 5.  Since
 SAB[[a+1,b+1]] = (1/4) Commutator[gamma[a], gamma[b]], the connection term is equally
 (1/2) omega[mu,a,b] SAB[[a+1,b+1]], which is the form the original notebook's commented-out
 Lagrangian Lg uses.
 
 A structural fact that matters for this model: each gamma[a] is OFF-diagonal in the
-type-1/type-2 block decomposition, so every PRODUCT of two gammas is BLOCK-DIAGONAL.  The spin
+type-1/type-2 block decomposition, so every PRODUCT of two gammas is BLOCK-DIAGONAL.  Section 5
+proved the same thing in the language of chirality: PL and PR project exactly onto the upper
+(type-1) and lower (type-2) halves, and T16[8] commutes with every SAB, so the two halves are
+each Spin(4,4)-invariant.  The spin
 connection matrix therefore never mixes the type-1 spinor with the type-2 spinor.  The
 16-component covariant derivative really is the direct sum of a type-1 covariant derivative and
 a type-2 covariant derivative, and we verify that below and extract the two 8x8 blocks.
@@ -487,9 +522,19 @@ Dimensions[GammaSpinCanonical]
 
 (* ::Input:: *)
 (* --- it equals (1/2) omega[mu,a,b] SAB, as it must --------------------------------------- *)
-cfAssert["(1/8) omega [gamma^a, gamma^b] == (1/2) omega SAB",
+cfAssert["[definition] (1/8) omega [gamma^a, gamma^b] == (1/2) omega SAB  (SAB is defined as (1/4)[gamma,gamma], so this cannot fail)",
   cfZeroArrayQ[Table[GammaSpinCanonical[[mu]]
       - (1/2) Sum[omegaCanonical[[mu, a, b]] SAB[[a, b]], {a, 8}, {b, 8}], {mu, 8}]]];
+(* The check with content.  The spinor connection is the RIGHT one only if it rotates the     *)
+(* Dirac matrices exactly as omega rotates a vector: [Gamma^spin_mu, gamma^a] must equal      *)
+(* - omega_mu^a_b gamma^b.  That fixes the coefficient 1/8 AND its sign against the sign       *)
+(* convention of the vielbein postulate; the wrong sign, or 1/4 instead of 1/8, fails it.     *)
+cfAssert["[has content] the spinor connection is compatible with omega: [Gamma^spin_mu, gamma^a] + omega_mu^a_b gamma^b == 0",
+  cfZeroArrayQ[Table[GammaSpinCanonical[[mu]] . T16[a - 1] - T16[a - 1] . GammaSpinCanonical[[mu]]
+      + Sum[omegaCanonicalMixed[[mu, a, b]] T16[b - 1], {b, 8}], {mu, 8}, {a, 8}]]];
+cfAssert["[control] with the opposite sign the compatibility check FAILS (witnessed): the sign is fixed by the vielbein postulate, not free",
+  cfNonZeroWitnessQ[Table[GammaSpinCanonical[[mu]] . T16[a - 1] - T16[a - 1] . GammaSpinCanonical[[mu]]
+      - Sum[omegaCanonicalMixed[[mu, a, b]] T16[b - 1], {b, 8}], {mu, 8}, {a, 8}]]];
 
 (* ::Input:: *)
 (* --- the direct-sum structure: every Gamma^spin[mu] is block diagonal -------------------- *)
@@ -542,36 +587,73 @@ cfAssert["{gammaCurved[mu], gammaCurved[nu]} == 2 gInv[mu,nu] ID16",
       + gammaCurvedCanonical[[nu]] . gammaCurvedCanonical[[mu]]
       - 2 gInvCanonical[[mu, nu]] ID16, {mu, 8}, {nu, 8}]]];
 cfDiracOperator[psi_List] := Sum[gammaCurvedCanonical[[mu]] . cfDcov16[psi, mu], {mu, 8}];
+(* the check that ties the three connections together: the Christoffel symbols acting on the  *)
+(* curved index, the spinor connection acting by commutator, and the frame in between.  If any  *)
+(* one of them had the wrong sign or index order, the curved Dirac matrices would not be        *)
+(* covariantly constant.                                                                        *)
+cfAssert["[has content] and therefore the curved Dirac matrices are covariantly constant: D_mu gammaCurved^nu == 0",
+  cfZeroArrayQ[Table[D[gammaCurvedCanonical[[nu]], X[[mu]]]
+      + Sum[GammaCanonical[[nu, mu, rho]] gammaCurvedCanonical[[rho]], {rho, 8}]
+      + GammaSpinCanonical[[mu]] . gammaCurvedCanonical[[nu]] - gammaCurvedCanonical[[nu]] . GammaSpinCanonical[[mu]],
+      {mu, 8}, {nu, 8}]]];
 Dimensions[gammaCurvedCanonical]
 
+(* ::Input:: *)
+(* --- and now on the wave function of the model itself, Psi16 of Section 11 ---------------- *)
+(* Psi16 depends only on x0 and x4, so in the other six directions the covariant derivative   *)
+(* IS the connection term, and in x0 and x4 it is the flat derivative plus that term.         *)
+ClearAll[DcovPsi16, DiracPsi16];
+DcovPsi16 = Table[cfDcov16[\[CapitalPsi]16, mu], {mu, 8}];
+cfAssert["[definition] Dcov[mu] Psi16 - D[Psi16, x_mu] == Gamma^spin[mu] . Psi16",
+  cfZeroArrayQ[Table[DcovPsi16[[mu]] - D[\[CapitalPsi]16, X[[mu]]] - GammaSpinCanonical[[mu]] . \[CapitalPsi]16, {mu, 8}]]];
+cfAssert["in the six directions on which Psi16 does not depend, Dcov Psi16 is purely the connection term",
+  cfZeroArrayQ[Table[DcovPsi16[[mu]] - GammaSpinCanonical[[mu]] . \[CapitalPsi]16, {mu, {2, 3, 4, 6, 7, 8}}]]];
+cfAssert["the connection term does not vanish on Psi16: the connection matrices themselves are non-zero (witnessed)",
+  cfNonZeroWitnessQ[Table[GammaSpinCanonical[[mu]], {mu, 8}]]];
+DiracPsi16 = cfTimed["the curved-space Dirac operator applied to Psi16", cfDiracOperator[\[CapitalPsi]16]];
+Column[{Short[DcovPsi16[[1]], 4], Short[DiracPsi16, 6]}]
+
 (* ::Title:: *)
-PART IV  --  Three new bridges between curved and flat indices, and three new spin connections
+PART IV  --  Three bridges between curved and flat indices: two gauge transformations, and one new connection
 
 (* ::Text:: *)
-The canonical frame field of Part III is one choice among infinitely many.  We now invent three
-genuinely different ways of bridging curved spacetime indices to flat tangent-space indices,
-derive a new spin connection for each one with the SAME solver cfSpinConnection, and compare
-each of them, component by component, with the canonical spin connection.
+The canonical frame field of Part III is one choice among infinitely many.  Part IV builds three
+further bridges between curved spacetime indices and flat tangent-space indices, derives the
+spin connection of each with the SAME solver cfSpinConnection, and compares each, component by
+component, with the canonical spin connection.  Part V then adds a fourth, the fable-5.1 bridge.
 
-The three bridges are of three different kinds, so the comparisons are of three different kinds:
+A word of honesty about what counts as NEW, because the first version of this notebook was not
+careful enough about it.  Any frame of the form frameNew = frameCanonical . L, with L(x) a
+matrix that preserves the flat metric, describes the same geometry through a rotated local
+Minkowski system.  Its Levi-Civita spin connection is the canonical one transformed by the gauge
+law below.  Comparing it with the canonical connection therefore re-derives that law and nothing
+more: it is the SAME connection in a different gauge, not a new connection.  Two of the three
+bridges here are of that kind.  They are kept because they are correct, because each teaches
+something real about the gauge structure of the frame bundle, and because Part V uses Bridge 1
+to show what its "inhomogeneous term" actually is.  But they are labelled for what they are.
 
-  BRIDGE 1  a locally boosted orthonormal frame.  The flat metric is still eta4488 but the
-            frame is rotated at every point by an x-dependent element of O(4,4).  The new
-            connection differs from the canonical one by an INHOMOGENEOUS gauge term.  This
-            exhibits the spin connection as the gauge field of local Lorentz transformations.
+  BRIDGE 1  a locally boosted orthonormal frame, frameCanonical . Lambda(x) with Lambda in
+            O(4,4).  SAME CONNECTION, LOCAL GAUGE.  The flat metric is still eta4488.  The
+            connection differs from the canonical one by the inhomogeneous gauge term, which
+            exhibits the spin connection as the gauge field of local Lorentz transformations --
+            and which Part V identifies as the fable-5.1 connection of the boosted frame.
 
-  BRIDGE 2  a null (light-cone) frame.  The flat tangent metric is CHANGED, from eta4488 to the
-            split form in which the four pairs (x0,x4), (x1,x5), (x2,x6), (x3,x7) are null.
-            That split form turns out to be exactly the split-octonion spinor metric sigma of
-            Section 4.  The new connection differs from the canonical one by a CONSTANT
-            similarity, with no inhomogeneous term.  This is the frame adapted to the
-            Einstein-Rosen pairing of the two sheets.
+  BRIDGE 2  a null (light-cone) frame, frameCanonical . U with U constant.  SAME CONNECTION,
+            CONSTANT GAUGE.  The flat tangent metric changes from eta4488 to the split form in
+            which the four pairs (x0,x4), (x1,x5), (x2,x6), (x3,x7) are null, and that split
+            form is exactly the split-octonion spinor metric sigma of Section 4.  The
+            connection is the canonical one conjugated by U, with no inhomogeneous term.  The
+            content here is the identity etaNull == sigma, not the connection.
 
   BRIDGE 3  a triality (split-octonion spinor) frame carrying TOTALLY ANTISYMMETRIC TORSION
-            built from the split-octonion structure constants.  The flat index is a type-1
-            spinor index, and the connection is NOT the Levi-Civita one: it differs from it by
-            a contortion term, so its torsion is non-zero.  This is the only one of the three
-            that is a different CONNECTION rather than a different description of the same one.
+            built from the split-octonion structure constants.  A DIFFERENT CONNECTION.  The
+            flat index is a type-1 spinor index and the connection is not the Levi-Civita one:
+            it differs from it by a contortion tensor, so its torsion is non-zero.
+
+  FABLE-5.1 (Part V) the Weitzenboeck connection, in which the canonical frame itself is
+            parallel.  A DIFFERENT CONNECTION, with zero spin connection and zero curvature in
+            the canonical frame, whose torsion carries the whole geometry; the canonical
+            spin connection is exactly minus its contortion.
 
 A general fact we will use three times.  If a new frame is built from the old one by
 frameNew = frameOld . L with L an invertible matrix of flat indices, then substituting into the
@@ -584,9 +666,18 @@ NOT assume this formula anywhere: each new connection is derived independently f
 postulate, and the formula is then verified against the derived result.
 
 (* ::Section:: *)
-18.  Bridge 1 -- a locally boosted orthonormal frame, and the gauge nature of omega
+18.  Bridge 1 -- a locally boosted frame: the same connection in a local gauge
 
 (* ::Text:: *)
+WHAT THIS BRIDGE IS, AND IS NOT.  It is a change of gauge.  The frame is rotated pointwise by
+an element of O(4,4), the Levi-Civita connection is re-expressed in the rotated frame, and the
+comparison with the canonical connection recovers the gauge transformation law -- which is a
+real and useful thing to see written out for this geometry, but is not a new connection.  The
+one genuinely new object it exhibits is the inhomogeneous term -D[theta,x_mu] K, and Part V
+shows that this term is itself a connection: the fable-5.1 (Weitzenboeck) connection of the
+boosted frame.  Read this section for the gauge structure; read Part V for what the extra term
+means.
+
 Introduce a NEW object, not present in the original notebook: a rapidity field
 cfBoostRapidity[x0,x4], an arbitrary differentiable scalar function of the hidden-space
 coordinate x0 and the time coordinate x4.  It generates a boost in the flat (0,4) plane, i.e.
@@ -611,7 +702,7 @@ cfLambda = cfLambdaOf[cfBoostRapidity[x0, x4]];
 cfAssert["Lambda is in O(4,4): Lambda . eta . Transpose[Lambda] == eta",
   cfZeroArrayQ[cfLambda . \[Eta]4488 . Transpose[cfLambda] - \[Eta]4488]];
 cfAssert["Lambda is NOT in O(8): it is a genuine boost, not a rotation",
-  ! TrueQ[cfZeroArrayQ[cfLambda . Transpose[cfLambda] - ID8]]];
+  cfNonZeroWitnessQ[cfLambda . Transpose[cfLambda] - ID8]];
 cfAssert["Lambda == MatrixExp[theta K] with K the (0,4) boost generator",
   cfZeroArrayQ[cfLambdaOf[\[Theta]] - MatrixExp[\[Theta] cfBoostGenerator]]];
 MatrixForm[cfLambda]
@@ -637,6 +728,25 @@ cfAssert["BRIDGE 1: omega[mu,a,b] == -omega[mu,b,a]",
 cfAssert["BRIDGE 1: torsion still vanishes",
   cfZeroArrayQ[cfTorsion[frameBoost, X, omegaBoostMixed]]];
 {Count[Flatten[omegaBoost], Except[0]], " non-zero components"}
+
+(* ::Input:: *)
+(* --- the test Section 16 could not make: both solvers on a NON-symmetric frame ------------ *)
+(* A constant boost by a fixed rapidity gives a frame that is not equal to its transpose and   *)
+(* contains no undetermined function, so this is cheap and it is discriminating: any          *)
+(* transposition of the frame's curved and flat slots, in either solver, fails here.           *)
+ClearAll[frameSlotTest, omegaSlotTestA, omegaSlotTestB];
+frameSlotTest = cfSimpArray[frameCanonical . cfLambdaOf[1/3]];
+cfAssert["the slot-test frame is genuinely not symmetric", cfNonZeroWitnessQ[frameSlotTest - Transpose[frameSlotTest]]];
+omegaSlotTestA = cfTimed["vielbein-postulate solver on the non-symmetric frame",
+  cfSpinConnection[frameSlotTest, X, \[Eta]4488, GammaCanonical]];
+omegaSlotTestB = cfTimed["frame-only formula on the non-symmetric frame",
+  cfSpinConnectionFromFrame[frameSlotTest, X, \[Eta]4488]];
+cfAssert["INDEPENDENT CHECK on a non-symmetric frame: the two solvers agree, so the curved/flat slots are placed correctly in both",
+  cfZeroArrayQ[Table[Sum[omegaSlotTestB[[mu, a, c]] \[Eta]4488[[c, b]], {c, 8}] - omegaSlotTestA[[mu, a, b]],
+    {mu, 8}, {a, 8}, {b, 8}]]];
+cfAssert["and the result is the canonical connection conjugated by the constant boost, as the gauge law demands",
+  cfZeroArrayQ[Table[omegaSlotTestA[[mu]] - Transpose[cfLambdaOf[1/3]] . omegaCanonicalMixed[[mu]] . Inverse[Transpose[cfLambdaOf[1/3]]],
+    {mu, 8}]]];
 
 (* ::Input:: *)
 (* --- COMPARISON 1: the new connection is the canonical one plus a pure gauge term -------- *)
@@ -681,10 +791,72 @@ cfAssert["COMPARISON 1: BRIDGE 1 has the SAME Ricci scalar as the canonical fram
   cfZeroQ[RicciScalarBoost - RicciScalarCanonical]];
 {RicciScalarCanonical, RicciScalarBoost}
 
+(* ::Text:: *)
+Step 3 for Bridge 1: the spinor level.  A local Lorentz transformation Lambda(x) of the frame
+acts on a 16-component spinor through its SPIN LIFT S(x), the 16x16 matrix that obeys
+
+    Inverse[S] . gamma^a . S  ==  Lambda^a_b gamma^b .
+
+For a boost of rapidity theta in the (0,4) plane the lift is the exponential of the SAME
+rapidity times the so(4,4) generator SAB[[1,5]] == (1/4)[gamma^0, gamma^4] -- with no extra
+factor 1/2, because SAB already carries the 1/4.  (Lambda is symmetric, so Lambda^a_b and
+Lambda^b_a coincide and there is no index-placement question to settle here.)  With S in hand
+the comparison of Section 17's spinor connection between the two frames is a law, not a table:
+
+    Gamma'_mu  ==  S Gamma_mu Inverse[S]  -  D[S, x_mu] Inverse[S] ,
+
+and its inhomogeneous term is -D[theta,x_mu] SAB[[1,5]], the spin image of the vector term
+-D[theta,x_mu] K found above.  What the law is FOR is the last two assertions: with psi -> S psi
+the covariant derivative and the Dirac operator of the boosted frame are the canonical ones
+conjugated, so a solution of the Dirac equation in one frame is a solution in the other.
+
+(* ::Input:: *)
+ClearAll[cfSpinLiftBoost, cfSpinLiftBoostInv, GammaSpinBoost, gammaCurvedBoost];
+cfSpinLiftBoost    = MatrixExp[ cfBoostRapidity[x0, x4] SAB[[1, 5]]];
+cfSpinLiftBoostInv = MatrixExp[-cfBoostRapidity[x0, x4] SAB[[1, 5]]];
+cfAssert["BRIDGE 1 spin lift: Inverse[S] . S == ID16",
+  cfZeroArrayQ[cfSpinLiftBoostInv . cfSpinLiftBoost - ID16]];
+cfAssert["BRIDGE 1 spin lift: S preserves the spinor metric, Transpose[S] . sigma16 . S == sigma16",
+  cfZeroArrayQ[Transpose[cfSpinLiftBoost] . \[Sigma]16 . cfSpinLiftBoost - \[Sigma]16]];
+cfAssert["BRIDGE 1 spin lift [has content]: Inverse[S] . gamma^a . S == Lambda^a_b gamma^b  (S is the spin lift of Lambda)",
+  cfZeroArrayQ[Table[cfSpinLiftBoostInv . T16[a - 1] . cfSpinLiftBoost
+     - Sum[cfLambda[[a, b]] T16[b - 1], {b, 8}], {a, 8}]]];
+GammaSpinBoost = cfTimed["BRIDGE 1 16x16 spin-connection matrices",
+  Table[cfSimpArray[cfSpinMatrix[omegaBoost, mu]], {mu, 8}]];
+cfAssert["COMPARISON 1 at the spinor level [THE GAUGE LAW]: Gamma'_mu == S Gamma_mu Inverse[S] - D[S,x_mu] Inverse[S]",
+  cfZeroArrayQ[Table[GammaSpinBoost[[mu]]
+     - (cfSpinLiftBoost . GammaSpinCanonical[[mu]] . cfSpinLiftBoostInv
+        - D[cfSpinLiftBoost, X[[mu]]] . cfSpinLiftBoostInv), {mu, 8}]]];
+cfAssert["COMPARISON 1 at the spinor level: the inhomogeneous term is -D[theta,x_mu] SAB[[1,5]], the spin image of -D[theta,x_mu] K",
+  cfZeroArrayQ[Table[GammaSpinBoost[[mu]] - cfSpinLiftBoost . GammaSpinCanonical[[mu]] . cfSpinLiftBoostInv
+     + D[cfBoostRapidity[x0, x4], X[[mu]]] SAB[[1, 5]], {mu, 8}]]];
+cfAssert["COMPARISON 1 at the spinor level: and that is exactly cfSpinMatrix applied to the vector difference deltaBoost",
+  cfZeroArrayQ[Table[GammaSpinBoost[[mu]] - cfSpinLiftBoost . GammaSpinCanonical[[mu]] . cfSpinLiftBoostInv
+     - cfSpinMatrix[cfLowerFirstFlat[deltaBoost, \[Eta]4488], mu], {mu, 8}]]];
+cfAssert["BRIDGE 1 [has content]: D'_mu (S psi) == S D_mu psi for a generic spinor -- one covariant derivative, two gauges",
+  cfZeroArrayQ[Table[D[cfSpinLiftBoost . psiGeneric, X[[mu]]] + GammaSpinBoost[[mu]] . (cfSpinLiftBoost . psiGeneric)
+     - cfSpinLiftBoost . (D[psiGeneric, X[[mu]]] + GammaSpinCanonical[[mu]] . psiGeneric), {mu, 8}]]];
+gammaCurvedBoost = cfSimpArray @ Table[Sum[Inverse[frameBoost][[a, mu]] T16[a - 1], {a, 8}], {mu, 8}];
+cfAssert["BRIDGE 1: the curved Dirac matrices of the boosted frame are S gamma^mu Inverse[S]",
+  cfZeroArrayQ[Table[gammaCurvedBoost[[mu]]
+     - cfSpinLiftBoost . gammaCurvedCanonical[[mu]] . cfSpinLiftBoostInv, {mu, 8}]]];
+cfAssert["BRIDGE 1: so the Dirac operator is one operator in two gauges, Dirac'[S psi] == S Dirac[psi]",
+  cfZeroArrayQ[Sum[gammaCurvedBoost[[mu]] . (D[cfSpinLiftBoost . psiGeneric, X[[mu]]]
+       + GammaSpinBoost[[mu]] . (cfSpinLiftBoost . psiGeneric)), {mu, 8}]
+     - cfSpinLiftBoost . cfDiracOperator[psiGeneric]]];
+{Count[Flatten[GammaSpinBoost], Except[0]], " non-zero entries in the eight 16x16 spinor-connection matrices"}
+
 (* ::Section:: *)
-19.  Bridge 2 -- the null (light-cone) frame, and the appearance of the spinor metric sigma
+19.  Bridge 2 -- the null (light-cone) frame: the same connection in a constant gauge, and the spinor metric sigma
 
 (* ::Text:: *)
+WHAT THIS BRIDGE IS, AND IS NOT.  It is a constant change of basis on the flat index.  The
+connection that results is the canonical one conjugated by a fixed matrix, with no inhomogeneous
+term at all, so as a "new spin connection" it is the weakest of the four: the same connection,
+written in a constant gauge.  What is worth keeping is the fact it turns up -- that the null
+form of the 4+4 flat metric is exactly the split-octonion spinor metric sigma -- and that fact
+is about the flat metric, not about the connection.
+
 The second bridge changes the FLAT TANGENT METRIC rather than the frame's orientation.  Pair the
 eight flat directions as (0,4), (1,5), (2,6), (3,7) -- one spacelike with one timelike in each
 pair -- and replace each pair by its two null combinations.  The constant matrix that does this
@@ -777,9 +949,10 @@ Section 9.  Section 9 proved that this bridge carries eta4488 exactly onto sigma
     frameTri = frameCanonical . triVecToSpin
 
 again reproduces the same curved metric, now with flat tangent metric sigma.  We also record
-here a fact that is used below and is worth stating on its own: triVecToSpin is an ORTHOGONAL
-matrix, Transpose[triVecToSpin] == Inverse[triVecToSpin].  The triality bridge is a rotation of
-the 8-dimensional flat space, not merely a change of basis.
+here a fact that is used below: triVecToSpin satisfies Transpose[P] == Inverse[P], Euclidean
+orthogonality, which is a computational convenience.  It is NOT an element of O(4,4) -- it
+carries eta4488 to sigma, which is the whole point of it -- so as a bridge it is a constant
+change of basis of the flat tangent space, and nothing more is claimed for it.
 
 That alone would give nothing new beyond Bridge 2, because triVecToSpin is constant.  So we go
 further and change the CONNECTION as well.  The split-octonion structure constants m, restricted
@@ -792,10 +965,15 @@ metric compatibility.  Define, for a real parameter lambda,
 
 The added term is antisymmetric in (a,b), so omegaOct is still an so(4,4)-valued connection and
 is still metric compatible; but it is no longer torsion-free.  Its torsion is totally
-antisymmetric and proportional to the octonion structure constants.  This is the octonionic
-analogue of the Cartan-Schouten flat connections on a Lie group, and a totally antisymmetric
-torsion is precisely the kind that sources the Einstein-Cartan AXIAL torsion coupling of a
-spinor.  What Section 20 computes is the torsion itself and its effect on the connection; the
+antisymmetric and proportional to the octonion structure constants.  It is a Riemann-Cartan
+connection with constant totally antisymmetric contortion.  It resembles the Cartan-Schouten
+connections on a Lie group, whose torsion is likewise the structure-constant tensor of a
+frame, but two things that hold there fail here and should not be assumed: those connections
+are FLAT, and this one is not (its curvature is computed below and depends on lambda); and
+their torsion is the anholonomy of a genuine frame, whereas the octonion structure constants
+violate the Jacobi identity and so cannot be the anholonomy of any frame at all.  A totally
+antisymmetric torsion is precisely the kind that sources the Einstein-Cartan AXIAL torsion
+coupling of a spinor.  What Section 20 computes is the torsion itself and its effect on the connection; the
 cubic gamma^a gamma^b gamma^c axial term is a further contraction that this notebook does not
 carry out, and the cell that builds the spinor coupling says so.  At lambda = 0 the connection
 reduces to the Levi-Civita connection in the triality frame.
@@ -803,8 +981,10 @@ reduces to the Levi-Civita connection in the triality frame.
 (* ::Input:: *)
 ClearAll[frameTri, \[Eta]TriFlat];
 \[Eta]TriFlat = \[Eta]Tri;                       (* == sigma, proved in Section 9 *)
-cfAssert["the triality bridge is ORTHOGONAL: Transpose[P] == Inverse[P]",
+cfAssert["the triality bridge is Euclidean-orthogonal: Transpose[P] == Inverse[P]",
   cfZeroArrayQ[Transpose[triVecToSpin] - triSpinToVec]];
+cfAssert["but it is NOT in O(4,4): P . eta4488 . Transpose[P] != eta4488 (it carries eta4488 to sigma)",
+  cfNonZeroWitnessQ[triVecToSpin . \[Eta]4488 . Transpose[triVecToSpin] - \[Eta]4488]];
 frameTri = cfSimpArray[frameCanonical . triVecToSpin];
 cfAssert["BRIDGE 3 reproduces the SAME curved metric g",
   cfZeroArrayQ[frameTri . \[Eta]TriFlat . Transpose[frameTri] - gCanonical]];
@@ -879,7 +1059,7 @@ torsionOct = cfTimed["BRIDGE 3 torsion 2-form", cfTorsion[frameTri, X, omegaOctM
 cfAssert["BRIDGE 3: torsion vanishes at lambda = 0",
   cfZeroArrayQ[torsionOct /. \[Lambda]Oct -> 0]];
 cfAssert["BRIDGE 3: torsion is NOT zero for lambda != 0",
-  ! TrueQ[cfZeroArrayQ[torsionOct /. \[Lambda]Oct -> 1]]];
+  cfNonZeroWitnessQ[torsionOct /. \[Lambda]Oct -> 1]];
 (* pull the torsion back to all-flat indices: T_{abc} = eta_{ad} T^d_{mu nu} e_b^mu e_c^nu *)
 torsionOctFlat = cfTimed["BRIDGE 3 torsion with all indices flat",
   Module[{cofr = cfSimpArray[Inverse[frameTri]]},
@@ -910,6 +1090,61 @@ cfAssert["COMPARISON 3: the difference is linear in lambda and vanishes at lambd
 {Count[Flatten[deltaOct], Except[0]], " non-zero components in the difference"}
 
 (* ::Text:: *)
+The curvature of Bridge 3.  The first version of this notebook wrote in its summary that
+"bridge 3 adds a torsion-dependent piece" to the curvature, and never computed it.  Here it is,
+and it has a clean structure.  Because omegaOct == omegaTriLC + lambda K with K the contortion,
+and the curvature is quadratic in the connection, R(omegaOct) is a polynomial of degree exactly
+two in lambda:
+
+    lambda^0 :  the canonical curvature, carried over by the triality bridge;
+    lambda^1 :  the Levi-Civita covariant exterior derivative of the contortion, dK + [omegaTriLC, K];
+    lambda^2 :  the commutator [K_mu, K_nu] of the contortion with itself.
+
+Its Ricci scalar differs from the canonical one by a CONSTANT, -(1/4) T_{abc} T^{abc}, the
+standard result for a totally antisymmetric torsion; with T = -2 lambda mSkew that is
+-lambda^2 (mSkew . mSkew) = -42 lambda^2.  The octonionic torsion shifts the scalar curvature of
+the pre-universe by a fixed amount, everywhere, and the amount is set by the square of the
+split-octonion structure constants.  That is the torsion-dependent piece.
+
+(* ::Input:: *)
+ClearAll[RiemannOct, RicciScalarOct, contortionOctUnit, mSkewNormSq, torsionOctNormSq];
+RiemannOct = cfTimed["BRIDGE 3 curvature 2-form", cfCurvature[omegaOctMixed, X]];
+cfAssert["BRIDGE 3: at lambda = 0 the curvature is the triality conjugate of the canonical curvature",
+  cfZeroArrayQ[Table[(RiemannOct[[mu, nu]] /. \[Lambda]Oct -> 0)
+      - triSpinToVec . RiemannCanonical[[mu, nu]] . triVecToSpin, {mu, 8}, {nu, 8}]]];
+cfAssert["BRIDGE 3 [has content]: the curvature DOES depend on lambda (witnessed)",
+  cfNonZeroWitnessQ[D[RiemannOct, \[Lambda]Oct]]];
+cfAssert["BRIDGE 3: the lambda-dependence is a polynomial of degree exactly two",
+  cfZeroArrayQ[D[RiemannOct, {\[Lambda]Oct, 3}]]];
+contortionOctUnit = contortionOctMixed /. \[Lambda]Oct -> 1;                    (* K at lambda = 1 *)
+cfAssert["BRIDGE 3: the lambda^1 term is the Levi-Civita covariant exterior derivative of the contortion, dK + [omegaTriLC, K]",
+  cfZeroArrayQ[Table[(D[RiemannOct[[mu, nu]], \[Lambda]Oct] /. \[Lambda]Oct -> 0)
+      - (D[contortionOctUnit[[nu]], X[[mu]]] - D[contortionOctUnit[[mu]], X[[nu]]]
+         + omegaTriLCMixed[[mu]] . contortionOctUnit[[nu]] - contortionOctUnit[[nu]] . omegaTriLCMixed[[mu]]
+         + contortionOctUnit[[mu]] . omegaTriLCMixed[[nu]] - omegaTriLCMixed[[nu]] . contortionOctUnit[[mu]]),
+      {mu, 8}, {nu, 8}]]];
+cfAssert["BRIDGE 3: the lambda^2 term is [K_mu, K_nu], the contortion commuted with itself",
+  cfZeroArrayQ[Table[(1/2) D[RiemannOct[[mu, nu]], {\[Lambda]Oct, 2}]
+      - (contortionOctUnit[[mu]] . contortionOctUnit[[nu]] - contortionOctUnit[[nu]] . contortionOctUnit[[mu]]),
+      {mu, 8}, {nu, 8}]]];
+RicciScalarOct = cfTimed["BRIDGE 3 Ricci scalar", cfRicciScalar[frameTri, RiemannOct, gInvCanonical]];
+cfAssert["BRIDGE 3: at lambda = 0 the Ricci scalar is the canonical one",
+  cfZeroQ[(RicciScalarOct /. \[Lambda]Oct -> 0) - RicciScalarCanonical]];
+mSkewNormSq = Sum[mSkewSpin[[a, b, c]] mSkewSpin[[d, e, f]]
+     \[Eta]TriFlat[[a, d]] \[Eta]TriFlat[[b, e]] \[Eta]TriFlat[[c, f]],
+   {a, 8}, {b, 8}, {c, 8}, {d, 8}, {e, 8}, {f, 8}];                             (* mSkew . mSkew *)
+torsionOctNormSq = Sum[torsionOctFlat[[a, b, c]] torsionOctFlat[[d, e, f]]
+     \[Eta]TriFlat[[a, d]] \[Eta]TriFlat[[b, e]] \[Eta]TriFlat[[c, f]],
+   {a, 8}, {b, 8}, {c, 8}, {d, 8}, {e, 8}, {f, 8}];                             (* T_{abc} T^{abc} *)
+cfAssert["BRIDGE 3 [THE RESULT]: R(omegaOct) - R(canonical) == -(1/4) T_{abc} T^{abc}, a constant shift set by the torsion alone",
+  cfZeroQ[RicciScalarOct - RicciScalarCanonical + (1/4) torsionOctNormSq]];
+cfAssert["BRIDGE 3: equivalently -lambda^2 (mSkew . mSkew), with mSkew . mSkew == 42, so the shift is exactly -42 lambda^2",
+  {cfZeroQ[RicciScalarOct - RicciScalarCanonical + \[Lambda]Oct^2 mSkewNormSq], mSkewNormSq === 42,
+   cfZeroQ[RicciScalarOct - RicciScalarCanonical + 42 \[Lambda]Oct^2]}];
+{Count[Flatten[RiemannOct], Except[0]], " non-zero curvature components;   R(omegaOct) - R(canonical) = ",
+ FullSimplify[RicciScalarOct - RicciScalarCanonical]}
+
+(* ::Text:: *)
 The effect on the spinor covariant derivative.  One thing must be got right here, and it is easy
 to get wrong.  cfSpinMatrix of Section 17 contracts the flat indices of a connection against the
 Dirac matrices T16, and that is correct only when those flat indices are the eta4488 VECTOR
@@ -933,7 +1168,7 @@ cfAssert["THE TRIALITY DIRAC MATRICES OBEY THE sigma CLIFFORD RELATION: {T16Tri[
   cfZeroArrayQ[Table[T16Tri[a] . T16Tri[b] + T16Tri[b] . T16Tri[a]
      - 2 \[Eta]TriFlat[[a, b]] ID16, {a, 8}, {b, 8}]]];
 cfAssert["they are NOT the vector-frame Dirac matrices, so the distinction is real",
-  ! TrueQ[cfZeroArrayQ[Table[T16Tri[a] - T16[a - 1], {a, 8}]]]];
+  cfNonZeroWitnessQ[Table[T16Tri[a] - T16[a - 1], {a, 8}]]];
 cfSpinMatrixTri[om_, mu_Integer] :=
   (1/8) Sum[om[[mu, a, b]] (T16Tri[a] . T16Tri[b] - T16Tri[b] . T16Tri[a]), {a, 8}, {b, 8}];
 
@@ -955,86 +1190,16 @@ GammaSpinOct = cfTimed["BRIDGE 3 16x16 spin-connection matrices",
 GammaSpinOctExtra = cfTimed["BRIDGE 3 extra spinor coupling from the torsion",
   Table[cfSimpArray[cfSpinMatrixTri[contortionOct, mu]], {mu, 8}]];
 (* consistency: at lambda = 0 the Bridge 3 spinor connection must be the SAME 16x16 matrix as *)
-(* the canonical one, because the two frames differ only by a constant O(4,4) rotation.       *)
+(* the canonical one, because the two frames differ by a constant change of basis under which *)
+(* omega and the Dirac matrices are transported together (T16Tri is the transport of T16).    *)
 cfAssert["at lambda = 0 the Bridge 3 spinor connection equals the canonical one",
   cfZeroArrayQ[Table[(GammaSpinOct[[mu]] /. \[Lambda]Oct -> 0) - GammaSpinCanonical[[mu]], {mu, 8}]]];
 cfAssert["the extra spinor coupling vanishes at lambda = 0",
   cfZeroArrayQ[GammaSpinOctExtra /. \[Lambda]Oct -> 0]];
 cfAssert["the extra spinor coupling is non-zero for lambda != 0",
-  ! TrueQ[cfZeroArrayQ[GammaSpinOctExtra /. \[Lambda]Oct -> 1]]];
+  cfNonZeroWitnessQ[GammaSpinOctExtra /. \[Lambda]Oct -> 1]];
 cfAssert["the extra spinor coupling is still block diagonal (type-1 + type-2 preserved)",
   cfZeroArrayQ[Table[GammaSpinOctExtra[[mu]]
       - ArrayFlatten[{{GammaSpinOctExtra[[mu]][[1 ;; 8, 1 ;; 8]], 0},
                       {0, GammaSpinOctExtra[[mu]][[9 ;; 16, 9 ;; 16]]}}], {mu, 8}]]];
 {Count[Flatten[GammaSpinOctExtra], Except[0]], " non-zero entries in the extra coupling"}
-
-(* ::Section:: *)
-21.  Master comparison of the four spin connections
-
-(* ::Text:: *)
-Everything computed above, collected in one place.  For each connection we record the frame
-field it comes from, the flat tangent metric it uses, whether the curved metric g is unchanged
-(it is, for all four: they are all bridges for the SAME geometry), whether the connection is
-metric compatible, whether its torsion vanishes, and how it differs from the canonical one.
-
-(* ::Input:: *)
-ClearAll[cfConnectionSummary];
-cfConnectionSummary = {
-  {"connection", "frame field", "flat metric", "same g?", "antisymmetric?", "torsion zero?",
-   "difference from canonical"},
-  {"omegaCanonical", "frameCanonical (diagonal)", "eta4488", "yes (reference)", "yes", "yes",
-   "-- (reference)"},
-  {"omegaBoost", "frameCanonical . Lambda(x)", "eta4488", "yes", "yes", "yes",
-   "inhomogeneous gauge term  -D[theta,x_mu] K"},
-  {"omegaNull", "frameCanonical . U", "etaNull == sigma", "yes", "yes", "yes",
-   "constant similarity only:  U omega U"},
-  {"omegaOct", "frameCanonical . triVecToSpin", "etaTri == sigma", "yes", "yes",
-   "NO: torsion == -2 lambda mSkew",
-   "contortion  lambda mSkew[a,b,c] frameTri[[mu,c]]"}};
-Grid[cfConnectionSummary, Frame -> All, Alignment -> Left,
-  Background -> {None, {LightGray, None, None, None, None}}]
-
-(* ::Input:: *)
-(* --- numerical fingerprint: the count of non-zero components of each object -------------- *)
-Grid[{
-  {"object", "non-zero components"},
-  {"Gamma (Christoffel)", Count[Flatten[GammaCanonical], Except[0]]},
-  {"omegaCanonical", Count[Flatten[omegaCanonical], Except[0]]},
-  {"omegaBoost", Count[Flatten[omegaBoost], Except[0]]},
-  {"omegaNull", Count[Flatten[omegaNull], Except[0]]},
-  {"omegaTriLC (lambda=0)", Count[Flatten[omegaTriLC], Except[0]]},
-  {"contortionOct", Count[Flatten[contortionOct], Except[0]]},
-  {"RiemannCanonical", Count[Flatten[RiemannCanonical], Except[0]]},
-  {"RiemannBoost", Count[Flatten[RiemannBoost], Except[0]]},
-  {"RiemannNull", Count[Flatten[RiemannNull], Except[0]]},
-  {"torsionOctFlat", Count[Flatten[torsionOctFlat], Except[0]]}
- }, Frame -> All, Alignment -> Left]
-
-(* ::Input:: *)
-(* --- the three comparisons, side by side ------------------------------------------------ *)
-Grid[{
-  {"comparison", "statement proved above"},
-  {"BRIDGE 1 vs canonical",
-   "omegaBoost_mu == M omegaCanonical_mu Inverse[M] - D[M,x_mu] Inverse[M],  M = Transpose[Lambda];"
-   <> "  the whole difference is -D[theta,x_mu] K, one scalar gradient times one fixed generator"},
-  {"BRIDGE 2 vs canonical",
-   "omegaNull_mu == U omegaCanonical_mu U   exactly, with no inhomogeneous term"},
-  {"BRIDGE 3 vs canonical",
-   "omegaOct_mu == Inverse[P] omegaCanonical_mu P + lambda mSkew . frameTri,  P = triVecToSpin"},
-  {"curvature",
-   "R transforms covariantly under bridges 1 and 2, so all three describe the same geometry; "
-   <> "bridge 3 adds a torsion-dependent piece"},
-  {"Ricci scalar", "identical for the canonical frame and bridges 1 and 2"},
-  {"torsion",
-   "zero for the canonical connection and for bridges 1 and 2;  -2 lambda mSkew for bridge 3"}
- }, Frame -> All, Alignment -> Left]
-
-(* ::Input:: *)
-(* --- final tally of every assertion made in this notebook -------------------------------- *)
-Print["identities accepted on numerical evidence alone : ", $cfNumericCertificates,
-      "   (stage 3 returned True)"];
-Print["non-vanishing witnesses                         : ", $cfNonVanishingWitnesses,
-      "   (stage 3 returned False inside a ! TrueQ[...] assertion;"];
-Print["                                                     a sample point with a non-zero",
-      " value is a complete proof of non-vanishing)"];
-cfAssertSummary[]
