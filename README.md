@@ -3,13 +3,17 @@
 Frame fields, spin connections and the 16-component split-octonion spinor on a curved 4+4
 spacetime — the "un-universe" of Patrick L. Nash's *Pre-gravity / Pre-Big-Bang* notebook —
 refactored into a self-checking Mathematica notebook, extended with a canonical spin connection
-and four further bridges between curved and flat indices, and documented so that each stage can
-be repeated from the commands on its own page.
+and four further bridges between curved and flat indices, with the classical fields fableScalar
+and fable, with fable refined into a canonically quantized fermion (a complex 16-spinor), and
+with fable as a source of the Einstein equations of the primordial gravitational field. Each
+stage is documented so that it can be repeated from the commands on its own page.
 
 Original mathematics and physics: Patrick L. Nash, Ph.D., © 2022, GNU General Public License.
 Refactoring and Parts III–IV: prepared with Claude (Anthropic, Opus) at the author's direction,
 2026-09-14. Review of all of that, and Part V: prepared with Claude (Anthropic, Fable 5.1) at the
-author's direction, 2026-09-16.
+author's direction, 2026-09-16. Part VI and `fable-cosmology/`: 2026-09-16, completed 2026-09-24.
+Parts VII–VIII, the fermion solver, notebooks 05–07 and provenance pages 14–16: prepared with
+Claude (Anthropic, Opus 5.5) at the author's direction, 2026-09-24.
 
 ## What is in here
 
@@ -19,11 +23,12 @@ new material on frame fields and spin connections.
 
 **The deliverable is [`claude-fable/claude-fable_Einstein-Rosen-2-Planes.nb`](claude-fable/claude-fable_Einstein-Rosen-2-Planes.nb).**
 
-It evaluates in two to four minutes and checks itself as it goes: **250 assertions, 250 passing,
-zero cells raising messages.** Every identity is closed symbolically — the run reports
-`identities accepted on numerical evidence alone : 0`, and the last assertion of the notebook
-fails if that number is ever not zero. Every "this is not zero" claim is certified by a numerical
-witness that must evaluate to an actual number (19 of them).
+It evaluates in three to five minutes and checks itself as it goes. It has 217 `Input` cells and
+makes **644 assertions, all 644 passing, with no cell raising a message**. The run log is
+`claude-fable/run_fermion_fable_final.log` (2026-09-24, 209 s). Every identity is closed
+symbolically: the run reports `identities accepted on numerical evidence alone : 0`, and the last
+assertion of the notebook fails if that number is ever not zero. Every "this is not zero" claim is
+certified by a numerical witness that must evaluate to an actual number; there are 46 of them.
 
 | part | sections | what it does |
 |---|---|---|
@@ -34,17 +39,33 @@ witness that must evaluate to an actual number (19 of them).
 | V | 21–22 | **new** — the **fable-5.1 bridge**: the Weitzenböck (teleparallel) connection in which the canonical frame itself is parallel. Zero spin connection and zero curvature in that frame; the canonical spin connection is proved to be minus the contortion of its torsion; `R == −T + B` in closed form; the curved Dirac equation of the model is proved equivalent to a connection-free one by an exact rescaling of the spinor. Then a master comparison of all five connections |
 
 | VI | 23–25 | **new** — two quintessence-like fields on the pre-universe: **fableScalar**, a real scalar, and **fable**, a real 16-component spinor with a self-interaction `V(Ψᵀσ₁₆Ψ)`. Their Lagrangians, energy–momentum tensors, field equations, energy densities, pressures and equations of state are defined and verified symbolically (conservation on shell, the fidelity of the spinor to the author's own `La`, dust for the author's mass term, the absence of Hubble friction on the pre-universe, the phantom-crossing mechanism of the spinor); the numerical cosmology is in [`fable-cosmology/`](fable-cosmology/) |
+| VII | 26–29 | **new** — **fermion fable**. A real Grassmann spinor with the author's `σ16` has no dynamics, so fable becomes a complex 16-spinor with `Ψ̄ = Ψ†σ16`, proved with a genuine exterior algebra. Its field equations in the primordial gravitational field are written out: the matrix form, all 16 components, the split-octonion 8+8 form and the rescaled form. It is canonically quantized in 4+4: the anticommutator `(H/√g)(−iσ16γ⁴)` has signature (8,8), and the Krein symmetry is `J = −iT0T1T2T3T4`. A positive Fock space exists iff no mode carries momentum along the hidden timelike `x5..x7`, and the Dirac sea gives 8 particles and 8 antiparticles per momentum. Its energy–momentum tensor operator, pressure, density and equations of state are derived, including the Kohn–Sham Fermi sea and the theorem `w ≥ −1` |
+| VIII | 30–33 | **new** — **fable as a source of the Einstein equations of the primordial gravitational field**. The Einstein tensor of the canonical metric shows that the metric needs negative total energy. The (0,4) equation singles out the author's volume-preserving `a4`. The present universe is the asymptotic 8D Bianchi-I region, and the spin connection of the evolving frame is derived. The coupled Kohn–Sham–Einstein equations are exactly conserved; they give the hidden-sheet driver, the frozen-sheet theorem, and the stabilized model, whose stress violates the null energy condition. The Mathematica reference runs agree with the Rust solver to 1e-6 |
 
 A vielbein here is simply an 8-dimensional vierbein.
 
 ### fable-cosmology — the numerical side
 
-[`fable-cosmology/`](fable-cosmology/) holds the solver `fable_cosmo` (pure-Rust SUNDIALS 7.8.0
-CVODE, taken as a library from the author's rustSolveIt repositories), four self-contained Jupyter
-notebooks (the scalar in FLRW and on the Unite CPL background; the spinor in FLRW; both fields on
-the pre-universe itself; the dark-matter / dark-energy synthesis), the results they write, the
-Mathematica reference integrations, the paper `latex/fable_cosmology.pdf`, and a README with the
-complete student instructions. Setup and reproduction are two scripts:
+[`fable-cosmology/`](fable-cosmology/) holds the numerical side:
+
+- Two solvers on the pure-Rust SUNDIALS 7.8.0 CVODE engine of the author's rustSolveIt
+  repositories:
+  - `fable_cosmo`, for the classical fields;
+  - `fable_fermion`, for the quantized fermion fable: the Kohn–Sham Fermi sea coupled to the 8D
+    Einstein equations, with the stabilized model `fable4d` and the no-go `fable8d`.
+- The wall-state solver `fermion/waveguide.py`, for the ground and first excited states along
+  `x0`.
+- Seven self-contained Jupyter notebooks:
+  - 01–04: the classical fields;
+  - 05: the quantum equation of state;
+  - 06: the coupled system from the early universe to today, and the dark-energy and dark-matter
+    answers;
+  - 07: the DFT ground and first excited states.
+- The results the notebooks write, and the Mathematica reference integrations.
+- The paper `latex/fable_cosmology.pdf`.
+- A README with the complete student instructions.
+
+Setup and reproduction are two scripts:
 
 ```bash
 bash fable-cosmology/setup.sh       # Linux, macOS, Git Bash on Windows  (or: powershell -ExecutionPolicy Bypass -File fable-cosmology\setup.ps1)
@@ -76,7 +97,7 @@ cd claude-fable
 wolframscript -file run_from_nb.wls 2>&1 | tee run_from_nb.log
 ```
 
-That imports the delivered `.nb`, evaluates its 152 `Input` cells in order in one kernel, and
+That imports the delivered `.nb`, evaluates its 217 `Input` cells in order in one kernel, and
 prints a per-cell timing log, every message raised, and the assertion tally. To open it instead,
 just open `claude-fable/claude-fable_Einstein-Rosen-2-Planes.nb` in the Mathematica front end and
 evaluate the notebook.
@@ -89,8 +110,8 @@ cd claude-fable
 wolframscript -file student_fable51.wls
 ```
 
-The notebook is **generated**, never hand-edited. It is built from the five cell manifests
-`claude-fable/cells_part1.wl` … `cells_part5.wl` by:
+The notebook is **generated**, never hand-edited. It is built from the eight cell manifests
+`claude-fable/cells_part1.wl` … `cells_part8.wl` by:
 
 ```bash
 cd claude-fable
@@ -140,6 +161,9 @@ written.
 | [STUDENT-GUIDE](STUDENT-GUIDE-FABLE-5.1-BRIDGE.md) | the fable-5.1 bridge explained from the ground up, and how to use it |
 | [PROVENANCE-13](PROVENANCE-13-FABLE-COSMOLOGY.md) | fableScalar and fable: the fields, the review of their design, the solver, the notebooks, Part VI, the paper, and the fresh-clone verification |
 | [fable-cosmology/README](fable-cosmology/README.md) | the student instructions for the numerical cosmology, complete on their own |
+| [PROVENANCE-14](PROVENANCE-14-FERMION-FABLE-CANONICAL-QUANTIZATION.md) ([PDF](provenance-latex/PROVENANCE-14-FERMION-FABLE-CANONICAL-QUANTIZATION.pdf)) | fermion fable: the complex 16-spinor, its field equations in the primordial gravitational field, canonical quantization in 4+4, the energy–momentum tensor operator, pressure, density, equations of state, and the canonical spin connection |
+| [PROVENANCE-15](PROVENANCE-15-FERMION-FABLE-AND-THE-PRIMORDIAL-GRAVITATIONAL-FIELD.md) ([PDF](provenance-latex/PROVENANCE-15-FERMION-FABLE-AND-THE-PRIMORDIAL-GRAVITATIONAL-FIELD.pdf)) | the interacting (fermion fable, primordial gravitational field) system: the coupled equations, the spin connections, the DFT ground and first excited states, the solution from the early universe to today, and the answers on time-varying dark-energy and dark-matter `w` |
+| [PROVENANCE-16](PROVENANCE-16-THE-COMPLETE-SOLUTION-AND-ITS-COMMANDS.md) ([PDF](provenance-latex/PROVENANCE-16-THE-COMPLETE-SOLUTION-AND-ITS-COMMANDS.pdf)) | the complete solution of 2026-09-24, one section per effort, and every command used to solve, test, verify, execute and display it |
 
 ## Fidelity to the original
 
@@ -154,7 +178,8 @@ at 3 seconds). Where the original leaves a symbol undefined — the scalar funct
 ```
 claude-fable/                 the deliverable, its manifests, build tool, runners and logs
   claude-fable_Einstein-Rosen-2-Planes.nb    <- the notebook
-  cells_part1.wl .. cells_part5.wl           <- the manifests it is generated from
+  cells_part1.wl .. cells_part8.wl           <- the manifests it is generated from
+  export_fermion_fable_tex.wls               <- writes the Part VII equations as TeX to provenance-latex/generated/
   build_tools.py                             <- the generator; reproduced in full in PROVENANCE-01
   run_from_nb.wls                            <- evaluates the .nb straight out of the file
   student_fable51.wls                        <- uses the Part V result on a generic spinor
@@ -164,6 +189,8 @@ claude-fable/                 the deliverable, its manifests, build tool, runner
   render-check/                              <- evidence that it renders in the front end
   extract/                                   <- the extractor for the original notebook (its output is regenerated, not committed)
 PROVENANCE-*.md               one page per stage, each complete on its own
+provenance-latex/             the LaTeX twins and PDFs of PROVENANCE-14, -15 and -16 (build_all.sh)
+fable-cosmology/              the numerical side: solvers, notebooks, results, references, the paper
 STUDENT-GUIDE-*.md            the fable-5.1 bridge for a reader starting from nothing
 Pre-gravityPre-Big_Bang_*.nb  the author's original notebook
 ```
