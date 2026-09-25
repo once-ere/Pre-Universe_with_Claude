@@ -1,0 +1,6 @@
+n = (4*kF^3)/(3*Pi^2)
+\sigma_{KS} = (2*m*(kF*Sqrt[kF^2 + m^2] - m^2*Log[(kF + Sqrt[kF^2 + m^2])/m]))/Pi^2
+\varepsilon_{KS} = (kF*Sqrt[kF^2 + m^2]*(2*kF^2 + m^2) - m^4*Log[(kF + Sqrt[kF^2 + m^2])/m])/(2*Pi^2)
+P_{KS} = (kF*(2*kF^2 - 3*m^2)*Sqrt[kF^2 + m^2] + 3*m^4*Log[(kF + Sqrt[kF^2 + m^2])/m])/(6*Pi^2)
+rho = eps_KS + W - sigma W',  P_obs = P_KS + sigma W' - W,  P_hid = sigma W' - W,  rho + P_obs = wF n,  wF = Sqrt[kF^2 + m^2]
+w = P_KS/eps_KS in [0, 1/3] for the mass term W = m sigma (w -> kF^2/(5 m^2) as kF/m -> 0, w -> 1/3 as kF/m -> Infinity)

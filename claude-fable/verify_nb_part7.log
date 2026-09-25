@@ -1,0 +1,9 @@
+file bytes: 440320
+Head: Notebook
+cells: 340
+style tally: {{Title, 7}, {Subtitle, 1}, {Subsubtitle, 1}, {Text, 103}, {Section, 30}, {Input, 198}}
+input cells with plain-string BoxData: 198
+total input characters: 279955
+input cells that FAIL to parse: {}
+first cell: InputForm[(* --- provenance banner, as in the original notebook ------------------------------------]
+last cell : InputForm[(* --- final tally of every assertion made in this notebook, Parts I-VII -----------------]

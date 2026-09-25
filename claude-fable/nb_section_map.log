@@ -31,4 +31,9 @@
 23.  fableScalar -- a scalar field on the pre-universe, its energy-momentum tensor, and wScalar  |  Input cells 153-160
 24.  fable -- the 16-component spinor field, its energy-momentum tensor, and w  |  Input cells 161-169
 25.  Reading the two mechanisms side by side  |  Input cells 170-172
-total Input cells: 172
+== PART VII  --  fermion fable: the complex 16-spinor, its canonical quantization in 4+4 dimensions, its field equations in the primordial gravitational field, and its energy-momentum tensor operator
+26.  The refinement: why fermion fable is a complex 16-spinor  |  Input cells 173-179
+27.  The Lagrangian, the field equations in the primordial gravitational field, and the canonical spin connection  |  Input cells 180-184
+28.  Canonical quantization in 4+4 dimensions: the Dirac bracket, the Krein structure J, and the admissible sector  |  Input cells 185-191
+29.  The energy-momentum tensor operator of fermion fable: definition, conservation, and rho, P and w  |  Input cells 192-198
+total Input cells: 198

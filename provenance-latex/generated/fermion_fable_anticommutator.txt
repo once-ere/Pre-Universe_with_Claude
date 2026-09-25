@@ -1,0 +1,19 @@
+{Psi_a(x), Psi^ddag_b(y)} = (H/Sqrt[g]) J_ab delta^7(x-y) = H*Cos[6*H*x0] J_ab delta^7(x-y);  {Psi_a, Psi_b} = 0;  {Psi_a, Psi^dagger_b} = (H/Sqrt[g]) delta_ab delta^7 with Psi^dagger = Psi^ddag J
+
+matrix (H/Sqrt[g]) J:
+0  0  0  0  0  0  0  0  0  I*H*Cos[6*H*x0]  0  0  0  0  0  0
+0  0  0  0  0  0  0  0  (-I)*H*Cos[6*H*x0]  0  0  0  0  0  0  0
+0  0  0  0  0  0  0  0  0  0  0  (-I)*H*Cos[6*H*x0]  0  0  0  0
+0  0  0  0  0  0  0  0  0  0  I*H*Cos[6*H*x0]  0  0  0  0  0
+0  0  0  0  0  0  0  0  0  0  0  0  0  (-I)*H*Cos[6*H*x0]  0  0
+0  0  0  0  0  0  0  0  0  0  0  0  I*H*Cos[6*H*x0]  0  0  0
+0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  I*H*Cos[6*H*x0]
+0  0  0  0  0  0  0  0  0  0  0  0  0  0  (-I)*H*Cos[6*H*x0]  0
+0  I*H*Cos[6*H*x0]  0  0  0  0  0  0  0  0  0  0  0  0  0  0
+(-I)*H*Cos[6*H*x0]  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0
+0  0  0  (-I)*H*Cos[6*H*x0]  0  0  0  0  0  0  0  0  0  0  0  0
+0  0  I*H*Cos[6*H*x0]  0  0  0  0  0  0  0  0  0  0  0  0  0
+0  0  0  0  0  (-I)*H*Cos[6*H*x0]  0  0  0  0  0  0  0  0  0  0
+0  0  0  0  I*H*Cos[6*H*x0]  0  0  0  0  0  0  0  0  0  0  0
+0  0  0  0  0  0  0  I*H*Cos[6*H*x0]  0  0  0  0  0  0  0  0
+0  0  0  0  0  0  (-I)*H*Cos[6*H*x0]  0  0  0  0  0  0  0  0  0
