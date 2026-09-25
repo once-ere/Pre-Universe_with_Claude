@@ -242,3 +242,14 @@ fable-cosmology/rust/fable_cosmo/target/
 fable-cosmology/latex/fable_cosmology.log
 fable-cosmology/latex/latexmk.log
 fable-cosmology/latex/fable_cosmology.synctex.gz
+
+# -----------------------------------------------------------------------------
+# 5.  fermion fable (added 2026-09-24)
+#
+#     cargo's build directory of the fermion-fable solver crate, as for
+#     fable_cosmo above.  fermion/dev/ holds the solver's development and
+#     trial runs; the evidence is the CSVs the notebooks write under
+#     fable-cosmology/results/, so dev/ is scratch.
+# -----------------------------------------------------------------------------
+fable-cosmology/rust/fable_fermion/target/
+fable-cosmology/fermion/dev/

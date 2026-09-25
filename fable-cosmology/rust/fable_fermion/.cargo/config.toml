@@ -1,0 +1,6 @@
+# Pin the FMA instruction on x86-64 -- REQUIRED by the vendored sundials_rs engine of the
+# rustSolveIt repositories (its deterministic math library uses f64::mul_add exactly where the
+# FMA-contracted glibc build does).  Cargo resolves this file from the directory the build is
+# invoked in, so the requirement must be stated HERE, not only in the vendored workspace.
+[target.'cfg(target_arch = "x86_64")']
+rustflags = ["-C", "target-feature=+fma"]

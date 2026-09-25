@@ -1,0 +1,29 @@
+[workspace]
+
+[package]
+name = "fable_fermion"
+version = "0.1.0"
+edition = "2021"
+license = "GPL-3.0-or-later"
+description = "The quantized fermion fable (complex 16-spinor, Kohn-Sham mean field) as a source of the 8-dimensional primordial gravitational field (Bianchi-I asymptotic region), integrated with the vendored pure-Rust SUNDIALS 7.8.0 CVODE of the rustSolveIt repositories (BDF + Newton + dense)."
+
+[lib]
+name = "fable_fermion"
+path = "src/lib.rs"
+
+[[bin]]
+name = "fable_fermion"
+path = "src/main.rs"
+
+[dependencies]
+sundials_core = { path = "../vendor/rustSolveIt/sundials_rs/crates/sundials_core" }
+cvode_rs = { path = "../vendor/rustSolveIt/sundials_rs/crates/cvode_rs" }
+
+[profile.release]
+opt-level = 3
+
+[profile.test]
+opt-level = 3
+# The FMA pin REQUIRED by the vendored sundials_rs engine (its deterministic math library uses
+# f64::mul_add exactly where the FMA-contracted glibc build does) is stated in .cargo/config.toml
+# of THIS crate: Cargo resolves that file from the directory the build is invoked in.
