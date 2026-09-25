@@ -340,6 +340,10 @@ fn refine(pot: &Potential, kf: f64, v: f64, lo: f64, hi: f64) -> Result<f64, Str
 /// All roots of the gap equation found by scanning [lo, hi] (asinh-spaced around m = 0 on the
 /// scale kF, 800 cells) and refining every sign change with Brent.
 pub fn gap_roots_scan(pot: &Potential, kf: f64, v: f64, lo: f64, hi: f64) -> Result<Vec<f64>, String> {
+    // pad the interval: the bounds come from |sigma8| < n8, and in the deep non-relativistic limit
+    // a root sits at the bound to within rounding (sigma8 = n8 (1 - 0.3 x^2), x ~ 1e-26)
+    let pad = 1e-9 * (lo.abs() + hi.abs()) + 1e-12 * kf;
+    let (lo, hi) = (lo - pad, hi + pad);
     let scale = kf.max(1e-300);
     let (tlo, thi) = ((lo / scale).asinh(), (hi / scale).asinh());
     let ncell = 800;

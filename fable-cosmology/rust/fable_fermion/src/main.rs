@@ -297,7 +297,7 @@ fn main() {
             }
             let s = out.stats;
             eprintln!(
-                "# stats: model={} direction={:?} potential={} steps={} rhs_evals={} nonlin_iters={} err_test_fails={} jac_evals={} wall={:.3}s",
+                "# stats: model={} direction={:?} potential={} steps={} rhs_evals={} nonlin_iters={} err_test_fails={} jac_evals={} wall={:.3}s (summed over every CVODE integration of the run, shooting included)",
                 a.cmd,
                 a.direction,
                 spec.label(),

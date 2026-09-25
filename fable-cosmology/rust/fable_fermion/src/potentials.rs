@@ -118,6 +118,28 @@ impl Potential {
         }
     }
 
+    /// The fable's hidden-sheet driver at self-consistency, F = 2 W - sigma W' (so that
+    /// dH_B/dt + H_B Theta = F/2 from this source), ANALYTICALLY per potential so that it is exactly
+    /// zero for W = (lam/2) sigma^2: mass m0 sigma; lambda-mass 2 V0 + m0 sigma; power
+    /// m0 sigma + (2 - nu) lam sigma^nu; expdamp 2 V0 + m0 sigma e^-x (1 + x); lorentz
+    /// 2 V0 + m0 sigma (1 + 3u)/(1 + u)^2; quadratic 2 V0 + m0 sigma.
+    pub fn f_hidden(&self, s: f64) -> f64 {
+        match *self {
+            Potential::Mass { m0 } => m0 * s,
+            Potential::LambdaMass { v0, m0 } => 2.0 * v0 + m0 * s,
+            Potential::Power { m0, lam, nu } => m0 * s + (2.0 - nu) * lam * s.powf(nu),
+            Potential::ExpDamp { v0, m0, s1 } => {
+                let x = s / s1;
+                2.0 * v0 + m0 * s * (-x).exp() * (1.0 + x)
+            }
+            Potential::Lorentz { v0, m0, s1 } => {
+                let u = (s / s1) * (s / s1);
+                2.0 * v0 + m0 * s * (1.0 + 3.0 * u) / ((1.0 + u) * (1.0 + u))
+            }
+            Potential::Quadratic { v0, m0, .. } => 2.0 * v0 + m0 * s,
+        }
+    }
+
     /// The asserted parameter domains (design review DFT-16): expdamp m0 > 0, s1 > 0; power
     /// lam > 0, 0 < nu < 1 (m0 of either sign: the uniqueness proof in `gap_plan` does not need
     /// m0 >= 0, and m0 < 0 only pins sigma8 below (nu lam/|m0|)^(1/(1-nu))); lorentz s1 > 0;
@@ -257,6 +279,9 @@ mod tests {
                 assert!((n2 - p.d2w(s)).abs() <= 1e-7 * (1.0 + p.d2w(s).abs()), "{p:?} W'' at {s}: {n2} vs {}", p.d2w(s));
                 let nu = fd(&|x| p.u(x), s);
                 assert!((nu + s * p.d2w(s)).abs() <= 1e-7 * (1.0 + (s * p.d2w(s)).abs()), "{p:?} dU/dsigma = -sigma W''");
+                // the analytic F equals 2 W - sigma W'
+                let f_sub = 2.0 * p.w(s) - s * p.dw(s);
+                assert!((p.f_hidden(s) - f_sub).abs() <= 1e-14 * (p.w(s).abs() + (s * p.dw(s)).abs()), "{p:?} analytic F at {s}");
                 // the analytic U equals W - sigma W'
                 let u_sub = p.w(s) - s * p.dw(s);
                 assert!((p.u(s) - u_sub).abs() <= 1e-14 * (p.w(s).abs() + (s * p.dw(s)).abs()), "{p:?} analytic U at {s}");

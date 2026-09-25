@@ -377,19 +377,59 @@ fn to_today(spec: &Spec, cfg: &Config, x: f64, lnv_i: f64) -> Result<(f64, f64, 
     Ok((y1[2], y1[0] - lb, y1[1] - lc, tr.stats))
 }
 
-/// Inner shooting: find x with H_A(1; x, lnv_i) = 1.  Failed integrations count as H_A(1) = 0
-/// (a recollapse before A = 1 is the usual cause; the message is logged).
-fn shoot_x(spec: &Spec, cfg: &Config, lnv_i: f64, x_guess: f64, log: &mut Vec<String>, stats: &mut Stats) -> Result<(f64, usize), String> {
+/// The normalization B = C = 1 at A = 1 for FIXED fable parameters x: a secant iteration on
+/// ln v(a_start) for F(ln v_start) = ln v(A=1) = ln v_start + Delta ln v.  The dynamics depend on
+/// ln B, ln C only through ln v, and are exactly scale-invariant in v when every source is
+/// proportional to 1/v (radiation, baryons, the mass-term fable), so the first step is usually
+/// exact; the non-scale-invariant parts (V0, nonlinear W) need a few secant steps.  Stops at the
+/// integration-noise floor |ln v(1)| < 50 rtol max(1, |Delta ln v|).
+/// Returns (ln v_start, H_A(1), Delta ln B, Delta ln C, iterations).
+fn lnv_fixed_point(spec: &Spec, cfg: &Config, x: f64, lnv_guess: f64, stats: &mut Stats) -> Result<(f64, f64, f64, f64, usize), String> {
+    let mut lnv_i = lnv_guess;
+    let mut hist: Vec<(f64, f64)> = Vec::new();
+    for it in 0..60 {
+        let (ha1, db, dc, st) = to_today(spec, cfg, x, lnv_i)?;
+        stats.add(&st);
+        let lnv1 = lnv_i + 3.0 * db + dc;
+        let tol_lnv = 50.0 * cfg.rtol * (3.0 * db + dc).abs().max(1.0);
+        if lnv1.abs() < tol_lnv {
+            return Ok((lnv_i, ha1, db, dc, it + 1));
+        }
+        hist.push((lnv_i, lnv1));
+        lnv_i = if hist.len() >= 2 {
+            let (p0, f0) = hist[hist.len() - 2];
+            let (p1, f1) = hist[hist.len() - 1];
+            if (f1 - f0).abs() > 1e-300 { p1 - f1 * (p1 - p0) / (f1 - f0) } else { p1 - f1 }
+        } else {
+            lnv_i - lnv1
+        };
+    }
+    Err(format!("ln v(a_start) iteration did not converge at x = {x:e} (history {hist:?})"))
+}
+
+/// Outer shooting: find x with H_A(1; x) = 1, where every trial x is first normalized by
+/// `lnv_fixed_point` (so H_A(1; x) is a function of x alone).  Bracket by expansion from the
+/// fable4d closure value, then Brent.  Failed trials count as H_A(1) = 0 (a recollapse before
+/// A = 1 is the usual cause; the message is logged).  Returns (x, ln v_start, Delta ln B,
+/// Delta ln C, trial runs).
+fn shoot_x(spec: &Spec, cfg: &Config, x_guess: f64, log: &mut Vec<String>, stats: &mut Stats) -> Result<(f64, f64, f64, f64, usize), String> {
     let mut evals = 0usize;
     let mut last_err = String::new();
-    let g = |x: f64, evals: &mut usize, stats: &mut Stats, last_err: &mut String| -> f64 {
+    let mut lnv_warm = 0.0f64;
+    let mut best: Option<(f64, f64, f64, f64, f64)> = None; // (|g|, x, lnv, db, dc)
+    let mut g = |x: f64, evals: &mut usize, stats: &mut Stats, last_err: &mut String| -> f64 {
         *evals += 1;
-        match to_today(spec, cfg, x, lnv_i) {
-            Ok((ha, _, _, st)) => {
-                stats.add(&st);
-                ha - 1.0
+        match lnv_fixed_point(spec, cfg, x, lnv_warm, stats) {
+            Ok((lnv, ha, db, dc, _)) => {
+                lnv_warm = lnv;
+                let gval = ha - 1.0;
+                if best.map_or(true, |b| gval.abs() < b.0) {
+                    best = Some((gval.abs(), x, lnv, db, dc));
+                }
+                gval
             }
             Err(e) => {
+                crate::models::debug_rhs_error(f64::NAN, lnv_warm, &format!("shooting trial x = {x:e} failed: {e}"));
                 *last_err = e;
                 -1.0
             }
@@ -398,15 +438,12 @@ fn shoot_x(spec: &Spec, cfg: &Config, lnv_i: f64, x_guess: f64, log: &mut Vec<St
     let step0 = if spec.shoots_kf0() || matches!(spec, Spec::Power { .. }) { 0.1 } else { (0.1 * x_guess.abs()).max(0.02) };
     let mut a = x_guess;
     let mut fa = g(a, &mut evals, stats, &mut last_err);
-    if fa == 0.0 {
-        return Ok((a, evals));
-    }
     let dir = if fa < 0.0 { 1.0 } else { -1.0 };
     let mut step = step0;
     let mut b = a + dir * step;
-    let mut fb = g(b, &mut evals, stats, &mut last_err);
+    let mut fb = if fa == 0.0 { 0.0 } else { g(b, &mut evals, stats, &mut last_err) };
     let mut k = 0;
-    while (fa > 0.0) == (fb > 0.0) && fb != 0.0 {
+    while fa != 0.0 && (fa > 0.0) == (fb > 0.0) && fb != 0.0 {
         a = b;
         fa = fb;
         step *= 2.0;
@@ -417,13 +454,16 @@ fn shoot_x(spec: &Spec, cfg: &Config, lnv_i: f64, x_guess: f64, log: &mut Vec<St
             return Err(format!("shooting: no bracket for H_A(1) = 1 from x = {x_guess} (last x = {b}, H_A(1) - 1 = {fb}; last integration error: {last_err})"));
         }
     }
-    let (lo, hi) = if a < b { (a, b) } else { (b, a) };
-    let tol = 1e-13 * lo.abs().max(hi.abs()).max(1e-2);
-    let (x, _) = brent(|x| g(x, &mut evals, stats, &mut last_err), lo, hi, tol, 200)?;
+    if fa != 0.0 && fb != 0.0 {
+        let (lo, hi) = if a < b { (a, b) } else { (b, a) };
+        let tol = 1e-13 * lo.abs().max(hi.abs()).max(1e-2);
+        brent(|x| g(x, &mut evals, stats, &mut last_err), lo, hi, tol, 200)?;
+    }
     if !last_err.is_empty() {
         log.push(format!("shooting note: some trial integrations failed (counted as H_A(1) = 0): {last_err}"));
     }
-    Ok((x, evals))
+    let (_, x, lnv, db, dc) = best.ok_or("shooting: no successful trial")?;
+    Ok((x, lnv, db, dc, evals))
 }
 
 /// The machine-readable parameter line of the CSV header (read by the Python cross-check).
@@ -520,47 +560,22 @@ pub fn run(cfg: &Config, spec: &Spec, u: &Units) -> Result<RunOutput, String> {
         }
         (fable, 0.0, 0.0)
     } else {
-        // forward fable8d: outer iteration on ln v(a_start), inner shooting on H_A(1) = 1
-        let (mut x, note) = spec.closure_4d(target_today, cfg.sel)?;
-        if spec.has_shooting() {
-            log.push(format!("normalization (forward fable8d): v := B^3 C/(B^3 C)(A=1); outer iteration on ln v(a_start) so that B = C = 1 at A = 1; inner bracket + Brent shooting on [{}] so that H_A(A = 1) = 1; start from the fable4d closure value x = {x:.10e} ({note})", spec.shooting_parameter()));
+        // forward fable8d: outer shooting on the fable parameter x so that H_A(1) = 1; for every trial
+        // x an inner secant iteration on ln v(a_start) so that B = C = 1 at A = 1
+        let (x0, note) = spec.closure_4d(target_today, cfg.sel)?;
+        let (x, lnv_i, db, dc) = if spec.has_shooting() {
+            log.push(format!("normalization (forward fable8d): v := B^3 C/(B^3 C)(A=1); outer bracket + Brent shooting on [{}] so that H_A(A = 1) = 1, starting from the fable4d closure value x = {x0:.10e} ({note}); for every trial an inner secant iteration on ln v(a_start) so that B = C = 1 at A = 1 (tolerance 50 rtol max(1, |Delta ln v|), the integration-noise floor)", spec.shooting_parameter()));
+            let (x, lnv, db, dc, ev) = shoot_x(spec, cfg, x0, &mut log, &mut stats)?;
+            log.push(format!("  shooting converged after {ev} trials: x = {x:.15e}, ln v(a_start) = {lnv:.15e}, Delta ln B = {db:.12e}, Delta ln C = {dc:.12e}"));
+            (x, lnv, db, dc)
         } else {
             log.push("normalization (forward fable8d): nothing to shoot (radiation/baryons only or --no-shoot); only ln v(a_start) is iterated so that B = C = 1 at A = 1".into());
-        }
-        let mut lnv_i = 0.0f64;
-        let mut hist: Vec<(f64, f64)> = Vec::new();
-        let mut last = (0.0, 0.0);
-        let mut converged = false;
-        for it in 0..60 {
-            if spec.has_shooting() {
-                let (xs, ev) = shoot_x(spec, cfg, lnv_i, x, &mut log, &mut stats)?;
-                x = xs;
-                log.push(format!("  outer {it}: ln v_start = {lnv_i:.15e}: shooting converged in {ev} runs, x = {x:.15e}"));
-            }
-            let (ha1, db, dc, st) = to_today(spec, cfg, x, lnv_i)?;
-            stats.add(&st);
-            let lnv1 = lnv_i + 3.0 * db + dc;
-            log.push(format!("  outer {it}: H_A(1) = {ha1:.15e}, Delta ln B = {db:.10e}, Delta ln C = {dc:.10e}, ln v(1) = {lnv1:.3e}"));
-            last = (db, dc);
-            hist.push((lnv_i, lnv1));
-            // stop at the integration-noise floor of ln v(1): ~ rtol per unit of accumulated ln v
-            let tol_lnv = 50.0 * cfg.rtol * (3.0 * db + dc).abs().max(1.0);
-            if lnv1.abs() < tol_lnv {
-                log.push(format!("  normalization converged: |ln v(1)| = {:.2e} < {tol_lnv:.2e} (= 50 rtol max(1, |Delta ln v|), the integration-noise floor)", lnv1.abs()));
-                converged = true;
-                break;
-            }
-            lnv_i = if hist.len() >= 2 {
-                let (p0, f0) = hist[hist.len() - 2];
-                let (p1, f1) = hist[hist.len() - 1];
-                if (f1 - f0).abs() > 1e-300 { p1 - f1 * (p1 - p0) / (f1 - f0) } else { p1 - f1 }
-            } else {
-                lnv_i - lnv1
-            };
-        }
-        if !converged {
-            return Err(format!("the normalization B = C = 1 at A = 1 did not converge (history {hist:?})"));
-        }
+            let (lnv, ha1, db, dc, it) = lnv_fixed_point(spec, cfg, x0, 0.0, &mut stats)?;
+            log.push(format!("  ln v(a_start) = {lnv:.15e} after {it} runs; H_A(1) = {ha1:.15e} (not shot)"));
+            (x0, lnv, db, dc)
+        };
+        let _ = lnv_i;
+        let last = (db, dc);
         let fable = spec.realize(x, cfg.sel)?;
         (fable, -last.0, -last.1)
     };
@@ -704,7 +719,7 @@ pub fn run(cfg: &Config, spec: &Spec, u: &Units) -> Result<RunOutput, String> {
         let hc = today[col_index("H_C")];
         let gdot = -(3.0 * hb + hc);
         log.push(format!(
-            "NO-GO (unstabilized fable8d): G(today)/G(a_start) = {:.6e}, v(a_start)/v(today) = {:.6e}, H_B/H_A today = {:.6e}, dlnG/dt today = {gdot:.6e} H0 = {:.6e} /yr against the lunar-laser-ranging bound |dlnG/dt| < {LLR_GDOT_BOUND_PER_YR:e} /yr ({})",
+            "unstabilized fable8d (the no-go test): G(today)/G(a_start) = {:.6e}, v(a_start)/v(today) = {:.6e}, H_B/H_A today = {:.6e}, dlnG/dt today = {gdot:.6e} H0 = {:.6e} /yr against the lunar-laser-ranging bound |dlnG/dt| < {LLR_GDOT_BOUND_PER_YR:e} /yr ({})",
             1.0 / g_start,
             1.0 / g_start,
             hb / today[col_index("H_A")],
@@ -734,9 +749,10 @@ pub fn run(cfg: &Config, spec: &Spec, u: &Units) -> Result<RunOutput, String> {
         "g_*(T) is not followed: rho_r = Omega_r0 A^-4/v at all times (misstates rho_r A^4 by up to a factor ~0.39 at the earliest times)".into(),
     ];
     if cfg.direction == Direction::Backward {
-        header.push("t: integrated from today and shifted so that t(a_start) = 1/(2 H_A(a_start)) (radiation-era age)".into());
+        header.push("t: integrated from today (lookback) and shifted so that t(a_start) = 1/(2 H_A(a_start)) (radiation-era age); absolute accuracy ~1e-8/H0, so early-time ages below ~3e-8/H0 are not resolved (use the forward run)".into());
     } else {
         header.push("t: t(a_start) = 1/(2 H_A(a_start)) (radiation-era age), then integrated".into());
     }
     Ok(RunOutput { header_comments: header, rows: out.rows, stats, log, fable, lnb_i, lnc_i })
 }
+

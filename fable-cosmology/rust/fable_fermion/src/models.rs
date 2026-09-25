@@ -95,40 +95,46 @@ pub struct Composition {
     pub p_obs: f64,
     pub p_hid: f64,
     pub p_x0: f64,
+    /// the hidden driver F = rho - 3 P_obs + 2 P_hid, computed per source WITHOUT cancellation:
+    /// radiation 0, baryons rho_b, fable 2 W - sigma8 W' (analytic; = m sigma8 + 2U at the gap)
+    pub f_hidden: f64,
+    /// P_obs - P_hid = rho_r/3 + P_KS/v (no cancellation)
+    pub dp: f64,
 }
 
 impl Model {
     pub fn composition(&self, n: f64, lnv: f64) -> Result<Composition, String> {
         let rho_r = self.src.omega_r0 * (-4.0 * n - lnv).exp();
         let rho_b = self.src.omega_b0 * (-3.0 * n - lnv).exp();
-        let (mf, rho_f, p_obs_f, p_hid_f) = match &self.fable {
+        let (mf, rho_f, p_obs_f, p_hid_f, f_f, dp_f) = match &self.fable {
             Some(fs) => {
                 let kf = fs.kf0 * (-n).exp();
                 let mf = solve_gap(&fs.pot, kf, lnv.exp(), fs.sel)?;
-                (Some(mf), mf.rho, mf.p_obs, mf.p_hid)
+                // F_fable = (eps - 3P)/v + 2U = m sigma8 + 2U = 2W - sigma8 W' at the gap, analytic
+                (Some(mf), mf.rho, mf.p_obs, mf.p_hid, fs.pot.f_hidden(mf.sigma8), mf.p_qp)
             }
-            None => (None, 0.0, 0.0, 0.0),
+            None => (None, 0.0, 0.0, 0.0, 0.0, 0.0),
         };
         let rho = rho_r + rho_b + rho_f;
         let p_obs = rho_r / 3.0 + p_obs_f;
         let p_hid = p_hid_f;
-        Ok(Composition { rho_r, rho_b, mf, rho_f, p_obs_f, p_hid_f, rho, p_obs, p_hid, p_x0: p_hid })
+        Ok(Composition { rho_r, rho_b, mf, rho_f, p_obs_f, p_hid_f, rho, p_obs, p_hid, p_x0: p_hid, f_hidden: rho_b + f_f, dp: rho_r / 3.0 + dp_f })
     }
 
     /// d/dt of (H_A, H_B, H_C) for fable8d (the stabilizing hidden stress included when frozen).
+    /// 3 (P_i - T/6) is written as F/2 for the hidden directions (P_x0 = P_hid for every source)
+    /// and F/2 + 3 (P_obs - P_hid) for the observed one, with F and P_obs - P_hid computed per
+    /// source without cancellation: F/2 ~ rho_b is ~1e-10 of the separate terms at a = 1e-12, and
+    /// forming it as rho - 3 P_obs + 2 P_hid leaves ~1e-7 relative noise in dH_B/dN, which stalls
+    /// the error control.  Frozen (stabilized): P_stab = -F/2 makes the hidden drive vanish and
+    /// dH_A/dt = -3 H_A^2 + 3 (P_obs - P_hid) + (3/2) F = -3 H_A^2 + (3/2)(rho - P_obs).
     pub fn dh_dt(&self, c: &Composition, ha: f64, hb: f64, hc: f64) -> (f64, f64, f64) {
         if self.freeze_hidden {
-            let ph = 0.5 * (3.0 * c.p_obs - c.rho);
-            let t = -c.rho + 3.0 * c.p_obs + 4.0 * ph;
-            (-3.0 * ha * ha + 3.0 * (c.p_obs - t / 6.0), 0.0, 0.0)
+            (-3.0 * ha * ha + 3.0 * c.dp + 1.5 * c.f_hidden, 0.0, 0.0)
         } else {
             let theta = 3.0 * ha + 3.0 * hb + hc;
-            let t = -c.rho + 3.0 * c.p_obs + 3.0 * c.p_hid + c.p_x0;
-            (
-                -ha * theta + 3.0 * (c.p_obs - t / 6.0),
-                -hb * theta + 3.0 * (c.p_hid - t / 6.0),
-                -hc * theta + 3.0 * (c.p_x0 - t / 6.0),
-            )
+            let half_f = 0.5 * c.f_hidden;
+            (-ha * theta + half_f + 3.0 * c.dp, -hb * theta + half_f, -hc * theta + half_f)
         }
     }
 }
@@ -240,7 +246,7 @@ pub fn rhs_fable4d(n: f64, y: &N_Vector, ydot: &N_Vector, ud: &mut Option<Box<dy
 /// F = rho, any 8D vacuum energy (bare V0, the condensate U) F = 2 rho_V, the self-consistent KS
 /// fable F = 2 W - sigma8 W'.  The stabilizing stress of fable4d is P_stab = -F/2.
 pub fn hidden_driver(c: &Composition) -> f64 {
-    c.rho - 3.0 * c.p_obs + 2.0 * c.p_hid
+    c.f_hidden
 }
 
 /// The columns of every output CSV, in order: the required ones, the ones the design review
