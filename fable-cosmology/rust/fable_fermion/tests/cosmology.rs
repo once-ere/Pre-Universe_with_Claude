@@ -2,8 +2,10 @@
 
 use std::collections::HashMap;
 
-use fable_fermion::constants::Units;
+use fable_fermion::constants::{Units, G_FABLE};
 use fable_fermion::kohn_sham::Selection;
+use fable_fermion::models::{Model, Sources};
+use fable_fermion::numerics::integrate_gk;
 use fable_fermion::potentials::Potential;
 use fable_fermion::run::{run, Config, Direction, ModelKind, Spec};
 
@@ -261,6 +263,181 @@ fn physics_checks_along_runs() {
     assert!(e.contains("gap-branch jump"), "{e}");
     let e = run(&cfg(ModelKind::Fable4d), &Spec::Lorentz { m_today: ev(1.0), xt: 1.0 / 1.5, omega_dm: 0.265 }, &u).err().unwrap();
     assert!(e.contains("negative energy"), "{e}");
+}
+
+/// The N of the onset printed in a refusal ("... from N = <N> (a = ...").
+fn onset_n(msg: &str) -> f64 {
+    let s = msg.split("from N = ").nth(1).unwrap_or_else(|| panic!("no onset in: {msg}"));
+    s.split_whitespace().next().unwrap().parse().unwrap_or_else(|e| panic!("{e}: {msg}"))
+}
+
+#[test]
+fn negative_energy_refusal_is_found_inside_the_rhs_independently_of_the_output_grid() {
+    // lorentz (Part VI's xt = 1/1.5, m_today = 1 eV): rho_hat = H_A^2 turns negative near a = 0.47.
+    // Before the fix the check ran on OUTPUT rows only: at --points 11 it missed the window and
+    // CVODE crawled to the singular point (mxstep after ~100 s); at 101/401/1001 points it reported
+    // a = 0.575/0.501/0.474 (the first output row inside the window).
+    let u = Units::new();
+    let spec = Spec::Lorentz { m_today: ev(1.0), xt: 1.0 / 1.5, omega_dm: 0.265 };
+    let mut msgs = Vec::new();
+    for points in [11usize, 101, 1001] {
+        let mut c = cfg(ModelKind::Fable4d);
+        c.points = points;
+        let t0 = std::time::Instant::now();
+        let e = run(&c, &spec, &u).err().expect("lorentz must be refused");
+        let wall = t0.elapsed().as_secs_f64();
+        assert!(e.contains("negative energy") && !e.contains('\n'), "--points {points}: {e}");
+        assert!(wall < 30.0, "--points {points}: the refusal took {wall} s");
+        eprintln!("--points {points:>4}: onset N = {:.10} ({wall:.2} s)", onset_n(&e));
+        msgs.push(e);
+    }
+    let n0 = onset_n(&msgs[0]);
+    for m in &msgs {
+        assert!((onset_n(m) - n0).abs() <= 1e-6, "onsets {} vs {n0}", onset_n(m));
+        assert_eq!(m, &msgs[0], "the reason must not depend on --points");
+    }
+    eprintln!("{}", msgs[0]);
+    // independent check: rho_hat(N) of the realized fable is positive on a fine grid from a_start up
+    // to the onset and changes sign there
+    let target = 1.0 - u.omega_r0 - u.omega_b0;
+    let (x, _) = spec.closure_4d(target, Selection::Lowest).unwrap();
+    let model = Model { src: Sources { omega_r0: u.omega_r0, omega_b0: u.omega_b0 }, fable: spec.realize(x, Selection::Lowest).unwrap(), freeze_hidden: false };
+    let rho = |n: f64| model.composition(n, 0.0).map(|c| c.rho).unwrap_or(f64::NAN);
+    assert!(rho(n0 - 1e-8) > 0.0 && rho(n0 + 1e-8) <= 0.0, "rho_hat({}) = {:e}, rho_hat({}) = {:e}", n0 - 1e-8, rho(n0 - 1e-8), n0 + 1e-8, rho(n0 + 1e-8));
+    let n_start = (1e-12f64).ln();
+    assert!((0..=4000).all(|k| rho(n_start + (n0 - 1e-8 - n_start) * k as f64 / 4000.0) > 0.0), "rho_hat must be positive before the onset");
+    // Forward, rho_hat -> 0 continuously (dt/dN = 1/H_A is singular there): CVODE's steps shrink
+    // towards the onset and stop at the minimum step without sampling beyond it, so the onset is
+    // found by probing ahead of the last accepted step.  Backward from today the ground state JUMPS
+    // into negative energy (a = 0.872): the right-hand side meets the failure itself, records it and
+    // returns -1, and the onset is bisected between the last accepted step and that N; the same for
+    // every output grid as well.
+    let mut back = Vec::new();
+    for points in [11usize, 1001] {
+        let c = Config::new(ModelKind::Fable4d, Direction::Backward, &u);
+        let c = Config { points, ..c };
+        let e = run(&c, &spec, &u).err().expect("lorentz backward must be refused");
+        assert!(e.contains("negative energy"), "{e}");
+        back.push(e);
+    }
+    assert_eq!(back[0], back[1]);
+    let nb = onset_n(&back[0]);
+    assert!(rho(nb + 1e-8) > 0.0 && rho(nb - 1e-8) <= 0.0 && nb > n0, "backward onset {nb}: {}", back[0]);
+    eprintln!("backward: onset N = {nb:.10}");
+    // the frozen fable8d (H_A^2 = rho_hat by its constraint) reaches the same onset through the
+    // recoverable failure path and the bisection on the solution
+    let mut c8 = cfg(ModelKind::Fable8d);
+    c8.freeze_hidden = true;
+    c8.points = 101;
+    let t0 = std::time::Instant::now();
+    let e8 = run(&c8, &spec, &u).err().expect("frozen fable8d lorentz must be refused");
+    assert!(e8.contains("negative energy") && (onset_n(&e8) - n0).abs() <= 1e-6 && t0.elapsed().as_secs_f64() < 30.0, "{e8}");
+}
+
+/// The N of a located transition ("gap-branch jump at N = <N> (a = ...").
+fn jump_n(msg: &str) -> f64 {
+    let s = msg.split("gap-branch jump at N = ").nth(1).unwrap_or_else(|| panic!("no transition in: {msg}"));
+    s.split_whitespace().next().unwrap().parse().unwrap_or_else(|e| panic!("{e}: {msg}"))
+}
+
+#[test]
+fn first_order_transition_is_found_inside_the_rhs_independently_of_the_output_grid() {
+    // repulsive quadratic (gq = +0.5, m_today = 1 eV): the lowest-energy gap root sits on the m < 0
+    // branch until that branch merges with the middle root at a fold of the gap equation, just
+    // before today, and the ground state jumps to the m > 0 branch.  Before the fix the jump was
+    // seen between OUTPUT rows only, so the reported interval was the last output interval
+    // (N in [-2.76, 0] at --points 11, [-0.0276, 0] at 1001).
+    let u = Units::new();
+    let spec = Spec::Quadratic { m_today: ev(1.0), gq: 0.5, omega_dm: 0.265 };
+    let mut msgs = Vec::new();
+    for points in [11usize, 101, 1001] {
+        let mut c = cfg(ModelKind::Fable4d);
+        c.points = points;
+        let t0 = std::time::Instant::now();
+        let e = run(&c, &spec, &u).err().expect("the repulsive quadratic must be refused");
+        let wall = t0.elapsed().as_secs_f64();
+        for key in ["gap-branch jump", "first-order transition", "Maxwell construction", "does not implement"] {
+            assert!(e.contains(key) && !e.contains('\n'), "--points {points}: '{key}' missing in: {e}");
+        }
+        assert!(wall < 30.0, "--points {points}: the refusal took {wall} s");
+        eprintln!("--points {points:>4}: transition at N = {:.10} ({wall:.2} s)", jump_n(&e));
+        msgs.push(e);
+    }
+    let n0 = jump_n(&msgs[0]);
+    for m in &msgs {
+        assert!((jump_n(m) - n0).abs() <= 1e-8, "transitions {} vs {n0}", jump_n(m));
+        assert_eq!(m, &msgs[0], "the reason must not depend on --points");
+    }
+    eprintln!("{}", msgs[0]);
+    assert!(n0 < 0.0 && n0 > -0.01, "transition at N = {n0}");
+    // independent check of the fold: f(m) = m - W'(sigma8(m)) evaluated by brute force on a fine m
+    // grid over the merging pair: its maximum is > 0 (two roots there) just before the transition and
+    // < 0 (no roots) just after, and the lowest-energy root is m < 0 before, m > 0 after
+    let target = 1.0 - u.omega_r0 - u.omega_b0;
+    let (x, _) = spec.closure_4d(target, Selection::Lowest).unwrap();
+    let fable = spec.realize(x, Selection::Lowest).unwrap().unwrap();
+    let model = Model { src: Sources { omega_r0: u.omega_r0, omega_b0: u.omega_b0 }, fable: Some(fable.clone()), freeze_hidden: false };
+    let m_at = |n: f64| model.composition(n, 0.0).unwrap().mf.unwrap().m;
+    let (m_before, m_after) = (m_at(n0 - 1e-9), m_at(n0 + 1e-9));
+    assert!(m_before < 0.0 && m_after > 0.0, "m_eff {m_before} -> {m_after}");
+    let fmax = |n: f64| {
+        let kf = fable.kf0 * (-n).exp();
+        (0..=20000)
+            .map(|i| m_before - 0.05 + 0.1 * i as f64 / 20000.0)
+            .map(|m| m - fable.pot.dw(fable_fermion::kohn_sham::fermi_sea(m, kf).sigma))
+            .fold(f64::NEG_INFINITY, f64::max)
+    };
+    assert!(fmax(n0 - 1e-6) > 0.0 && fmax(n0 + 1e-6) < 0.0, "max f: {:e} before, {:e} after", fmax(n0 - 1e-6), fmax(n0 + 1e-6));
+    // backward from today the same transition is met from the other side
+    let cb = Config { points: 101, ..Config::new(ModelKind::Fable4d, Direction::Backward, &u) };
+    let eb = run(&cb, &spec, &u).err().expect("backward must be refused too");
+    assert!((jump_n(&eb) - n0).abs() <= 1e-8, "backward transition {} vs {n0}: {eb}", jump_n(&eb));
+    // and the frozen fable8d (the same N-only ground state) through its own bisection on the solution
+    let mut c8 = cfg(ModelKind::Fable8d);
+    c8.freeze_hidden = true;
+    c8.points = 101;
+    let e8 = run(&c8, &spec, &u).err().expect("frozen fable8d must be refused");
+    assert!(e8.contains("first-order transition") && (jump_n(&e8) - n0).abs() <= 1e-8, "{e8}");
+}
+
+/// F(u) = u^5 Int_0^1 (1 - x)^4/(1 + u x) dx by adaptive Gauss-Kronrod: an evaluation of the
+/// Dirac-sea bracket independent of both the series and the closed form of kohn_sham::vac_bracket.
+fn vac_bracket_quadrature(u: f64) -> f64 {
+    // (epsrel 1e-13: the QUADPACK error estimate never goes below ~50 eps of the integral)
+    let (q, _) = integrate_gk(|x| (1.0 - x).powi(4) / (1.0 + u * x), 0.0, 1.0, &[], 0.0, 1e-13, 5000);
+    u.powi(5) * q
+}
+
+#[test]
+fn gap_residual_and_vacuum_energy_at_round_off_in_1_kev_runs() {
+    // m_today = 1 keV: the massless phases (m_eff/m_today down to ~1e-31) where the gap residual used
+    // to reach ~5e-8 (relative to max(|m|, |W'|, kF)), and the late times where vac_over_rhoc was
+    // rounding noise of the cancelling closed form (~1e4..1e6 rho_c0)
+    let u = Units::new();
+    for (tag, spec) in [
+        ("kev_expdamp", Spec::ExpDamp { m_today: ev(1000.0), xt: 1.0 / 2.21, omega_dm: 0.265 }),
+        ("kev_power05", Spec::Power { m_today: ev(1000.0), nu: 0.5, omega_dm: 0.265 }),
+        ("kev_quadratic", Spec::Quadratic { m_today: ev(1000.0), gq: -0.5, omega_dm: 0.265 }),
+    ] {
+        let out = run(&cfg(ModelKind::Fable4d), &spec, &u).unwrap_or_else(|e| panic!("{tag}: {e}"));
+        let (g, m, vac) = (out.col("gap_residual"), out.col("m_eff"), out.col("vac_over_rhoc"));
+        let m1 = *m.last().unwrap();
+        let m_min = m.iter().fold(f64::INFINITY, |a, b| a.min(b.abs())) / m1.abs();
+        assert!(m_min < 1e-6, "{tag}: no massless phase (min m/m_today = {m_min:e})");
+        let worst = g.iter().fold(0.0f64, |a, b| a.max(b.abs()));
+        assert!(worst <= 1e-12, "{tag}: max |gap residual| = {worst:e}");
+        // vac_over_rhoc (v = 1) against the quadrature, row by row
+        let c = -(G_FABLE / (16.0 * std::f64::consts::PI.powi(2))) * m1.abs().powi(4);
+        let mut worst_vac = 0.0f64;
+        for k in 0..m.len() {
+            let uk = (m[k].abs() - m1.abs()) / m1.abs();
+            let r = c * vac_bracket_quadrature(uk);
+            let e = if r == 0.0 { vac[k].abs() } else { (vac[k] - r).abs() / r.abs() };
+            worst_vac = worst_vac.max(e);
+        }
+        assert!(worst_vac <= 1e-12, "{tag}: vac_over_rhoc vs quadrature: max rel. difference {worst_vac:e}");
+        eprintln!("{tag}: min m/m_today = {m_min:.1e}, max |gap residual| = {worst:.1e}, vac_over_rhoc vs quadrature {worst_vac:.1e}");
+    }
 }
 
 #[test]

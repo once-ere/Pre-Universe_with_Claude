@@ -97,6 +97,32 @@ impl Potential {
         }
     }
 
+    /// The natural scale of W' at sigma: the sum of the magnitudes of the terms of W'(sigma) plus
+    /// |sigma W''(sigma)|.  It bounds the round-off of W'(sigma8) evaluated in floating point,
+    /// including the rounding of sigma8 itself (relative eps, amplified by W''), and the change of
+    /// W'(sigma8(m)) between adjacent doubles m (|dW'/dm| |m| = |W''| chi |m|/v <= |sigma8 W''|,
+    /// since chi |m| <= |sigma_KS|).  The gap residual (m - W'(sigma8))/max(|m|, dw_scale) is
+    /// therefore at round-off for a converged root in every phase, including the massless phases,
+    /// where m ~ W' is a small difference of O(m0) terms (expdamp 1 - sigma/s1 -> 0, power
+    /// m0 + nu lam sigma^(nu-1) -> 0 with m0 < 0, attractive quadratic m0 + lam sigma -> 0):
+    /// mass |m0|; power |m0| + |nu lam sigma^(nu-1)| (1 + |nu - 1|); expdamp |m0| e^-x (1 + |x| + |x (x - 2)|);
+    /// lorentz |m0| [1/(1 + u) + 2u |u - 3|/(1 + u)^3]; quadratic |m0| + 2 |lam sigma|.
+    pub fn dw_scale(&self, s: f64) -> f64 {
+        match *self {
+            Potential::Mass { m0 } | Potential::LambdaMass { m0, .. } => m0.abs(),
+            Potential::Power { m0, lam, nu } => m0.abs() + (nu * lam * s.powf(nu - 1.0)).abs() * (1.0 + (nu - 1.0).abs()),
+            Potential::ExpDamp { m0, s1, .. } => {
+                let x = s / s1;
+                m0.abs() * (-x).exp() * (1.0 + x.abs() + (x * (x - 2.0)).abs())
+            }
+            Potential::Lorentz { m0, s1, .. } => {
+                let u = (s / s1) * (s / s1);
+                m0.abs() * (1.0 / (1.0 + u) + 2.0 * u * (u - 3.0).abs() / (1.0 + u).powi(3))
+            }
+            Potential::Quadratic { m0, lam, .. } => m0.abs() + 2.0 * (lam * s).abs(),
+        }
+    }
+
     /// The condensate energy density U = W - sigma W' (the mean-field part of rho; P_hid = -U),
     /// written ANALYTICALLY per potential (design review DFT-12: no subtraction of W and sigma W'):
     /// mass 0; lambda-mass V0; power lam (1 - nu) sigma^nu; expdamp V0 + m0 s1 x^2 e^-x (x = sigma/s1);

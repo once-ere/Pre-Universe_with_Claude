@@ -19,9 +19,17 @@
 
 use std::f64::consts::PI;
 
-/// hbar in eV s (CODATA 2018; exact in the 2019 SI since h and e are exact).
-pub const HBAR_EV_S: f64 = 6.582_119_569e-16;
-/// hbar in J s (exact).
+/// hbar in eV s, derived from HBAR_J_S / EV_J so that H0 in eV and the reduced Planck mass use one and
+/// the same CODATA 2018 hbar (the truncated 6.582119569e-16 differed from HBAR_J_S/EV_J by 6.1e-10 and
+/// shifted E_c by 2.7e-10; the Mathematica reference make_reference_fermion.wls uses hbarJs/eVJ as well).
+pub const HBAR_EV_S: f64 = HBAR_J_S / EV_J;
+/// hbar in J s: the CODATA 2018 value 1.054571817...e-34, TRUNCATED to 10 significant digits.
+/// NOT exact: h = 6.62607015e-34 J s is exact in the 2019 SI, but hbar = h/(2 pi) is irrational
+/// and has no finite decimal expansion (h/(2 pi) = 1.054571817646156...e-34; the truncated value
+/// is a relative 6.1e-10 below it).  The value is kept as it is: HBAR_EV_S = HBAR_J_S/EV_J, M_pl
+/// and hence E_c = 2.46261317732986325e-3 eV and Omega_r0 = 9.20960546728882807e-5 are computed
+/// from it, and the Mathematica reference make_reference_fermion.wls uses the same truncated
+/// hbarJs = 1054571817/10^43.
 pub const HBAR_J_S: f64 = 1.054_571_817e-34;
 /// speed of light in m/s (exact).
 pub const C_M_S: f64 = 299_792_458.0;
@@ -29,7 +37,10 @@ pub const C_M_S: f64 = 299_792_458.0;
 pub const EV_J: f64 = 1.602_176_634e-19;
 /// Newton's constant (CODATA 2018), m^3 kg^-1 s^-2.
 pub const G_SI: f64 = 6.674_30e-11;
-/// Boltzmann's constant in eV/K (exact).
+/// Boltzmann's constant in eV/K: CODATA 2018, TRUNCATED to 10 significant digits.  k_B =
+/// 1.380649e-23 J/K and e are exact in the 2019 SI, but their ratio 8.617333262145...e-5 is not a
+/// finite decimal of this length (the truncation is a relative 1.7e-11; make_reference_fermion.wls
+/// uses the exact ratio).  Kept as it is: Omega_r0 = 9.20960546728882807e-5 is computed from it.
 pub const K_B_EV_K: f64 = 8.617_333_262e-5;
 /// 1 Mpc in m: 1 pc = 648000/pi au, 1 au = 149 597 870 700 m (IAU 2012/2015).
 pub const MPC_M: f64 = 648_000.0 / PI * 149_597_870_700.0 * 1.0e6;

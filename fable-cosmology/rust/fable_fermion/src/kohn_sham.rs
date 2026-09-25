@@ -267,7 +267,8 @@ pub struct MeanField {
     pub p_obs: f64,
     /// P_hid = P_x0 = -U
     pub p_hid: f64,
-    /// (m - W'(sigma8)) / max(|m|, |W'|, kF)
+    /// (m - W'(sigma8)) / max(|m|, W'_scale(sigma8)), W'_scale = `Potential::dw_scale` (the natural
+    /// scale of W' at that density, which bounds its round-off): at round-off for a converged root
     pub gap_residual: f64,
     pub n_roots: usize,
     /// sign of m on the selected branch (+1, 0, -1)
@@ -285,7 +286,7 @@ pub fn mean_field_at(pot: &Potential, m: f64, kf: f64, v: f64) -> MeanField {
     let u = pot.u(sigma8); // analytic W - sigma8 W'
     let rho_qp = sea.eps / v;
     let p_qp = sea.p / v;
-    let scale = m.abs().max(dw.abs()).max(kf).max(f64::MIN_POSITIVE);
+    let scale = m.abs().max(pot.dw_scale(sigma8)).max(f64::MIN_POSITIVE);
     MeanField {
         m,
         kf,
@@ -337,8 +338,42 @@ fn refine(pot: &Potential, kf: f64, v: f64, lo: f64, hi: f64) -> Result<f64, Str
     brent(f, lo, hi, 0.0, 400).map(|(r, _)| r)
 }
 
+/// The extremum of a unimodal `g` on [a, b] (golden-section search down to adjacent doubles, at
+/// most 200 steps): (argmin, min) of g.
+fn golden_min(g: &dyn Fn(f64) -> f64, a: f64, b: f64) -> (f64, f64) {
+    let r = 0.5 * (5f64.sqrt() - 1.0);
+    let (mut a, mut b) = (a, b);
+    let (mut c, mut d) = (b - r * (b - a), a + r * (b - a));
+    let (mut gc, mut gd) = (g(c), g(d));
+    for _ in 0..200 {
+        if !(c > a && d < b && c < d) {
+            break;
+        }
+        if gc <= gd {
+            b = d;
+            d = c;
+            gd = gc;
+            c = b - r * (b - a);
+            gc = g(c);
+        } else {
+            a = c;
+            c = d;
+            gc = gd;
+            d = a + r * (b - a);
+            gd = g(d);
+        }
+    }
+    if gc <= gd { (c, gc) } else { (d, gd) }
+}
+
 /// All roots of the gap equation found by scanning [lo, hi] (asinh-spaced around m = 0 on the
-/// scale kF, 800 cells) and refining every sign change with Brent.
+/// scale kF, 800 cells) and refining every sign change with Brent.  A PAIR of roots inside one cell
+/// (no sign change between the grid points) is found too: every local minimum of |f| on the grid
+/// without a sign change on either side is an extremum of f, which is located by golden section;
+/// if f changes sign there, the two roots on either side are refined.  So a pair of roots is seen
+/// until it merges at a fold of the gap equation (a saddle-node in N), and the count of roots
+/// changes exactly there, not where the pair first fits into one grid cell (design: the branch-jump
+/// check of the right-hand side locates a vanishing root at its fold).
 pub fn gap_roots_scan(pot: &Potential, kf: f64, v: f64, lo: f64, hi: f64) -> Result<Vec<f64>, String> {
     // pad the interval: the bounds come from |sigma8| < n8, and in the deep non-relativistic limit
     // a root sits at the bound to within rounding (sigma8 = n8 (1 - 0.3 x^2), x ~ 1e-26)
@@ -374,6 +409,22 @@ pub fn gap_roots_scan(pot: &Potential, kf: f64, v: f64, lo: f64, hi: f64) -> Res
         }
         if i + 1 < ms.len() && fs[i].is_finite() && fs[i + 1].is_finite() && fs[i] != 0.0 && fs[i + 1] != 0.0 && (fs[i] > 0.0) != (fs[i + 1] > 0.0) {
             roots.push(refine(pot, kf, v, ms[i], ms[i + 1])?);
+        }
+        // a hidden pair: fs[i] is a local minimum of |f| with the same sign on both sides
+        if i >= 1 && i + 1 < ms.len() {
+            let (fa, fb, fc) = (fs[i - 1], fs[i], fs[i + 1]);
+            let same = fa.is_finite() && fb.is_finite() && fc.is_finite() && fb != 0.0 && (fa > 0.0) == (fb > 0.0) && (fc > 0.0) == (fb > 0.0);
+            if same && fb.abs() <= fa.abs() && fb.abs() <= fc.abs() {
+                let s = fb.signum();
+                let g = |m: f64| s * gap_function(pot, m, kf, v);
+                let (m_ext, g_ext) = golden_min(&g, ms[i - 1], ms[i + 1]);
+                if g_ext == 0.0 {
+                    roots.push(m_ext);
+                } else if g_ext < 0.0 {
+                    roots.push(refine(pot, kf, v, ms[i - 1], m_ext)?);
+                    roots.push(refine(pot, kf, v, m_ext, ms[i + 1])?);
+                }
+            }
         }
     }
     roots.sort_by(|a, b| a.partial_cmp(b).unwrap());
@@ -489,14 +540,69 @@ pub fn walecka_functional(pot: &Potential, m: f64, kf: f64, v: f64, sigma_lo: f6
 /// energy is even in m).  Design review DFT-4: for mass-varying W it cannot be absorbed into W
 /// without changing the gap equation; the solver reports it (column vac_over_rhoc), it does not
 /// include it in the dynamics.
+///
+/// Evaluated as `DeltaE_vac = -(g/(16 pi^2)) M^4 F(u)`, u = (m - M)/M, with F = `vac_bracket`
+/// (stable at every u; the closed form above cancels to rounding noise near m = M).
 pub fn vacuum_energy(m: f64, mref: f64) -> f64 {
     let (m, mm) = (m.abs(), mref.abs());
     if mm == 0.0 {
         return 0.0;
     }
-    let d = mm - m;
-    let log_term = if m > 0.0 { m.powi(4) * (m / mm).ln() } else { 0.0 };
-    -(G_FABLE / (16.0 * PI * PI)) * (log_term + mm.powi(3) * d - 3.5 * mm * mm * d * d + 13.0 / 3.0 * mm * d.powi(3) - 25.0 / 12.0 * d.powi(4))
+    // m - M is exact when m and M are within a factor 2 (Sterbenz), which is where it matters
+    let u = (m - mm) / mm;
+    -(G_FABLE / (16.0 * PI * PI)) * mm.powi(4) * vac_bracket(u)
+}
+
+/// |u| at and below which `vac_bracket` sums its power series (at most 81 terms); above it the
+/// closed form, whose cancellation costs at most ~2e-14 relative there (u in (0.75, 1]).
+pub const VAC_SERIES_SWITCH: f64 = 0.75;
+
+/// The bracket of `vacuum_energy` in units of M^4, as a function of u = (m - M)/M >= -1:
+/// ```text
+/// F(u) = (1 + u)^4 ln(1 + u) - u - (7/2) u^2 - (13/3) u^3 - (25/12) u^4
+///      = Int_0^u (u - s)^4/(1 + s) ds = u^5 Int_0^1 (1 - x)^4/(1 + u x) dx
+///      = 24 Sum_{n>=5} (-1)^(n+1) u^n / (n (n-1) (n-2) (n-3) (n-4))
+///      = u^5/5 - u^6/30 + u^7/105 - u^8/280 + ...
+/// ```
+/// The first nonzero order, analytically: with r = 1 + u, d/dr r^4 ln r = 4 r^3 ln r + r^3,
+/// d^2 = 12 r^2 ln r + 7 r^2, d^3 = 24 r ln r + 26 r, d^4 = 24 ln r + 50, d^5 = 24/r; at r = 1 these
+/// are 1, 7, 26, 50, 24, and the counterterm polynomial u + (7/2) u^2 + (13/3) u^3 + (25/12) u^4
+/// has exactly the derivatives 1, 7, 26, 50 (and 0 for the fifth) at u = 0.  So F and its first
+/// four derivatives vanish at u = 0 (DeltaE_vac and its first four m-derivatives vanish at m = M:
+/// the counterterms are chosen that way), F^(5)(u) = 24/(1 + u), and Taylor's theorem with the
+/// integral remainder gives the integral above: F(u) = u^5/5 + O(u^6), i.e.
+/// `DeltaE_vac = -(g/(80 pi^2)) (m - M)^5/M + O((m - M)^6)`.  The coefficients follow from
+/// ln(1 + u) = Sum (-1)^(j+1) u^j/j: c_n = (-1)^(n+1) Sum_{k=0}^{4} C(4,k) (-1)^k/(n - k)
+/// = (-1)^(n+1) B(n - 4, 5) = (-1)^(n+1) 24 (n - 5)!/n!  (n >= 5), and the ratio of successive
+/// terms is -u (n - 4)/(n + 1).  F has the sign of u (the integrand is positive), F(-1) = -1/4
+/// (DeltaE_vac(0) = g M^4/(64 pi^2)).
+///
+/// |u| <= VAC_SERIES_SWITCH: the series (no cancellation: for u < 0 all terms have one sign, for
+/// u > 0 they alternate with decreasing size); otherwise the closed form with ln(1 + u) = log1p(u)
+/// and the polynomial in Horner form.  Relative accuracy <= 1e-15 on the series side, <= ~2e-14 on
+/// the closed side (checked against 100-digit references in the tests).
+pub fn vac_bracket(u: f64) -> f64 {
+    if u == -1.0 {
+        return -0.25;
+    }
+    if u.abs() <= VAC_SERIES_SWITCH {
+        let mut term = u.powi(5) / 5.0;
+        let mut sum = term;
+        let mut n = 5.0f64;
+        for _ in 0..200 {
+            term *= -u * (n - 4.0) / (n + 1.0);
+            n += 1.0;
+            sum += term;
+            if term.abs() <= 1e-17 * sum.abs() {
+                break;
+            }
+        }
+        sum
+    } else {
+        let r = 1.0 + u;
+        let r2 = r * r;
+        r2 * r2 * u.ln_1p() - u * (1.0 + u * (3.5 + u * (13.0 / 3.0 + u * (25.0 / 12.0))))
+    }
 }
 
 /// Derivatives of the self-consistent fable along a trajectory: kF = kF0 e^(-N) and
@@ -848,6 +954,105 @@ mod tests {
         // O(d^5): doubling d multiplies it by ~32
         assert!((b / a - 32.0).abs() < 1.5, "ratio {}", b / a);
         assert!(vacuum_energy(-1.3, mm) == vacuum_energy(1.3, mm));
+    }
+
+    /// F(u) = (1+u)^4 ln(1+u) - u - (7/2) u^2 - (13/3) u^3 - (25/12) u^4 at the doubles u, computed
+    /// with Python's decimal module at 120 digits from the exact values of the doubles (the u > 0
+    /// points of the design review, and u < 0 down to m = 0); for |u| <= 1/2 the closed form was
+    /// confirmed there against the series 24 Sum (-1)^(n+1) u^n/(n (n-1) (n-2) (n-3) (n-4)) to 1e-60.
+    const VAC_BRACKET_REFS: [(f64, f64); 14] = [
+        (1e-08, 1.999999996666666885416084037595e-41),
+        (0.0001, 1.999966667619012385556903199309e-21),
+        (0.01, 1.996676154919845781499346705729e-11),
+        (0.1, 1.967584845360924228001276226089e-6),
+        (0.5, 5.792109797582183763691397038268e-3),
+        (2.0, 4.987595382116885003014864190725e+0),
+        (10.0, 9.580918022374276468944249258321e+3),
+        (-1e-08, -2.000000003333333552082751612593e-41),
+        (-0.0001, -2.000033334285750480814325862000e-21),
+        (-0.01, -2.003342893016671229664471293800e-11),
+        (-0.1, -2.034323099836235929994045798992e-6),
+        (-0.5, -6.863365451663248505243674257803e-3),
+        (-0.9, -1.431052585092994231488647368911e-1),
+        (-1.0, -2.500000000000000000000000000000e-1),
+    ];
+
+    /// DeltaE_vac(m; M) (g = 8) at doubles (m, M), M = 406069.4 E_c ~ 1 keV and m = M (1 + d),
+    /// d = 1e-9, -3e-7, 2e-4, -0.05, 0.6, -0.97 (the double products), 120-digit decimal references
+    /// from the exact doubles.
+    const VAC_ENERGY_REFS: [(f64, f64, f64); 6] = [
+        (406069.4004060695, 406069.4, -2.754872904076138707589754595343e-25),
+        (406069.27817918005, 406069.4, 6.694337510422105505357615735267e-13),
+        (406150.61388, 406069.4, -8.815294224433642329936045411410e+1),
+        (385765.93, 406069.4, 8.681758686875560019575551860019e+13),
+        (649711.04, 406069.4, -1.958132831416262541436951345169e+19),
+        (12182.082000000011, 406069.4, 2.928380331718020324540991751068e+20),
+    ];
+
+    #[test]
+    fn vacuum_energy_matches_high_precision_references_near_and_far_from_the_reference_mass() {
+        for &(u, r) in VAC_BRACKET_REFS.iter() {
+            let f = vac_bracket(u);
+            assert!(rel(f, r) <= 1e-12, "F({u}) = {f:e} vs reference {r:e} (rel {:e})", rel(f, r));
+            eprintln!("F({u:>7}) = {f:.16e}  rel. error {:.1e}", rel(f, r));
+        }
+        for &(m, mm, r) in VAC_ENERGY_REFS.iter() {
+            let e = vacuum_energy(m, mm);
+            // the closed form of the documentation, evaluated as written: its terms are O(M^4 |u|) and
+            // cancel to rounding noise ~ eps g M^4/(16 pi^2) ~ 1e5 rho_c0 near m = M (the old column)
+            let d = mm - m;
+            let naive = -(G_FABLE / (16.0 * PI * PI)) * (m.powi(4) * (m / mm).ln() + mm.powi(3) * d - 3.5 * mm * mm * d * d + 13.0 / 3.0 * mm * d.powi(3) - 25.0 / 12.0 * d.powi(4));
+            assert!(rel(e, r) <= 1e-12, "DeltaE_vac({m}; {mm}) = {e:e} vs reference {r:e} (rel {:e})", rel(e, r));
+            eprintln!("DeltaE_vac(m/M - 1 = {:>9.2e}) = {e:.15e}  rel. error {:.1e}  (closed form as written: {naive:.6e})", (m - mm) / mm, rel(e, r));
+        }
+        // the first nonzero order is (m - M)^5: F = u^5/5 - u^6/30 + u^7/105 - ...
+        let u = 1e-3;
+        let c6 = (vac_bracket(u) - u.powi(5) / 5.0) / u.powi(6);
+        assert!((c6 - (-1.0 / 30.0 + u / 105.0)).abs() < 1e-8, "(F - u^5/5)/u^6 = {c6}");
+        for &u in &[1e-2, -1e-2, 1e-5, -1e-5] {
+            assert!(rel(vac_bracket(u) / u.powi(5), 0.2 - u / 30.0) < u * u, "F/u^5 at u = {u}");
+        }
+        // continuity at the switch between the series and the closed form (one ulp apart)
+        for &s in &[-VAC_SERIES_SWITCH, VAC_SERIES_SWITCH] {
+            let beyond = f64::from_bits(s.to_bits() + 1);
+            assert!(rel(vac_bracket(s), vac_bracket(beyond)) < 1e-13, "switch at {s}: {} vs {}", vac_bracket(s), vac_bracket(beyond));
+        }
+        // m = 0: DeltaE_vac(0; M) = g M^4/(64 pi^2); even in m and in M
+        assert!(rel(vacuum_energy(0.0, 7.0), G_FABLE * 7f64.powi(4) / (64.0 * PI * PI)) < 1e-15);
+        assert!(vacuum_energy(-1.3, -2.0) == vacuum_energy(1.3, 2.0));
+    }
+
+    #[test]
+    fn gap_residual_is_at_round_off_in_massless_phases() {
+        // The massless phases of the dark-energy potentials (m_today ~ 1 keV ~ 4e5 E_c): m -> 0 while
+        // W'(sigma8) is a small difference of O(m0) terms (expdamp: 1 - sigma8/s1 -> 0; power with
+        // m0 < 0: m0 + nu lam sigma8^(nu-1) -> 0; attractive quadratic: m0 + lam sigma8 -> 0; sigma8
+        // is pinned at 1e-3 in all three).  The residual relative to max(|m|, W'_scale(sigma8)) must be
+        // at round-off (<= 1e-12; it is ~1e-16) from the massive to the deep massless phase; relative to
+        // max(|m|, |W'|, kF) (the column before) it is not, because W'(sigma8) itself is only known to
+        // ~eps m0 there, whatever the solver does.
+        let m0 = 4.0e5;
+        let sp: f64 = 1e-3;
+        let pots = [
+            Potential::ExpDamp { v0: 0.0, m0, s1: sp },
+            Potential::Power { m0: -m0, lam: m0 * sp.sqrt() / 0.5, nu: 0.5 },
+            Potential::Quadratic { v0: 0.0, m0, lam: -m0 / sp },
+        ];
+        for pot in pots.iter() {
+            let (mut worst, mut worst_old, mut m_min) = (0.0f64, 0.0f64, f64::INFINITY);
+            for i in 0..=90 {
+                let kf = 10f64.powf(-2.0 + 0.1 * i as f64); // 1e-2 .. 1e7
+                let mf = solve_gap(pot, kf, 1.0, Selection::Lowest).unwrap_or_else(|e| panic!("{pot:?} kF = {kf}: {e}"));
+                let recomputed = (mf.m - pot.dw(mf.sigma8)) / mf.m.abs().max(pot.dw_scale(mf.sigma8));
+                assert!(mf.gap_residual == recomputed, "{pot:?} kF = {kf}: column {} vs {recomputed}", mf.gap_residual);
+                assert!(mf.gap_residual.abs() <= 1e-12, "{pot:?} kF = {kf}: m = {:e}, gap residual {:e}", mf.m, mf.gap_residual);
+                worst = worst.max(mf.gap_residual.abs());
+                worst_old = worst_old.max(((mf.m - mf.dw) / mf.m.abs().max(mf.dw.abs()).max(kf)).abs());
+                m_min = m_min.min(mf.m.abs() / m0);
+            }
+            assert!(m_min < 1e-12, "{pot:?}: the massless phase was not reached (min m/m0 = {m_min:e})");
+            eprintln!("{pot:?}: min m/m0 = {m_min:.1e}, max |gap residual| = {worst:.1e} (relative to max(|m|, |W'|, kF): {worst_old:.1e})");
+        }
     }
 
     #[test]

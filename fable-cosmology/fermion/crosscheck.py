@@ -52,10 +52,10 @@ TOL = 1e-6
 
 
 def units():
-    hbar_evs = 6.582119569e-16
     hbar_js = 1.054571817e-34
     c = 299792458.0
     ev = 1.602176634e-19
+    hbar_evs = hbar_js / ev    # one CODATA-2018 hbar for H0 and M_pl, as constants.rs and make_reference_fermion.wls
     gN = 6.67430e-11
     kb = 8.617333262e-5
     mpc = 648000.0 / math.pi * 149597870700.0 * 1e6

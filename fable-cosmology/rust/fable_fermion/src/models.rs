@@ -167,30 +167,269 @@ pub fn scale(n: f64, p: &[f64]) -> Vec<f64> {
     vec![p[0], p[1], p[2] * e, p[3] * e, p[4] * e, p[5] / e]
 }
 
+/// Why the solution cannot be continued at some N (detected inside a right-hand side).
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum FailureKind {
+    /// the gap equation has no admissible root (on the selected branch)
+    NoGapRoot,
+    /// rho_hat = rho_r + rho_b + rho_f <= 0: in fable4d (and frozen fable8d) H_A^2 = rho_hat <= 0
+    NonPositiveDensity,
+    /// fable8d: H_A <= 0 (the observed dimensions stop expanding; N = ln A cannot be continued)
+    NonPositiveHubble,
+    /// fable8d: a non-finite state
+    NonFinite,
+    /// the selected (by default the lowest-energy) gap root changes branch discontinuously, or the
+    /// tracked root disappears: a first-order transition of the Kohn-Sham ground state
+    BranchJump,
+}
+
+/// A physical failure recorded by a right-hand side: where (N) and why.
+#[derive(Clone, Debug)]
+pub struct RhsFailure {
+    pub n: f64,
+    pub kind: FailureKind,
+    pub detail: String,
+    /// for `BranchJump`: the two sides of the discontinuity
+    pub jump: Option<BranchJump>,
+}
+
+impl RhsFailure {
+    fn new(n: f64, kind: FailureKind, detail: String) -> Self {
+        RhsFailure { n, kind, detail, jump: None }
+    }
+}
+
+/// The selected gap root at one (N, ln v): what the branch-jump check compares.
+#[derive(Clone, Copy, Debug)]
+pub struct Probe {
+    pub n: f64,
+    pub lnv: f64,
+    pub m: f64,
+    /// the fable's energy density rho_8 on this root
+    pub rho_f: f64,
+    /// d m/dN along d ln v/dN = ell (the ell of the evaluation, or of the segment in a bisection)
+    pub dm: f64,
+    pub kf: f64,
+    /// the number of gap roots at (N, ln v)
+    pub roots: usize,
+}
+
+/// A located discontinuity of the selected gap root: `lo` and `hi` are the two sides, adjacent
+/// doubles in N (lo.n < hi.n) on the segment the bisection ran along.
+#[derive(Clone, Copy, Debug)]
+pub struct BranchJump {
+    pub lo: Probe,
+    pub hi: Probe,
+}
+
+/// The CVODE user data of `rhs_fable4d` / `rhs_fable8d`: the model, the last physical failure
+/// the right-hand side met (it then returns an error code: -1, unrecoverable, in fable4d, where
+/// the failure depends on N alone; 1, recoverable, in fable8d, where it may be an artefact of a
+/// Newton iterate and CVODE retries with a smaller step), and the selected gap root of the last
+/// successful evaluation (`last`, for the branch-jump check).  run.rs reads `failure` back from
+/// the failed integration and locates the onset by bisection.  `check_jumps` is off in the
+/// shooting trials of fable8d: a transition does not make a trial's H_A(1) meaningless, and the
+/// run the shooting finds is checked by the output integration.
+#[derive(Clone, Debug)]
+pub struct RhsData {
+    pub model: Model,
+    pub failure: Option<RhsFailure>,
+    pub last: Option<Probe>,
+    pub check_jumps: bool,
+}
+
+impl RhsData {
+    pub fn new(model: Model) -> Self {
+        RhsData { model, failure: None, last: None, check_jumps: true }
+    }
+
+    /// For the shooting trials: no branch-jump check.
+    pub fn without_jump_check(model: Model) -> Self {
+        RhsData { check_jumps: false, ..RhsData::new(model) }
+    }
+}
+
+/// Relative floor of the branch-jump criterion: changes of m_eff below 1e-8 max(|m|, kF) are
+/// round-off, whatever the derivative says.
+const JUMP_FLOOR: f64 = 1e-8;
+/// The smooth-change allowance of the criterion: |dm| <= JUMP_K max(|dm/dN|) |dN| is smooth.
+const JUMP_K: f64 = 2.0;
+/// Evaluation budget of one located jump (the bisection needs ~55 per level of resolution; the
+/// rest is for halves that turn out smooth).
+const JUMP_BUDGET: usize = 3000;
+
+/// The selected gap root at (N, ln v), with dm/dN along d ln v/dN = ell (None: no fable, or the
+/// gap equation has no admissible root there).
+pub fn probe_at(m: &Model, n: f64, lnv: f64, ell: f64) -> Option<Probe> {
+    let c = m.composition(n, lnv).ok()?;
+    let mf = c.mf?;
+    Some(probe_of(&mf, n, lnv, ell))
+}
+
+fn probe_of(mf: &MeanField, n: f64, lnv: f64, ell: f64) -> Probe {
+    let (_, _, dm) = fable_derivatives(mf, ell);
+    Probe { n, lnv, m: mf.m, rho_f: mf.rho, dm, kf: mf.kf, roots: mf.n_roots }
+}
+
+/// A change of m_eff between a and b the smooth derivative does not explain, or an EVENT that can
+/// hide one (the sign of m or the number of gap roots changes).
+fn jump_event(a: &Probe, b: &Probe) -> bool {
+    let dm = (b.m - a.m).abs();
+    let floor = JUMP_FLOOR * a.m.abs().max(b.m.abs()).max(a.kf).max(b.kf);
+    if !(dm > floor) {
+        return false;
+    }
+    let sign_flip = a.m != 0.0 && b.m != 0.0 && (a.m > 0.0) != (b.m > 0.0);
+    sign_flip || a.roots != b.roots || dm > JUMP_K * a.dm.abs().max(b.dm.abs()) * (b.n - a.n).abs()
+}
+
+/// The jump itself, at adjacent doubles: a change beyond the floor and beyond JUMP_K |dm/dN| dN
+/// (a continuous zero crossing of m, or a root count changing on another branch, is not one).
+fn jump_confirmed(a: &Probe, b: &Probe) -> bool {
+    let dm = (b.m - a.m).abs();
+    let floor = JUMP_FLOOR * a.m.abs().max(b.m.abs()).max(a.kf).max(b.kf);
+    a.roots.max(b.roots) > 1 && dm > floor && dm > JUMP_K * a.dm.abs().max(b.dm.abs()) * (b.n - a.n).abs()
+}
+
+/// Locate a discontinuity of the selected gap root on the segment from `a` to `b` (ln v linear in
+/// N along it; ln v = 0 in fable4d, where the segment is simply the N axis): recursive bisection
+/// in N, into every half that shows a `jump_event` (the one with the larger change first), down to
+/// adjacent doubles, where `jump_confirmed` decides.  None when the change is smooth (a fast but
+/// continuous m_eff, a continuous zero crossing, roots appearing or disappearing on other
+/// branches).  m_eff at N is a deterministic function of N (and ln v), so the located pair does not
+/// depend on the bracket it started from, when the bracket holds one discontinuity.
+pub fn locate_branch_jump(m: &Model, a: &Probe, b: &Probe) -> Option<BranchJump> {
+    if a.n == b.n {
+        return None;
+    }
+    let ell = (b.lnv - a.lnv) / (b.n - a.n);
+    let (n_lo, lnv_lo) = if a.n < b.n { (a.n, a.lnv) } else { (b.n, b.lnv) };
+    let at = |n: f64| probe_at(m, n, lnv_lo + ell * (n - n_lo), ell);
+    let (lo, hi) = (at(a.n.min(b.n))?, at(a.n.max(b.n))?);
+    let mut budget = JUMP_BUDGET;
+    fn search(at: &dyn Fn(f64) -> Option<Probe>, lo: Probe, hi: Probe, budget: &mut usize) -> Option<BranchJump> {
+        if !jump_event(&lo, &hi) {
+            return None;
+        }
+        let mid = lo.n + 0.5 * (hi.n - lo.n);
+        if mid <= lo.n || mid >= hi.n {
+            return if jump_confirmed(&lo, &hi) { Some(BranchJump { lo, hi }) } else { None };
+        }
+        if *budget == 0 {
+            return None;
+        }
+        *budget -= 1;
+        let pm = at(mid)?;
+        let size = |p: &Probe, q: &Probe| (q.m - p.m).abs() / (JUMP_K * p.dm.abs().max(q.dm.abs()) * (q.n - p.n).abs() + 1e-300);
+        let halves = if size(&lo, &pm) >= size(&pm, &hi) { [(lo, pm), (pm, hi)] } else { [(pm, hi), (lo, pm)] };
+        for (p, q) in halves {
+            if let Some(j) = search(at, p, q, budget) {
+                return Some(j);
+            }
+        }
+        None
+    }
+    search(&at, lo, hi, &mut budget)
+}
+
+/// The branch-jump check of a right-hand side: the selected root at this evaluation against the
+/// one at the last successful evaluation.  Only where several gap roots exist on either side can
+/// the selected one jump (a unique root is continuous in N and ln v), so single-root runs pay
+/// nothing.  Some(failure) when a jump is located between the two evaluations.
+fn branch_jump_check(d: &mut RhsData, cur: Probe) -> Option<RhsFailure> {
+    if !d.check_jumps {
+        return None;
+    }
+    let prev = match d.last {
+        Some(p) => p,
+        None => {
+            d.last = Some(cur);
+            return None;
+        }
+    };
+    if cur.n == prev.n {
+        // a Jacobian difference quotient (same N, perturbed state): nothing to compare
+        return None;
+    }
+    if prev.roots.max(cur.roots) > 1 && jump_event(&prev, &cur) {
+        if let Some(j) = locate_branch_jump(&d.model, &prev, &cur) {
+            let detail = format!(
+                "the selected gap root jumps between N = {:.17e} (m_eff = {:e}, {} roots) and N = {:.17e} (m_eff = {:e}, {} roots)",
+                j.lo.n, j.lo.m, j.lo.roots, j.hi.n, j.hi.m, j.hi.roots
+            );
+            return Some(RhsFailure { n: cur.n, kind: FailureKind::BranchJump, detail, jump: Some(j) });
+        }
+    }
+    d.last = Some(cur);
+    None
+}
+
+/// The fable4d state at N (v = 1) if it exists: the composition with rho_hat = H_A^2 > 0, or the
+/// physical reason why there is none (no gap root; rho_hat <= 0).
+pub fn physical_state_4d(m: &Model, n: f64) -> Result<Composition, RhsFailure> {
+    let c = m.composition(n, 0.0).map_err(|e| RhsFailure::new(n, FailureKind::NoGapRoot, e))?;
+    if !(c.rho > 0.0) {
+        return Err(RhsFailure::new(n, FailureKind::NonPositiveDensity, format!("rho_hat = {:e} <= 0", c.rho)));
+    }
+    Ok(c)
+}
+
+/// The fable8d check at (N, PHYSICAL H_A, H_B, H_C, ln v): H_A > 0 and finite, a gap root, and
+/// rho_hat > 0 (the conditions under which the right-hand side is evaluated).
+pub fn physical_state_8d(m: &Model, n: f64, ha: f64, hb: f64, hc: f64, lnv: f64) -> Result<Composition, RhsFailure> {
+    if !ha.is_finite() || !hb.is_finite() || !hc.is_finite() || !lnv.is_finite() {
+        return Err(RhsFailure::new(n, FailureKind::NonFinite, format!("H_A = {ha:e}, H_B = {hb:e}, H_C = {hc:e}, ln v = {lnv:e}")));
+    }
+    if !(ha > 0.0) {
+        return Err(RhsFailure::new(n, FailureKind::NonPositiveHubble, format!("H_A = {ha:e} <= 0")));
+    }
+    let c = m.composition(n, lnv).map_err(|e| RhsFailure::new(n, FailureKind::NoGapRoot, e))?;
+    if !(c.rho > 0.0) {
+        return Err(RhsFailure::new(n, FailureKind::NonPositiveDensity, format!("rho_hat = {:e} <= 0", c.rho)));
+    }
+    Ok(c)
+}
+
+/// ln v of the fable8d state (0 when the hidden sheet is frozen).
+pub fn lnv_of(m: &Model, lnb: f64, lnc: f64) -> f64 {
+    if m.freeze_hidden { 0.0 } else { 3.0 * lnb + lnc }
+}
+
 /// fable8d right-hand side, independent variable N; integrated state
 /// y = (ln B, ln C, h_A, h_B, h_C, tau) with h_i = H_i A^2, tau = t/A^2:
 /// d ln B/dN = H_B/H_A, d ln C/dN = H_C/H_A, dh_i/dN = 2 h_i + A^2 (dH_i/dt)/H_A,
-/// dtau/dN = -2 tau + A^-2/H_A.
+/// dtau/dN = -2 tau + A^-2/H_A.  User data: `RhsData`.  A physical failure (H_A <= 0, no gap
+/// root, rho_hat <= 0, a non-finite state, a jump of the selected gap root between this and the
+/// last successful evaluation) is recorded in the user data and returned as a RECOVERABLE error
+/// (1): at a Newton iterate it may be spurious, and CVODE retries with a smaller step; when the
+/// solution itself reaches it, CVODE gives up and run.rs locates the onset.
 pub fn rhs_fable8d(n: f64, y: &N_Vector, ydot: &N_Vector, ud: &mut Option<Box<dyn Any>>) -> i32 {
-    let m = match ud.as_ref().and_then(|b| b.downcast_ref::<Model>()) {
-        Some(m) => m,
+    let d = match ud.as_mut().and_then(|b| b.downcast_mut::<RhsData>()) {
+        Some(d) => d,
         None => return -1,
     };
     let yv = N_VGetArrayPointer(y).expect("y");
     let (lnb, lnc, sa, sb, sc, tau) = (yv[0], yv[1], yv[2], yv[3], yv[4], yv[5]);
     let e = (-2.0 * n).exp(); // A^-2
     let (ha, hb, hc) = (sa * e, sb * e, sc * e);
-    if !(ha > 0.0) || !ha.is_finite() || !hb.is_finite() || !hc.is_finite() {
-        return 1;
-    }
-    let lnv = if m.freeze_hidden { 0.0 } else { 3.0 * lnb + lnc };
-    let c = match m.composition(n, lnv) {
+    let lnv = lnv_of(&d.model, lnb, lnc);
+    let c = match physical_state_8d(&d.model, n, ha, hb, hc, lnv) {
         Ok(c) => c,
-        Err(e) => {
-            debug_rhs_error(n, lnv, &e);
+        Err(f) => {
+            debug_rhs_error(n, lnv, &f.detail);
+            d.failure = Some(f);
             return 1;
         }
     };
+    if let Some(mf) = &c.mf {
+        let ell = if d.model.freeze_hidden { 0.0 } else { (3.0 * hb + hc) / ha };
+        if let Some(f) = branch_jump_check(d, probe_of(mf, n, lnv, ell)) {
+            debug_rhs_error(n, lnv, &f.detail);
+            d.failure = Some(f);
+            return 1;
+        }
+    }
+    let m = &d.model;
     let (dha, dhb, dhc) = m.dh_dt(&c, ha, hb, hc);
     let mut yd = N_VGetArrayPointer(ydot).expect("ydot");
     if m.freeze_hidden {
@@ -217,22 +456,33 @@ pub fn debug_rhs_error(n: f64, lnv: f64, e: &str) {
 }
 
 /// fable4d right-hand side; integrated state y = (tau = t/A^2), H_A = sqrt(rho_hat(N)) with v = 1:
-/// dtau/dN = -2 tau + A^-2/H_A.
+/// dtau/dN = -2 tau + A^-2/H_A.  User data: `RhsData`.  A physical failure (no gap root,
+/// H_A^2 = rho_hat <= 0, or a jump of the selected gap root between this and the last successful
+/// evaluation, located to adjacent doubles in N by `locate_branch_jump`) depends on N alone, so it
+/// is recorded and returned as UNRECOVERABLE (-1): the run cannot pass that N, whatever the step.
+/// (CVODE samples the right-hand side at every internal step, whose sequence does not depend on
+/// the output grid; run.rs then bisects between the last accepted step and the failing N, or
+/// probes ahead of the last accepted step when CVODE stopped short of a continuous onset, where
+/// H_A -> 0 makes dt/dN singular.)
 pub fn rhs_fable4d(n: f64, y: &N_Vector, ydot: &N_Vector, ud: &mut Option<Box<dyn Any>>) -> i32 {
-    let m = match ud.as_ref().and_then(|b| b.downcast_ref::<Model>()) {
-        Some(m) => m,
+    let d = match ud.as_mut().and_then(|b| b.downcast_mut::<RhsData>()) {
+        Some(d) => d,
         None => return -1,
     };
-    let c = match m.composition(n, 0.0) {
+    let c = match physical_state_4d(&d.model, n) {
         Ok(c) => c,
-        Err(e) => {
-            debug_rhs_error(n, 0.0, &e);
-            return 1;
+        Err(f) => {
+            debug_rhs_error(n, 0.0, &f.detail);
+            d.failure = Some(f);
+            return -1;
         }
     };
-    if !(c.rho > 0.0) {
-        debug_rhs_error(n, 0.0, &format!("rho = {} <= 0", c.rho));
-        return 1;
+    if let Some(mf) = &c.mf {
+        if let Some(f) = branch_jump_check(d, probe_of(mf, n, 0.0, 0.0)) {
+            debug_rhs_error(n, 0.0, &f.detail);
+            d.failure = Some(f);
+            return -1;
+        }
     }
     let tau = N_VGetArrayPointer(y).expect("y")[0];
     let mut yd = N_VGetArrayPointer(ydot).expect("ydot");

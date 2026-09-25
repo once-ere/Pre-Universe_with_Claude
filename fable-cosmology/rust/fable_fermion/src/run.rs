@@ -39,9 +39,12 @@
 use std::fmt::Write as _;
 
 use crate::constants::Units;
-use crate::cvode_driver::{integrate, Stats, Trajectory};
+use crate::cvode_driver::{integrate_detailed, Failure, Stats, Trajectory};
 use crate::kohn_sham::{fermi_sea, solve_gap, Selection};
-use crate::models::{col_index, fill_today_columns, rhs_fable4d, rhs_fable8d, row, scale, unscale, FableSpec, Model, Sources, COLUMNS};
+use crate::models::{
+    col_index, fill_today_columns, lnv_of, locate_branch_jump, physical_state_4d, physical_state_8d, probe_at, rhs_fable4d, rhs_fable8d, row, scale, unscale, BranchJump, FableSpec, FailureKind, Model, RhsData,
+    RhsFailure, Sources, COLUMNS,
+};
 use crate::numerics::brent;
 use crate::potentials::Potential;
 
@@ -340,14 +343,268 @@ impl RunOutput {
 }
 
 /// Integrate fable8d from the PHYSICAL state y0 at n0; CVODE works on the scaled variables
-/// (models::scale), the returned trajectory is physical again.
-fn integrate_8d(model: &Model, cfg: &Config, y0: &[f64], n0: f64, n1: f64, points: usize) -> Result<Trajectory, String> {
+/// (models::scale), the returned trajectory is physical again.  On failure the `Failure` holds the
+/// last accepted step in the SCALED variables and the `RhsData` user data.
+fn integrate_8d_detailed(model: &Model, cfg: &Config, y0: &[f64], n0: f64, n1: f64, points: usize, check_jumps: bool) -> Result<Trajectory, Box<Failure>> {
     let ys0 = scale(n0, y0);
-    let mut tr = integrate(cfg.adams, rhs_fable8d, Box::new(model.clone()), &ys0, n0, n1, points, cfg.rtol, cfg.atol, cfg.max_steps)?;
+    let data = if check_jumps { RhsData::new(model.clone()) } else { RhsData::without_jump_check(model.clone()) };
+    let mut tr = integrate_detailed(cfg.adams, rhs_fable8d, Box::new(data), &ys0, n0, n1, points, cfg.rtol, cfg.atol, cfg.max_steps)?;
     for (n, y) in tr.x.iter().zip(tr.y.iter_mut()) {
         *y = unscale(*n, y).to_vec();
     }
     Ok(tr)
+}
+
+/// The physical failure the right-hand side recorded before an integration failed, if any.
+fn recorded_failure(f: &Failure) -> Option<RhsFailure> {
+    f.user_data.as_ref()?.downcast_ref::<RhsData>()?.failure.clone()
+}
+
+/// CVODE's message, plus the physical failure the right-hand side met (if any).
+fn failure_note(f: &Failure) -> String {
+    match recorded_failure(f) {
+        Some(r) => format!("{}; the right-hand side met {:?} at N = {:.10} ({}) after the last accepted step N = {:.10}", f.message, r.kind, r.n, r.detail, f.x_good),
+        None => f.message.clone(),
+    }
+}
+
+/// `integrate_8d_detailed` with the failure as one line and WITHOUT the branch-jump check (used by
+/// the shooting trials, whose failures are only logged: a first-order transition does not make a
+/// trial's H_A(1) meaningless, and the run the shooting finds is checked by the output integration).
+fn integrate_8d(model: &Model, cfg: &Config, y0: &[f64], n0: f64, n1: f64, points: usize) -> Result<Trajectory, String> {
+    integrate_8d_detailed(model, cfg, y0, n0, n1, points, false).map_err(|f| failure_note(&f))
+}
+
+/// How a refusal is worded and how precisely its onset is printed.
+#[derive(Clone, Copy, PartialEq, Eq)]
+enum RefusalModel {
+    /// fable4d: the onset is bisected in N to adjacent doubles, printed to 10 digits
+    Fable4d,
+    /// fable8d with the hidden sheet frozen (H_A^2 = rho_hat): bisected on the solution to
+    /// |dN| <= 1e-10 (1 + |N|) (or in N, when it is found by probing ahead), printed to 8 digits
+    Fable8dFrozen,
+    /// unstabilized fable8d: bisected on the solution, printed to 8 digits; rho_hat is not H_A^2
+    Fable8d,
+}
+
+/// The one-line reason of a first-order transition: N (the first double on the new branch, along
+/// the direction of integration `dir`) and a, and the two branches' m_eff and rho_f on either side.
+fn jump_message(model: &Model, j: &BranchJump, n: f64, dir: f64, kind: RefusalModel) -> String {
+    let (before, after) = if dir > 0.0 { (&j.lo, &j.hi) } else { (&j.hi, &j.lo) };
+    let a = n.exp();
+    let p = if kind == RefusalModel::Fable4d { 10 } else { 8 };
+    let which = match model.fable.as_ref().map(|f| f.sel) {
+        Some(Selection::Positive) => "selected (positive-branch)",
+        Some(Selection::Negative) => "selected (negative-branch)",
+        _ => "lowest-energy",
+    };
+    let located = if kind == RefusalModel::Fable4d { "bisected in N to adjacent doubles" } else { "bisected on the solution to |dN| <= 1e-10 (1 + |N|)" };
+    // (the number of gap roots is not printed: within ~1e-16 of a fold, where a pair of roots
+    // merges, it is decided by rounding)
+    format!(
+        "gap-branch jump at N = {n:.p$} (a = {a:.p$}): a first-order transition of the Kohn-Sham ground state, the {which} gap root jumps from the branch m_eff = {:.6e} (rho_f = {:.6e}) to the branch m_eff = {:.6e} (rho_f = {:.6e}); the right-hand side is discontinuous there, and energy conservation across it would need the Maxwell construction, which this solver does not implement (the transition detected inside the right-hand side and {located})",
+        before.m, before.rho_f, after.m, after.rho_f
+    )
+}
+
+/// The one-line physical reason of a refused run, from the failure found at `n` (the first N,
+/// along the direction of integration `dir`, at which the state does not exist).  Only numbers
+/// that do not depend on the path to the onset are printed (N and a to 10 digits in fable4d, 8 in
+/// fable8d, the fable to 6), so the message is the same for every output grid.
+fn refusal_message(model: &Model, f: &RhsFailure, n: f64, kind: RefusalModel, lnv: f64, dir: f64) -> String {
+    let a = n.exp();
+    let p = if kind == RefusalModel::Fable4d { 10 } else { 8 };
+    let tail = "(the onset located past the last accepted CVODE step and bisected)";
+    if let (FailureKind::BranchJump, Some(j)) = (f.kind, f.jump.as_ref()) {
+        return jump_message(model, j, n, dir, kind);
+    }
+    match f.kind {
+        FailureKind::BranchJump => format!("gap-branch jump at N = {n:.p$} (a = {a:.p$}): {} {tail}", f.detail),
+        FailureKind::NonPositiveDensity => {
+            let fab = match model.composition(n, lnv) {
+                Ok(c) => match c.mf {
+                    Some(m) => format!("m_eff = {:.6e}, sigma8 = {:.6e}, rho_f = {:.6e} (U = {:.6e}) against rho_r + rho_b = {:.6e}", m.m, m.sigma8, m.rho, m.u, c.rho_r + c.rho_b),
+                    None => format!("rho_r + rho_b = {:.6e}", c.rho_r + c.rho_b),
+                },
+                Err(e) => e,
+            };
+            if kind == RefusalModel::Fable8d {
+                format!("rho_hat <= 0 from N = {n:.p$} (a = {a:.p$}) on: the Kohn-Sham ground state has negative energy there ({fab}); the total energy density of the primordial field is not positive {tail}")
+            } else {
+                format!("rho_hat = H_A^2 <= 0 from N = {n:.p$} (a = {a:.p$}) on: the Kohn-Sham ground state has negative energy there ({fab}); H_A^2 = rho_hat is impossible {tail}")
+            }
+        }
+        FailureKind::NoGapRoot => format!("the gap equation has no admissible root from N = {n:.p$} (a = {a:.p$}) on: {} {tail}", f.detail),
+        FailureKind::NonPositiveHubble => format!("H_A reaches 0 at N = {n:.p$} (a = {a:.p$}): the observed dimensions stop expanding (turnaround), and the run cannot be continued in N = ln A {tail}"),
+        FailureKind::NonFinite => format!("the state is not finite from N = {n:.p$} (a = {a:.p$}) on: {} {tail}", f.detail),
+    }
+}
+
+/// fable4d: the first N between `n_good` (the state exists) and `n_bad` (the recorded failure) at
+/// which it does not, and the failure there.  The condition depends on N alone (v = 1, H_A^2 =
+/// rho_hat(N)), so the bisection is on N itself: a uniform pre-scan (a window narrower than one
+/// step is not skipped), then bisection down to adjacent doubles.
+fn onset_4d(model: &Model, n_good: f64, n_bad: f64, recorded: RhsFailure) -> (f64, RhsFailure) {
+    let bad = |n: f64| physical_state_4d(model, n).err();
+    let (mut lo, mut hi) = (n_good, n_bad);
+    let mut fail = match bad(n_bad) {
+        Some(f) => f,
+        None => return (recorded.n, recorded),
+    };
+    if bad(n_good).is_some() {
+        return (n_good, bad(n_good).unwrap());
+    }
+    const K: usize = 32;
+    for k in 1..K {
+        let x = n_good + (n_bad - n_good) * (k as f64) / (K as f64);
+        match bad(x) {
+            Some(f) => {
+                hi = x;
+                fail = f;
+                break;
+            }
+            None => lo = x,
+        }
+    }
+    for _ in 0..200 {
+        let mid = lo + 0.5 * (hi - lo);
+        if mid == lo || mid == hi {
+            break;
+        }
+        match bad(mid) {
+            Some(f) => {
+                hi = mid;
+                fail = f;
+            }
+            None => lo = mid,
+        }
+    }
+    (hi, fail)
+}
+
+/// CVODE can also stop just SHORT of the onset without sampling beyond it: where H_A^2 = rho_hat
+/// -> 0 continuously, dt/dN = 1/H_A is singular, the steps shrink geometrically towards the onset
+/// and the integration ends at the minimum step (an error-test failure).  The N-only conditions
+/// (v = 1: the gap and rho_hat(N) > 0) are then probed ahead of the last accepted step at
+/// geometrically growing distances, 1e-15 (1 + |N|) 2^j, up to the end of the interval, and the
+/// first failure is bisected (onset_4d).  None when nothing ahead fails.
+fn probe_ahead_4d(model: &Model, x_good: f64, x_end: f64) -> Option<(f64, RhsFailure)> {
+    let span = x_end - x_good;
+    if span == 0.0 {
+        return None;
+    }
+    let mut prev = x_good;
+    let mut d = 1e-15 * (1.0 + x_good.abs());
+    while d < span.abs() {
+        let x = x_good + d * span.signum();
+        if let Err(fl) = physical_state_4d(model, x) {
+            return Some(onset_4d(model, prev, x, fl));
+        }
+        prev = x;
+        d *= 2.0;
+    }
+    match physical_state_4d(model, x_end) {
+        Err(fl) => Some(onset_4d(model, prev, x_end, fl)),
+        Ok(_) => None,
+    }
+}
+
+/// The fable4d refusal from a failed integration: the failure the right-hand side recorded
+/// (bisected between the last accepted step and the failing N), or else the first failure ahead of
+/// the last accepted step (probe_ahead_4d).  None when the failure is not a physical one.  Also
+/// used for fable8d with the hidden sheet frozen (ln v = 0: the same N-only conditions).  A branch
+/// jump arrives already located (to adjacent doubles in N, by the right-hand side); its onset is the
+/// first double on the new branch along the direction `dir`.
+fn refusal_4d(model: &Model, f: &Failure, x_end: f64, kind: RefusalModel, dir: f64) -> Option<String> {
+    let (n, fail) = match recorded_failure(f) {
+        Some(rec) if rec.kind == FailureKind::BranchJump => match rec.jump {
+            Some(j) => (if dir > 0.0 { j.hi.n } else { j.lo.n }, rec),
+            None => (rec.n, rec),
+        },
+        Some(rec) => onset_4d(model, f.x_good, rec.n, rec),
+        None => probe_ahead_4d(model, f.x_good, x_end)?,
+    };
+    Some(refusal_message(model, &fail, n, kind, 0.0, dir))
+}
+
+/// The last accepted fable8d state of a failed integration, in words (for a failure that is not
+/// located as a physical one: e.g. H_A -> 0 approached without being sampled).
+fn last_state_8d(model: &Model, f: &Failure) -> String {
+    if f.y_good.len() != 6 {
+        return String::new();
+    }
+    let y = unscale(f.x_good, &f.y_good);
+    let lnv = lnv_of(model, y[0], y[1]);
+    let rho = model.composition(f.x_good, lnv).map(|c| format!("{:.6e}", c.rho)).unwrap_or_else(|e| e);
+    format!(" [last accepted state: N = {:.10}, H_A = {:.6e}, H_B/H_A = {:.6e}, H_C/H_A = {:.6e}, ln v = {:.6e}, rho_hat = {rho}]", f.x_good, y[2], y[3] / y[2], y[4] / y[2], lnv)
+}
+
+/// fable8d: advance the SCALED state from (n0, y0) to n1; Ok(scaled state at n1) if the
+/// integration succeeds and the state exists there, Err(the physical failure, if one was met).
+fn advance_8d(model: &Model, cfg: &Config, n0: f64, y0: &[f64], n1: f64) -> Result<Vec<f64>, Option<RhsFailure>> {
+    match integrate_detailed(cfg.adams, rhs_fable8d, Box::new(RhsData::new(model.clone())), y0, n0, n1, 2, cfg.rtol, cfg.atol, cfg.max_steps) {
+        Ok(tr) => {
+            let y = unscale(n1, &tr.y[1]);
+            match physical_state_8d(model, n1, y[2], y[3], y[4], lnv_of(model, y[0], y[1])) {
+                Ok(_) => Ok(tr.y[1].clone()),
+                Err(f) => Err(Some(f)),
+            }
+        }
+        Err(f) => Err(recorded_failure(&f)),
+    }
+}
+
+/// The fable8d refusal from a failed integration: bisection ON THE SOLUTION between the last
+/// accepted step (re-integrating from there to the midpoint, and then from the midpoint on) and the
+/// N of the failing right-hand-side evaluation, to |dN| <= 1e-10 (1 + |N|).  With the hidden sheet
+/// frozen and no failure recorded, the N-only conditions are probed ahead (probe_ahead_4d).  None
+/// when the failure is not a physical one (then CVODE's own message is reported).
+fn refusal_8d(model: &Model, cfg: &Config, f: &Failure, x_end: f64) -> Option<String> {
+    let dir = cfg_direction_sign(cfg);
+    let rec = match recorded_failure(f) {
+        Some(r) => r,
+        None if model.freeze_hidden => return refusal_4d(model, f, x_end, RefusalModel::Fable8dFrozen, dir),
+        None => return None,
+    };
+    let (mut lo, mut ylo) = (f.x_good, f.y_good.clone());
+    let mut hi = rec.n;
+    let mut fail = rec;
+    // the recorded N must lie beyond the last accepted step
+    if !((hi - lo) * (cfg_direction_sign(cfg)) > 0.0) {
+        return None;
+    }
+    // is the failing N really unreachable along the solution?
+    match advance_8d(model, cfg, lo, &ylo, hi) {
+        Ok(_) => return None,
+        Err(Some(r)) => fail = r,
+        Err(None) => {}
+    }
+    let tol = 1e-10 * (1.0 + lo.abs());
+    for _ in 0..200 {
+        if (hi - lo).abs() <= tol {
+            break;
+        }
+        let mid = lo + 0.5 * (hi - lo);
+        match advance_8d(model, cfg, lo, &ylo, mid) {
+            Ok(y) => {
+                lo = mid;
+                ylo = y;
+            }
+            Err(r) => {
+                hi = mid;
+                if let Some(r) = r {
+                    fail = r;
+                }
+            }
+        }
+    }
+    let y = unscale(lo, &ylo);
+    let kind = if model.freeze_hidden { RefusalModel::Fable8dFrozen } else { RefusalModel::Fable8d };
+    Some(refusal_message(model, &fail, hi, kind, lnv_of(model, y[0], y[1]), dir))
+}
+
+fn cfg_direction_sign(cfg: &Config) -> f64 {
+    if cfg.direction == Direction::Forward { 1.0 } else { -1.0 }
 }
 
 fn model_for(cfg: &Config, fable: Option<FableSpec>) -> Model {
@@ -462,7 +719,12 @@ fn shoot_x(spec: &Spec, cfg: &Config, x_guess: f64, log: &mut Vec<String>, stats
     if !last_err.is_empty() {
         log.push(format!("shooting note: some trial integrations failed (counted as H_A(1) = 0): {last_err}"));
     }
-    let (_, x, lnv, db, dc) = best.ok_or("shooting: no successful trial")?;
+    let (g_best, x, lnv, db, dc) = best.ok_or("shooting: no successful trial")?;
+    // failed trials count as H_A(1) = 0, so Brent can also close in on the edge between failing and
+    // succeeding trials: that is not a solution
+    if !(g_best <= 1e-6) {
+        return Err(format!("shooting: no trial reaches H_A(1) = 1 (the closest has H_A(1) - 1 = {g_best:e}, at x = {x:e}); last integration error: {last_err}"));
+    }
     Ok((x, lnv, db, dc, evals))
 }
 
@@ -513,7 +775,7 @@ fn crossing(ns: &[f64], ys: &[f64], level: f64) -> Option<f64> {
 
 /// Detect gap-branch jumps (first-order transitions) between consecutive output rows: a change of
 /// the sign of m_eff, or a change of m_eff not explained by the smooth derivative dm/dN.
-fn detect_branch_jump(rows: &[Vec<f64>]) -> Option<String> {
+fn detect_branch_jump(rows: &[Vec<f64>]) -> Option<(usize, String)> {
     let (i_n, i_m, i_b, i_d, i_kf) = (col_index("N"), col_index("m_eff"), col_index("branch"), col_index("dm_dN"), col_index("kF_eV"));
     for k in 1..rows.len() {
         let (p, c) = (&rows[k - 1], &rows[k]);
@@ -523,10 +785,10 @@ fn detect_branch_jump(rows: &[Vec<f64>]) -> Option<String> {
         let smooth = 5.0 * p[i_d].abs().max(c[i_d].abs()) * dn;
         let kf_scale = 1e-9 * (p[i_kf] + c[i_kf]); // eV-scaled only for a floor
         if p[i_b] != c[i_b] && p[i_b] != 0.0 && c[i_b] != 0.0 {
-            return Some(format!("gap-branch jump (sign of m_eff) between N = {} and N = {}: m = {:e} -> {:e}", p[i_n], c[i_n], p[i_m], c[i_m]));
+            return Some((k, format!("gap-branch jump (sign of m_eff) between N = {} and N = {}: m = {:e} -> {:e}", p[i_n], c[i_n], p[i_m], c[i_m])));
         }
         if dm > 0.25 * scale && dm > smooth && dm > kf_scale {
-            return Some(format!("gap-branch jump between N = {} and N = {}: m = {:e} -> {:e} (the smooth derivative predicts |dm| <= {:e})", p[i_n], c[i_n], p[i_m], c[i_m], smooth));
+            return Some((k, format!("gap-branch jump between N = {} and N = {}: m = {:e} -> {:e} (the smooth derivative predicts |dm| <= {:e})", p[i_n], c[i_n], p[i_m], c[i_m], smooth)));
         }
     }
     None
@@ -595,35 +857,46 @@ pub fn run(cfg: &Config, spec: &Spec, u: &Units) -> Result<RunOutput, String> {
 
     // ---- the output integration
     let (x_start, x_end) = if cfg.direction == Direction::Forward { (n0, 0.0) } else { (0.0, n0) };
+    let dir = cfg_direction_sign(cfg);
     let (xs, ys): (Vec<f64>, Vec<Vec<f64>>) = if four_d {
-        // pre-check along the output grid: the gap must be solvable and rho_hat > 0
-        for k in 0..cfg.points {
-            let n = n0 * (1.0 - k as f64 / (cfg.points - 1) as f64);
-            let c = model.composition(n, 0.0).map_err(|e| format!("at N = {n:.6}: {e}"))?;
-            if !(c.rho > 0.0) {
-                let mf = c.mf.map(|m| format!("m_eff = {:e}, sigma8 = {:e}, rho_f = {:e} (U = {:e})", m.m, m.sigma8, m.rho, m.u)).unwrap_or_default();
-                return Err(format!("rho_hat = {:e} <= 0 at N = {n:.6} (a = {:.4e}): the Kohn-Sham ground state has negative energy there ({mf}); H_A^2 = rho_hat is impossible", c.rho, n.exp()));
-            }
-        }
-        let c0 = model.composition(x_start, 0.0)?;
+        // The physical failures (no gap root; H_A^2 = rho_hat <= 0) are detected INSIDE the
+        // right-hand side, at every internal CVODE step (whose sequence does not depend on the output
+        // grid; rhs_fable4d then returns -1), or, when CVODE stops just short of a continuous onset
+        // (H_A -> 0 is singular in N) at its minimum step, by probing ahead of the last accepted step
+        // (probe_ahead_4d); either way the onset is bisected in N (onset_4d): the reason and the
+        // onset do not depend on --points.
+        let c0 = match physical_state_4d(&model, x_start) {
+            Ok(c) => c,
+            Err(f) => return Err(refusal_message(&model, &f, x_start, RefusalModel::Fable4d, 0.0, dir)),
+        };
         let t0 = if cfg.direction == Direction::Forward { 0.5 / c0.rho.sqrt() } else { 0.0 };
         // integrated variable tau = t/A^2 (see models::unscale)
         let tau0 = t0 * (-2.0 * x_start).exp();
-        let tr = integrate(cfg.adams, rhs_fable4d, Box::new(model.clone()), &[tau0], x_start, x_end, cfg.points, cfg.rtol, cfg.atol, cfg.max_steps)?;
+        let tr = match integrate_detailed(cfg.adams, rhs_fable4d, Box::new(RhsData::new(model.clone())), &[tau0], x_start, x_end, cfg.points, cfg.rtol, cfg.atol, cfg.max_steps) {
+            Ok(tr) => tr,
+            Err(f) => return Err(refusal_4d(&model, &f, x_end, RefusalModel::Fable4d, dir).unwrap_or_else(|| format!("{} (rerun with the environment variable FABLE_DEBUG=1 to see the failing right-hand-side evaluations)", f.message))),
+        };
         stats.add(&tr.stats);
-        let ys = tr
-            .x
-            .iter()
-            .zip(tr.y.iter())
-            .map(|(n, y)| {
-                let c = model.composition(*n, 0.0)?;
-                Ok(vec![0.0, 0.0, c.rho.sqrt(), 0.0, 0.0, y[0] * (2.0 * n).exp()])
-            })
-            .collect::<Result<Vec<_>, String>>()?;
+        let mut ys = Vec::with_capacity(tr.x.len());
+        for (k, (n, y)) in tr.x.iter().zip(tr.y.iter()).enumerate() {
+            // an output row between two accepted steps is checked too (a failure window narrower
+            // than one step): bisect between the previous row and this one
+            let c = match physical_state_4d(&model, *n) {
+                Ok(c) => c,
+                Err(f) => {
+                    let (nb, fb) = onset_4d(&model, tr.x[k.saturating_sub(1)], *n, f);
+                    return Err(refusal_message(&model, &fb, nb, RefusalModel::Fable4d, 0.0, dir));
+                }
+            };
+            ys.push(vec![0.0, 0.0, c.rho.sqrt(), 0.0, 0.0, y[0] * (2.0 * n).exp()]);
+        }
         (tr.x, ys)
     } else {
         let y0 = forward_initial(&model, n0, lnb_i, lnc_i)?;
-        let tr = integrate_8d(&model, cfg, &y0, x_start, x_end, cfg.points).map_err(|e| format!("{e} (rerun with the environment variable FABLE_DEBUG=1 to see the failing right-hand-side evaluations)"))?;
+        let tr = match integrate_8d_detailed(&model, cfg, &y0, x_start, x_end, cfg.points, true) {
+            Ok(tr) => tr,
+            Err(f) => return Err(refusal_8d(&model, cfg, &f, x_end).unwrap_or_else(|| format!("{}{} (rerun with the environment variable FABLE_DEBUG=1 to see the failing right-hand-side evaluations)", failure_note(&f), last_state_8d(&model, &f)))),
+        };
         stats.add(&tr.stats);
         (tr.x, tr.y)
     };
@@ -641,8 +914,24 @@ pub fn run(cfg: &Config, spec: &Spec, u: &Units) -> Result<RunOutput, String> {
         rows.push(row(&model, four_d, *n, y, u.omega_nu1_0, u.e_c_ev)?);
     }
     fill_today_columns(&mut rows, cfg.omega_r0, cfg.omega_b0);
-    if let Some(msg) = detect_branch_jump(&rows) {
-        return Err(format!("{msg}: a first-order transition of the Kohn-Sham ground state; the RHS is discontinuous there and energy conservation would need the Maxwell construction, which this solver does not implement"));
+    if let Some((k, msg)) = detect_branch_jump(&rows) {
+        // a fallback: the right-hand side checks every evaluation already.  In fable4d the rows'
+        // suspicion is settled by bisection in N (m_eff depends on N alone): a located jump is
+        // refused with its --points-independent reason, a fast but continuous change is not a jump
+        let i_n = col_index("N");
+        let located = if four_d {
+            match (probe_at(&model, rows[k - 1][i_n], 0.0, 0.0), probe_at(&model, rows[k][i_n], 0.0, 0.0)) {
+                (Some(p), Some(q)) => Some(locate_branch_jump(&model, &p, &q)),
+                _ => None,
+            }
+        } else {
+            None
+        };
+        match located {
+            Some(Some(j)) => return Err(jump_message(&model, &j, if dir > 0.0 { j.hi.n } else { j.lo.n }, dir, RefusalModel::Fable4d)),
+            Some(None) => log.push(format!("note: the output rows suggested a branch jump ({msg}); bisection in N shows a fast but continuous change of m_eff there")),
+            None => return Err(format!("{msg}: a first-order transition of the Kohn-Sham ground state; the RHS is discontinuous there and energy conservation would need the Maxwell construction, which this solver does not implement")),
+        }
     }
 
     // ---- diagnostics for the log
@@ -745,7 +1034,7 @@ pub fn run(cfg: &Config, spec: &Spec, u: &Units) -> Result<RunOutput, String> {
         "F_hidden = rho - 3 P_obs + 2 P_hid (all sources; dH_B/dt + H_B Theta = F/2); P_stab = -F_hidden/2 = the zero-energy stabilizing hidden stress of fable4d, a LAGRANGE MULTIPLIER (not a derived stress) that violates the null energy condition along x0 when dust is present (rho + P_C = -rho_dust/2); 0 in unstabilized fable8d".into(),
         "vac_over_rhoc = DeltaE_vac(m_eff; M = m_eff(A=1))/v: the renormalized one-loop Dirac-sea energy (relativistic Hartree, Chin 1977) that the no-sea functional drops; reported, not included in the dynamics".into(),
         "cs2_adiabatic = (dP_obs_f/dN)/(drho_f/dN) along the solution (analytic, with the differentiated gap equation); N_eff_extra = rho_f / rho_nu(1 species), rho_nu1 = Omega_nu1_0 A^-4/v".into(),
-        "q_dec = -1 - (dH_A/dt)/H_A^2; gap_roots = number of gap roots found (1 where uniqueness is proven); branch = sign of m_eff; gap_residual = (m - W'(sigma))/scale; dm_dN = d m_eff/dN".into(),
+        "q_dec = -1 - (dH_A/dt)/H_A^2; gap_roots = number of gap roots found (1 where uniqueness is proven); branch = sign of m_eff; gap_residual = (m - W'(sigma8))/max(|m|, S_W'(sigma8)), S_W' = sum of the magnitudes of the terms of W' + |sigma8 W''| (the round-off scale of W'); dm_dN = d m_eff/dN".into(),
         "g_*(T) is not followed: rho_r = Omega_r0 A^-4/v at all times (misstates rho_r A^4 by up to a factor ~0.39 at the earliest times)".into(),
     ];
     if cfg.direction == Direction::Backward {
