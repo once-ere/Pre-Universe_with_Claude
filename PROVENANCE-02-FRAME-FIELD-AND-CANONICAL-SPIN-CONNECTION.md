@@ -235,8 +235,20 @@ Write `c = Cos[6 H x0]`, `s = Sin[6 H x0]`, `A = a4[H x4]`, `A' = a4'[H x4]`. Th
 Every component is antisymmetric in its two flat indices, which is the printed verification
 `omega[mu,a,b] == -omega[mu,b,a] : True`. The connection is non-zero only in the six
 directions `mu = 1,2,3,5,6,7`, and in each of those only the two flat planes `(0,mu)` and
-`(4,mu)` are excited: the geometry rotates each spatial frame axis against the hidden-space
-direction and boosts it against time, and does nothing else.
+`(4,mu)` are excited, and does nothing else. What each plane does depends on the signature:
+`x0` and `x1..x3` are spacelike, while `x4` and `x5..x7` are timelike.
+
+- For the observed directions `j = 1,2,3`, the geometry rotates the frame axis `j` against
+  the hidden direction `x0` (the `(0,j)` plane, spacelike-spacelike) and boosts it against the
+  time `x4` (the `(4,j)` plane).
+- For the deflating directions `k = 5,6,7`, the roles are exchanged. The `(0,k)` plane is a
+  boost, since `x0` is spacelike and `x_k` timelike. The `(4,k)` plane is a rotation, since
+  both are timelike.
+
+(Corrected 2026-09-24. This sentence used to say "rotates each spatial frame axis against the
+hidden-space direction and boosts it against time" for all six directions, which is right only
+for `j = 1,2,3`. The fact-check of the fermion-fable work found the error; the components in
+the table above were always right.)
 
 ### The certificates, and what each one is worth
 
