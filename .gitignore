@@ -253,3 +253,11 @@ fable-cosmology/latex/fable_cosmology.synctex.gz
 # -----------------------------------------------------------------------------
 fable-cosmology/rust/fable_fermion/target/
 fable-cosmology/fermion/dev/
+
+# the LaTeX logs of the three provenance twins in provenance-latex/, scoped by name as section 3 advises
+provenance-latex/PROVENANCE-14-FERMION-FABLE-CANONICAL-QUANTIZATION.log
+provenance-latex/PROVENANCE-14-FERMION-FABLE-CANONICAL-QUANTIZATION.latexmk.log
+provenance-latex/PROVENANCE-15-FERMION-FABLE-AND-THE-PRIMORDIAL-GRAVITATIONAL-FIELD.log
+provenance-latex/PROVENANCE-15-FERMION-FABLE-AND-THE-PRIMORDIAL-GRAVITATIONAL-FIELD.latexmk.log
+provenance-latex/PROVENANCE-16-THE-COMPLETE-SOLUTION-AND-ITS-COMMANDS.log
+provenance-latex/PROVENANCE-16-THE-COMPLETE-SOLUTION-AND-ITS-COMMANDS.latexmk.log

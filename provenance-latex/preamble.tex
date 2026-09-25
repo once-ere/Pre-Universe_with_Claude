@@ -1,0 +1,66 @@
+% preamble.tex -- shared preamble of the LaTeX twins of the provenance pages
+%   PROVENANCE-14-FERMION-FABLE-CANONICAL-QUANTIZATION
+%   PROVENANCE-15-FERMION-FABLE-AND-THE-PRIMORDIAL-GRAVITATIONAL-FIELD
+%   PROVENANCE-16-THE-COMPLETE-SOLUTION-AND-ITS-COMMANDS
+% Each document starts with \input{preamble}.  Build all three from this directory with
+%     bash build_all.sh            (Linux, macOS, Git Bash on Windows)
+%     powershell -ExecutionPolicy Bypass -File build_all.ps1
+% or one of them with
+%     latexmk -pdf -interaction=nonstopmode -halt-on-error PROVENANCE-14-FERMION-FABLE-CANONICAL-QUANTIZATION.tex
+% The style follows fable-cosmology/latex/fable_cosmology.tex (pdfLaTeX, Latin Modern, a4, 2.5 cm).
+\documentclass[11pt,a4paper]{article}
+
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage{lmodern}
+\usepackage[margin=2.5cm]{geometry}
+\usepackage{microtype}
+\usepackage{amsmath,amssymb,mathtools}
+\usepackage{bm}
+\usepackage{graphicx}
+\usepackage{booktabs}
+\usepackage{tabularx}
+\usepackage{longtable}
+\usepackage{array}
+\usepackage{caption}
+\usepackage{subcaption}
+\usepackage{placeins}
+\usepackage{enumitem}
+\usepackage{fancyvrb}
+\usepackage{upquote}
+\usepackage{xcolor}
+\usepackage[hyphens]{url}
+\usepackage[hidelinks]{hyperref}
+
+\graphicspath{{figures/}}
+\captionsetup{font=small,labelfont=bf}
+\setlist{itemsep=2pt,topsep=4pt}
+\fvset{fontsize=\footnotesize,xleftmargin=1em}
+\newcolumntype{Y}{>{\raggedright\arraybackslash}X}
+\setcounter{tocdepth}{2}
+\allowdisplaybreaks
+
+% ---- the objects of the notebook, named as the notebook names them ----------------------------
+\newcommand{\fable}{\textsf{fable}}
+\newcommand{\fableScalar}{\textsf{fableScalar}}
+\newcommand{\Lhat}{\hat{L}}
+\newcommand{\sig}{\sigma_{16}}
+\newcommand{\T}[1]{T_{16}[#1]}
+\newcommand{\sgn}{\sqrt{|g|}}
+\newcommand{\dd}{\mathrm{d}}
+\newcommand{\diag}{\operatorname{diag}}
+\newcommand{\sgnf}{\operatorname{sign}}
+\newcommand{\Hobs}{H_{\mathrm{obs}}}
+\newcommand{\Vhid}{V_{\mathrm{hid}}}
+\newcommand{\Psibar}{\bar{\Psi}}
+\newcommand{\cconj}{\ddagger}          % classical conjugation of a Grassmann field
+\newcommand{\hadj}{\dagger}            % Hilbert-space adjoint of the J-quantization
+\newcommand{\Jm}{\mathcal{J}}          % the Krein fundamental symmetry J = -i T0 T1 T2 T3 T4
+\newcommand{\KS}{\mathrm{KS}}
+\newcommand{\kF}{k_{\mathrm{F}}}
+\newcommand{\wF}{\omega_{\mathrm{F}}}
+\newcommand{\meff}{m_{\mathrm{eff}}}
+\newcommand{\Tr}{\operatorname{Tr}}
+\newcommand{\file}[1]{\path{#1}}
+\newcommand{\assertion}[1]{\textsc{assert:}~\emph{#1}}
+\pdfstringdefDisableCommands{\def\fableScalar{fableScalar}\def\fable{fable}}
