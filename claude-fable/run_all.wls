@@ -4406,11 +4406,11 @@ cfOmegaWarpList = Join[{{0, 0, 4, Tan[6 H x0] scC'[x4]}},
   Flatten[Table[{{i, 0, i, H Cos[6 H x0]^2 scA[x4]/(scC[x4] Sin[6 H x0]^(13/6))}, {i, i, 4, scA'[x4]/Sin[6 H x0]^(1/6)}}, {i, 1, 3}], 1],
   Flatten[Table[{{h, 0, h, -H Cos[6 H x0]^2 scB[x4]/(scC[x4] Sin[6 H x0]^(13/6))}, {h, 4, h, scB'[x4]/Sin[6 H x0]^(1/6)}}, {h, 5, 7}], 1]];
 cfOmegaBIList = Join[{{0, 0, 4, scC'[x4]}}, Table[{i, i, 4, scA'[x4]}, {i, 1, 3}], Table[{h, 4, h, scB'[x4]}, {h, 5, 7}]];
-cfAssert["SPIN CONNECTION [THE RESULT]: the complete list of non-zero omega_mu^{ab} of the WARPED frame is the thirteen stated components (and their antisymmetric partners) -- nothing else",
+cfAssert["SPIN CONNECTION [THE RESULT]: the complete list of non-zero omega_{mu ab} (both flat indices down) of the WARPED frame is the thirteen stated components (and their antisymmetric partners) -- nothing else",
   Block[{cfGeomAssume = cfWarpAssume}, cfZeroArrayQ[cfOmegaWarp - cfOmegaFromList[cfOmegaWarpList]]]];
-cfAssert["SPIN CONNECTION [THE RESULT]: the complete list for the Bianchi-I frame is omega_0^{04} = C', omega_i^{i4} = A', omega_h^{4h} = B' -- nothing else",
+cfAssert["SPIN CONNECTION [THE RESULT]: the complete list for the Bianchi-I frame is omega_{0 04} = C', omega_{i i4} = A', omega_{h 4h} = B' (both flat indices down) -- nothing else",
   cfZeroArrayQ[cfOmegaBI - cfOmegaFromList[cfOmegaBIList]]];
-cfAssert["SPIN CONNECTION [fidelity]: on the canonical member (labelled substitution) the warped connection IS omegaCanonical of Section 16, and the new component omega_0^{04} vanishes there",
+cfAssert["SPIN CONNECTION [fidelity]: on the canonical member (labelled substitution) the warped connection IS omegaCanonical of Section 16, and the new component omega_{0 04} vanishes there",
   {cfZeroArrayQ[(cfOmegaWarp /. cfCanonicalABC) - omegaCanonical], (cfOmegaWarp[[1, 1, 5]] /. cfCanonicalABC) === 0}];
 {cfGsWarp, cfGsBI} = Block[{cfGeomAssume = cfWarpAssume},
   {Table[cfSimpArray[cfSpinMatrix[cfOmegaWarp, mu]], {mu, 8}], Table[cfSimpArray[cfSpinMatrix[cfOmegaBI, mu]], {mu, 8}]}];

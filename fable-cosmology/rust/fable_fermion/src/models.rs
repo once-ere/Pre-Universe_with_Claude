@@ -11,7 +11,8 @@
 //! constraint:  3 H_A^2 + 3 H_B^2 + 9 H_A H_B + 3 H_A H_C + 3 H_B H_C = 3 rho_hat     (monitored)
 //! evolution:   dH_i/dt = -H_i Theta + 3 (P_i - T/6),   i = A, B, C
 //!              T = -rho + 3 P_obs + 3 P_hid + P_x0   (the trace of the mixed stress tensor)
-//! d/dN = (1/H_A) d/dt;   state y = (ln B, ln C, H_A, H_B, H_C, t)
+//! d/dN = (1/H_A) d/dt;   physical state (ln B, ln C, H_A, H_B, H_C, t); CVODE integrates the
+//! scaled state (ln B, ln C, h_A, h_B, h_C, tau) with h_i = H_i A^2 and tau = t/A^2 (see `unscale`)
 //! ```
 //! Sources, per 7-volume, v = B^3 C:
 //! * radiation `rho_r = Omega_r0 A^-4 / v`, `P_obs = rho_r/3`, `P_hid = P_x0 = 0`;
