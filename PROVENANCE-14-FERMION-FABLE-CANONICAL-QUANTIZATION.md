@@ -41,13 +41,14 @@ factor `Sqrt[|det g|]`.
 | its cell manifests; Part VII (Sections 26–29) is this effort | `claude-fable/cells_part1.wl` … `cells_part8.wl`; **`claude-fable/cells_part7.wl`** |
 | the builder and the run harness | `claude-fable/build_tools.py`, `claude-fable/runner_header.wl` |
 | the runner, the checker, the section map | `claude-fable/run_from_nb.wls`, `claude-fable/verify_nb.wls`, `claude-fable/nb_section_map.wls` |
-| the run log of the notebook through Part VII (198 Input cells, 528/528) | `claude-fable/run_fermion_fable_part7.log` |
-| the run log of the whole notebook, Parts I–VIII (217 Input cells, 642/642) | `claude-fable/run_fermion_fable_part8.log` |
+| Part VII's own acceptance run, the record of Part VII: the notebook through Part VII (198 Input cells, 528/528, 0 cells with messages) | `claude-fable/run_fermion_fable_part7.log` |
+| the acceptance run of Part VIII, kept as a historical record (217 Input cells, 642/642: the Rust solver's CSVs did not exist yet, so Part VIII's two Rust-vs-Mathematica comparisons were skipped, and three Section 32 labels still carry the superseded index notation; section 10.3) | `claude-fable/run_fermion_fable_part8.log` |
+| the final run of the whole notebook, Parts I–VIII, in its committed state (217 Input cells, 644/644, 0 cells with messages, 198.352 s, 46 witnesses, 0 identities accepted on numerical evidence alone) | `claude-fable/run_fermion_fable_final.log` |
 | the checker's logs; the section map | `claude-fable/verify_nb_part7.log`, `claude-fable/verify_nb_part8.log`; `claude-fable/nb_section_map.log` |
 | the TeX/text export of the Part VII results | `claude-fable/export_fermion_fable_tex.wls` → `provenance-latex/generated/*.tex`, `*.txt` |
 | the LaTeX twin of this page, its preamble and build scripts | `provenance-latex/PROVENANCE-14-FERMION-FABLE-CANONICAL-QUANTIZATION.tex` → `.pdf`; `provenance-latex/preamble.tex`; `provenance-latex/build_all.sh`, `build_all.ps1` |
 | the author's two helper packages, which must sit next to the notebook | `claude-fable/ConvertMapleToMathematicaV2.wl`, `claude-fable/EtoExp.wl` |
-| the numerically stable Kohn–Sham integrals used by the solver | `fable-cosmology/rust/fable_fermion/src/kohn_sham.rs` |
+| the numerically stable Kohn–Sham integrals and Dirac-sea energy used by the solver `fable_fermion` (final at `2bc936d`: 34/34 tests) | `fable-cosmology/rust/fable_fermion/src/kohn_sham.rs` |
 
 `<repo>` below is wherever the repository is cloned. Every shell block finds it with
 `git rev-parse --show-toplevel`.
@@ -102,7 +103,10 @@ connection; Einstein equations and cosmology; density-functional theory and nume
 followed by an independent skeptic. Every finding was adopted, some only in corrected form
 (section 10.4). The physics was then implemented as Part VII of the Mathematica notebook
 (Sections 26–29), where every claim is an assertion. The notebook was run end to end (528/528
-assertions, 0 messages). The exact field equations, anticommutator, fundamental symmetry and
+assertions, 0 messages). Part VIII (the coupled system of Effort B, Sections 30–33) was added
+afterwards; the final run of the whole notebook, Parts I–VIII, evaluates 217 Input cells with 644/644
+assertions and 0 cells with messages, and its Part VII lines are those of the Part VII run, line for
+line apart from the timings (section 10.3). The exact field equations, anticommutator, fundamental symmetry and
 equations of state were exported from the notebook's own objects to TeX and plain text, and those
 exports are quoted verbatim on this page.
 
@@ -2616,7 +2620,13 @@ DeltaE_vac(m) = -(g/(16 pi^2)) [ m^4 ln(m/M) + M^3 (M - m) - (7/2) M^2 (M - m)^2
 
 [file: `fable-cosmology/rust/fable_fermion/src/kohn_sham.rs`, function `vacuum_energy`; its unit test
 `vacuum_energy_vanishes_to_fifth_order_at_the_reference_mass` checks that it vanishes like `(m − M)^5`
-at `m = M` and is even in `m`]. It is neither zero nor absorbable into `W` without changing the gap
+at `m = M` and is even in `m`]. Since `2bc936d` the solver evaluates it as
+`DeltaE_vac = −(g/(16 pi^2)) M^4 F(u)` with `u = (m − M)/M`, summing the power series
+`F(u) = u^5/5 − u^6/30 + u^7/105 − ...` for `|u| <= 0.75` and the closed form (with `log1p`)
+otherwise, because the closed form above cancels to rounding noise near `m = M`; the unit test
+`vacuum_energy_matches_high_precision_references_near_and_far_from_the_reference_mass` compares it
+with 120-digit references, and the commit records agreement to `1.8e-15` [file: the same function,
+`vac_bracket` and their tests; commit `2bc936d`]. It is neither zero nor absorbable into `W` without changing the gap
 equation; the solver reports it (column `vac_over_rhoc`) and does not include it in the dynamics.
 Reading `W` as the fully renormalized effective potential absorbs it formally, but that is a
 fine-tuning. Its size [derived here]: at `m = 0` the bracket is
@@ -2698,7 +2708,9 @@ The series coefficients are `binom(−1/2, j)` for `S` and `Q` and `binom(1/2, j
 that finished the solver (`c5892bd`) records that these agree with quadrature to `1e-12` from
 `x = 1e-8` to `1e6`, and that `cargo test --release` passes 21 + 8 tests, among them
 `kohn_sham::tests::fermi_integrals_match_quadrature` and
-`kohn_sham::tests::series_and_closed_forms_are_continuous_at_the_switch_points`. (The design review
+`kohn_sham::tests::series_and_closed_forms_are_continuous_at_the_switch_points`. After the defect
+fixes of `2bc936d` the final solver passes 34 of 34 tests (23 unit, 11 integration), these two among
+them [commit `2bc936d`; the `#[test]` functions of `src/*.rs` and `tests/cosmology.rs`]. (The design review
 had proposed a switch at `x = 0.25`; the implemented switch is `0.6`.)
 
 ### 8.6 The mean field
@@ -2883,8 +2895,13 @@ with `identities accepted on numerical evidence alone : 0` and `non-vanishing wi
 The Part VII run is recorded in `claude-fable/run_fermion_fable_part7.log`. It evaluates 198 Input cells
 and reports `Assertions run: 528   passed: 528   failed: 0` and `cells w/ msgs   : 0`, with
 `identities accepted on numerical evidence alone : 0` and `non-vanishing witnesses : 38`
-(Part VII adds 170 assertions and 11 witnesses to Parts I–VI). The full run of Parts I–VIII,
-`claude-fable/run_fermion_fable_part8.log`, reports `Assertions run: 642   passed: 642   failed: 0`.
+(Part VII adds 170 assertions and 11 witnesses to Parts I–VI). The acceptance run of Part VIII,
+`claude-fable/run_fermion_fable_part8.log`, reported `Assertions run: 642   passed: 642   failed: 0`;
+its two comparisons of the Rust solver with the Mathematica reference runs were skipped, because the
+solver's CSVs did not exist yet. The final run of the whole notebook,
+`claude-fable/run_fermion_fable_final.log`, evaluates 217 Input cells and reports
+`Assertions run: 644   passed: 644   failed: 0` and `cells w/ msgs   : 0`, with
+`identities accepted on numerical evidence alone : 0` and `non-vanishing witnesses : 46`.
 
 **How an identity is certified.** Each identity is certified in up to three stages:
 
@@ -2907,7 +2924,7 @@ values of the Bridge 3 parameter `lambdaOct`.
 
 | mark | meaning |
 |---|---|
-| **[proved P §n]** `"label"` or `label` | a `cfAssert` of Part P, Section n, that prints `PASS` in `run_fable51_part6.log` (Parts I–VI), `run_fermion_fable_part7.log` (Part VII) or `run_fermion_fable_part8.log` (Part VIII); the label is quoted verbatim |
+| **[proved P §n]** `"label"` or `label` | a `cfAssert` of Part P, Section n, that prints `PASS` in `run_fable51_part6.log` (Parts I–VI), `run_fermion_fable_part7.log` (Part VII) or `run_fermion_fable_final.log` (Part VIII, the final run); the label is quoted verbatim |
 | **[displayed P §n]** | the printed output of a cell of Part P, Section n (a table, a count or a closed form); an output, not an assertion |
 | **[prose P §n]** | stated only in prose in the notebook (a Text cell, or a comment inside an Input cell), not asserted |
 | **[derived here]** | a short derivation carried out in this section from results marked above, with every step shown |
@@ -3137,6 +3154,14 @@ listed by `cfShowConnection[omegaCanonical, "omega"]`. In subsections 9.6 and 9.
 
 That gives `6 directions x 2 planes x 2 orderings = 24` components. Every other component is zero.
 Part VII re-asserts the count and the pattern: **[proved VII §27]** `SPIN CONNECTION [has content]: metric compatible (omega_mu^{ab} antisymmetric) and every non-zero component is omega_mu^{mu 0} or omega_mu^{mu 4} (up to antisymmetry): omega_0 == omega_4 == 0`.
+That label writes the connection with both flat indices up, `omega_mu^{ab}`. Neither the
+antisymmetry nor the pattern of non-zero components depends on that position: raising both flat
+indices multiplies each component by `eta_aa eta_bb = ±1` [derived here]. The **sign** of a listed
+component does depend on it: raising both indices flips the components in the planes with exactly
+one timelike index — `(4,j)` and `(0,k)` here — and leaves the `(0,j)` and `(4,k)` components
+unchanged. That is why the table above is written with both flat indices down, as `omegaCanonical`
+is, and why Part VIII, Section 32, lists the components of the connections of its dynamical frames
+the same way (section 10.3).
 
 **Structure [derived here, from the table].**
 
@@ -4166,13 +4191,16 @@ Assertions run: 528   passed: 528   failed: 0
 CELL 198  t=0.000 s
 ```
 
-### 10.3 The same assertions in the full run of Parts I–VIII
+### 10.3 The same assertions in the runs of Parts I–VIII
 
 After Part VIII (the coupled system, notebook Sections 30–33) was added, the whole notebook was run
-again (`claude-fable/run_fermion_fable_part8.log`). The Part VII lines of that log are identical to
-those of the Part VII log apart from the timing lines [checked for this page with `diff` on the two
-logs, the `CELL` and `[t s]` lines removed]. The Part VII cells took 29.706 s in that run. Its
-summary:
+twice more. **Part VII's record is its own run** (10.1, 10.2); the two later runs show that adding
+Part VIII changed nothing in it. With the `CELL` and `[t s]` timing lines removed, the lines printed
+by cells 173–198 are identical in all three logs — the Part VII run, the acceptance run of Part VIII
+and the final run — 174 lines each, 170 of them `PASS` lines [checked for this page with `diff`].
+
+**The acceptance run of Part VIII** (`claude-fable/run_fermion_fable_part8.log`, committed in
+`bc04ed1`; a historical record). The Part VII cells took 29.706 s in that run. Its summary:
 
 ```
 ==================== RUN SUMMARY ====================
@@ -4202,6 +4230,72 @@ RUN-DONE
 
 The last Part VII line of that log is still `Assertions run: 528   passed: 528   failed: 0` (line 843),
 and the run ends with `Assertions run: 642   passed: 642   failed: 0` and 46 non-vanishing witnesses.
+Two of Part VIII's assertions did not run in it: its comparisons of the Rust solver with the
+Mathematica reference runs are made only if the solver's CSVs exist, and they did not exist yet (two
+`NOTE` lines say `Rust CSV not found; that comparison was skipped, not failed`). And three of its
+labels, in Section 32, write the listed spin-connection components with both flat indices up — the
+notation that `3a5020d` corrected:
+
+- `SPIN CONNECTION [THE RESULT]: the complete list of non-zero omega_mu^{ab} of the WARPED frame is the thirteen stated components (and their antisymmetric partners) -- nothing else`
+- `SPIN CONNECTION [THE RESULT]: the complete list for the Bianchi-I frame is omega_0^{04} = C', omega_i^{i4} = A', omega_h^{4h} = B' -- nothing else`
+- `SPIN CONNECTION [fidelity]: on the canonical member (labelled substitution) the warped connection IS omegaCanonical of Section 16, and the new component omega_0^{04} vanishes there`
+
+The arrays these assertions compare (`cfOmegaWarp`, `cfOmegaBI`) carry both flat indices **down**, so
+the tests themselves were right and are unchanged. Raising both flat indices multiplies a component by
+`eta_aa eta_bb`, which is `−1` exactly in the planes with one timelike index and one spacelike index
+(`(0,4)`, `(i,4)`, `(0,h)`) and `+1` in the `(0,i)` and `(4,h)` planes [derived here]. So, read with
+the indices up as written, the second label states the wrong sign for `omega_0^{04}` and
+`omega_i^{i4}`, while `omega_h^{4h} = B'` holds in either position; and the list of values in the old
+Section 32 Text cell had the wrong sign for its `(0,4)`, `(i,4)` and `(0,h)` components. (The corrected
+Text cell of `3a5020d` says that raising both indices "would flip the sign of every plane that
+contains x4 or a hidden timelike direction"; exactly, it flips the planes with one timelike and one
+spacelike index, and leaves the `(4,h)` planes, whose two indices are both timelike, unchanged.)
+
+**The final run** (`claude-fable/run_fermion_fable_final.log`, first recorded in `1671155` and
+re-recorded after the label correction in `3a5020d`; the notebook in its committed state). The
+Part VII cells took 26.118 s and the Part VIII cells 20.994 s in that run. Its summary:
+
+```
+==================== RUN SUMMARY ====================
+cells evaluated : 217
+total seconds   : 198.352
+cells w/ msgs   : 0
+---- slowest cells ----
+  cell 80  68.159 s
+  cell 88  22.525 s
+  cell 204  9.360 s
+  cell 86  8.072 s
+  cell 191  7.887 s
+  cell 87  7.193 s
+  cell 137  6.985 s
+  cell 121  4.579 s
+  cell 160  3.822 s
+  cell 107  3.505 s
+  cell 196  3.334 s
+  cell 193  2.970 s
+==================== ASSERTIONS ====================
+assertions run  : 644
+passed          : 644
+FAILED          : 0
+====================================================
+```
+
+The last Part VII line of that log is again `Assertions run: 528   passed: 528   failed: 0` (line
+843), and the run ends with `Assertions run: 644   passed: 644   failed: 0` (line 1005),
+`identities accepted on numerical evidence alone : 0` and 46 non-vanishing witnesses; no `RUN-DONE`
+line was appended to this log. Its `PASS` lines differ from those of the acceptance run in exactly
+five places [checked for this page with `diff`]. The two comparisons with the Rust solver now run and
+pass, each after a line `Rust <path>: 71 rows compared; max difference per column ...`:
+
+- `fable4d RUNS [fidelity]: the Rust solver's mass30eV run agrees with this cell to 1e-6 in every column, at every one of the rows its grid covers`
+- `fable4d RUNS [fidelity]: the Rust solver's power run agrees with this cell to 1e-6 in every column, at every one of the rows its grid covers`
+
+and the three Section 32 labels write the components with both flat indices down, `omega_{mu ab}`,
+as the arrays they compare have them (the tests are unchanged):
+
+- `SPIN CONNECTION [THE RESULT]: the complete list of non-zero omega_{mu ab} (both flat indices down) of the WARPED frame is the thirteen stated components (and their antisymmetric partners) -- nothing else`
+- `SPIN CONNECTION [THE RESULT]: the complete list for the Bianchi-I frame is omega_{0 04} = C', omega_{i i4} = A', omega_{h 4h} = B' (both flat indices down) -- nothing else`
+- `SPIN CONNECTION [fidelity]: on the canonical member (labelled substitution) the warped connection IS omegaCanonical of Section 16, and the new component omega_{0 04} vanishes there`
 
 ### 10.4 The design review, and every correction it made to Effort A
 
@@ -4286,7 +4380,7 @@ test on 2026-09-24, outside the repository).
 
 The commands run in Git Bash on Windows 11 (they are plain POSIX shell and run the same way on Linux
 and macOS). The toolchain recorded in the logs: Wolfram Language 15.0.1 for Microsoft Windows
-(64-bit) (July 2, 2026), called as `wolframscript` (first lines of both run logs); Python 3 for the
+(64-bit) (July 2, 2026), called as `wolframscript` (the fourth line of each of the three run logs); Python 3 for the
 builder (Python 3.14.5 when section 11.1's output was recorded); and MiKTeX (pdfTeX
 3.141592653-2.6-1.40.29, MiKTeX 26.5; Latexmk 4.88) for the LaTeX twin, installed on this machine
 at `C:/Program Files/MiKTeX/miktex/bin/x64`.
@@ -4313,7 +4407,9 @@ notebook       : 384 cells -> <repo>\claude-fable\claude-fable_Einstein-Rosen-2-
 
 (the last line prints the absolute path of the directory it ran in). The rebuilt
 `claude-fable_Einstein-Rosen-2-Planes.nb` and `run_all.wls` were **byte-identical** to the committed
-ones (`cmp` reported no difference). With only the seven manifests of Parts I–VII present — the
+ones (`cmp` reported no difference). The check was repeated on 2026-09-25 on the manifests of
+`3a5020d`, whose `cells_part8.wl` carries the corrected Section 32 labels: the same four lines, and the
+rebuilt notebook and `run_all.wls` again byte-identical to the committed ones. With only the seven manifests of Parts I–VII present — the
 state in which Part VII was run — it prints
 `cells parsed   : 340 {'Title': 7, 'Subtitle': 1, 'Subsubtitle': 1, 'Text': 103, 'Section': 30, 'Input': 198}`
 and `run_all.wls    : 198 Input cells`, which is the style tally that the checker reported for the
@@ -4323,7 +4419,7 @@ Part VII notebook (section 11.3).
 
 ```bash
 cd "$(git rev-parse --show-toplevel)/claude-fable"
-wolframscript -file run_from_nb.wls > run_fermion_fable_part8.log 2>&1
+wolframscript -file run_from_nb.wls > run_fermion_fable_final.log 2>&1
 git checkout -- claude-fable_Einstein-Rosen-2-Planes-eLa.mx claude-fable_Einstein-Rosen-2-Planes-eLazt.mx
 ```
 
@@ -4342,40 +4438,47 @@ git checkout -- claude-fable_Einstein-Rosen-2-Planes-eLa.mx claude-fable_Einstei
   and `...-eLazt.mx` with `DumpSave`, whose bytes are not reproducible from run to run. The two files
   are restored to the committed version after every run (commits `4fdfc40` and `bc04ed1` record that
   this was done).
-- **How long.** 232.146 s for the 198 cells of Parts I–VII, 233.289 s for the 217 cells of Parts
-  I–VIII (the `total seconds` lines of the two logs).
+- **How long.** 198.352 s for the 217 cells of the final run; 232.146 s for the 198 cells of the
+  Part VII run and 233.289 s for the 217 cells of the acceptance run of Part VIII (the
+  `total seconds` lines of the three logs).
 - **What it prints.** The first line is `evaluating 217 Input cells straight out of the .nb`
   (`evaluating 198 ...` for the Part VII state). Then the provenance banner of the original notebook
   and every cell's line, `PASS` labels and notes. The Part VII portion is quoted in full in section
   10.2. The end of the run is quoted in sections 10.1 and 10.3.
 
-The Part VII log was produced by the same command with the output redirected to
-`run_fermion_fable_part7.log`, when the notebook had Parts I–VII. Its last line, `RUN-DONE`, was
-appended by the wrapper that ran the command.
+The final log was produced by this command on the committed notebook of `3a5020d`. The Part VII log
+was produced by the same command with the output redirected to `run_fermion_fable_part7.log`, when the
+notebook had Parts I–VII, and the acceptance log of Part VIII with the output redirected to
+`run_fermion_fable_part8.log`, before the Rust solver's CSVs existed. The last line of those two,
+`RUN-DONE`, was appended by the wrapper that ran the command; the final log has no such line.
 
-**Checking a log** (the numbers are the results on the two committed logs):
+**Checking a log** (the numbers are the results on the three committed logs):
 
 ```bash
 cd "$(git rev-parse --show-toplevel)/claude-fable"
 grep -c '^  PASS' run_fermion_fable_part7.log         # 528
 grep -c '^  PASS' run_fermion_fable_part8.log         # 642
-grep -n '^  FAIL' run_fermion_fable_part8.log         # no output: no assertion failed
-grep -c 'MESSAGES: ' run_fermion_fable_part8.log      # 0: no cell raised a message
-grep -E 'identities accepted|non-vanishing witnesses' run_fermion_fable_part8.log | tail -2
+grep -c '^  PASS' run_fermion_fable_final.log         # 644
+grep -n '^  FAIL' run_fermion_fable_final.log         # no output: no assertion failed
+grep -c 'MESSAGES: ' run_fermion_fable_final.log      # 0: no cell raised a message
+grep -E 'identities accepted|non-vanishing witnesses' run_fermion_fable_final.log | tail -2
 #   identities accepted on numerical evidence alone : 0   (stage 3 returned True)
 #   non-vanishing witnesses                         : 46   (cfNonZeroWitnessQ found a probe point at which every entry is a
-sed -n '/RUN SUMMARY/,$p' run_fermion_fable_part8.log  # the summary quoted in section 10.3
+sed -n '/RUN SUMMARY/,$p' run_fermion_fable_final.log  # the summary quoted in section 10.3
+diff <(grep '^  PASS' run_fermion_fable_part8.log) <(grep '^  PASS' run_fermion_fable_final.log)
+#   five differences: the three Section 32 labels, and the two Rust comparisons added (section 10.3)
 ```
 
 A plain `grep FAIL` also finds the summary line `FAILED          : 0` and the two `PASS` labels whose
 text contains the word "FAILS" (control assertions that show a wrong sign failing, lines 298 and
-921 of the Part VIII log). The run prints four `EXPECTED MESSAGE(S)` lines (three in Part II, one in
-Part V: messages that the original notebook's time budgets or its underdetermined `Solve` calls may
-raise, announced in advance) and one `NOTE` line in Part III (that `a4` is undefined), and two `NOTE`
-lines in Part VIII (`Rust CSV not found; that comparison was skipped, not failed`: the Rust solver's
-CSVs `fable-cosmology/results/nb06_fable4d_mass30eV.csv` and `nb06_fable4d_power.csv`, which a
-fable-cosmology notebook writes, were not yet present, so that optional comparison was skipped);
-none of them is a message raised by a cell.
+921 of the final log, and of the Part VIII log). The run prints four `EXPECTED MESSAGE(S)` lines (three
+in Part II, one in Part V: messages that the original notebook's time budgets or its underdetermined
+`Solve` calls may raise, announced in advance) and one `NOTE` line in Part III (that `a4` is
+undefined); in Part VIII it prints the two lines `Rust <path>: 71 rows compared; ...` of the
+comparisons with the Rust solver's CSVs `fable-cosmology/results/nb06_fable4d_mass30eV.csv` and
+`nb06_fable4d_power.csv` (committed in `aca5102`). In the acceptance run of Part VIII those CSVs were
+not yet present, and two `NOTE` lines said so instead (`Rust CSV not found; that comparison was
+skipped, not failed`). None of these lines is a message raised by a cell.
 
 ### 11.3 Check the generated notebook without evaluating it
 
@@ -4384,16 +4487,18 @@ wolframscript -file "$(git rev-parse --show-toplevel)/claude-fable/verify_nb.wls
 ```
 
 It imports the `.nb`, counts its cells by style, extracts the Input cells, and checks that every
-one of them parses. It takes about 4 s (4.118 s when timed for this page). For the current
-notebook it prints (`claude-fable/verify_nb_part8.log`, and identically when re-run for this page):
+one of them parses. It takes about 4 s (4.118 s when timed for the draft of this page). For the
+committed notebook it prints (`claude-fable/verify_nb_part8.log`, re-recorded in `3a5020d` after the
+Section 32 labels were corrected; before that correction it printed `file bytes: 545408` and
+`total input characters: 347187`, the rest unchanged):
 
 ```
-file bytes: 545408
+file bytes: 545713
 Head: Notebook
 cells: 384
 style tally: {{Title, 8}, {Subtitle, 1}, {Subsubtitle, 1}, {Text, 123}, {Section, 34}, {Input, 217}}
 input cells with plain-string BoxData: 217
-total input characters: 347187
+total input characters: 347237
 input cells that FAIL to parse: {}
 first cell: InputForm[(* --- provenance banner, as in the original notebook ------------------------------------]
 last cell : InputForm[cfAssert["PART VIII [control]: a4 is STILL UNDEFINED -- nothing in Part VIII gave it a val]
@@ -4481,8 +4586,9 @@ It evaluates every Input cell of the notebook with the output suppressed (so it 
 as a run; its duration was not recorded), prints the assertion count, stops with exit code 1 if the
 Part VII objects are missing, and writes the fourteen files listed in section 10.6. Its recorded
 output is quoted there. On today's 217-cell notebook the first two lines would read
-`evaluating 217 Input cells ...` and `assertions: 642 ...`; the Part VII objects it exports are the
-same. The `.tex` files carry the date of the run in their header comment, so a re-run on another
+`evaluating 217 Input cells ...` and `assertions: 644 ...` (644 because the Rust solver's CSVs are
+committed, so Part VIII's two comparisons run, as in the final run of section 10.3); the Part VII
+objects it exports are the same. The `.tex` files carry the date of the run in their header comment, so a re-run on another
 day changes that one line; the `.txt` files carry no date. Like every evaluation of the notebook, it
 rewrites the two `.mx` files of Section 12, which are then restored as in 11.2.
 
@@ -4510,9 +4616,13 @@ notebook's objects, with separate symbols for the classical conjugation `\cconj`
 adjoint `\hadj`). MiKTeX's `latexmk` needs Perl on the `PATH`; Git for Windows ships one
 (`$env:PATH += ";C:\Program Files\Git\usr\bin"` in PowerShell, as `build_all.ps1` notes).
 
-When this page was written the LaTeX twins were being written alongside it, so no run of
-`build_all.sh` is recorded here. The preamble itself was test-compiled when it was added: commit
-`0a789e2` records that a minimal test document compiles with `latexmk` with no warnings.
+The preamble was test-compiled when it was added: commit `0a789e2` records that a minimal test
+document compiles with `latexmk` with no warnings. The LaTeX twin of this page, in its final state, was
+compiled on its own on 2026-09-25, inside `provenance-latex/`, with the command of its header,
+`latexmk -pdf -interaction=nonstopmode -halt-on-error PROVENANCE-14-FERMION-FABLE-CANONICAL-QUANTIZATION.tex`:
+it ran with no errors, no warnings and no undefined references, and wrote a PDF of 114 pages
+whose only two overfull lines are 5.5 pt and 0.6 pt too wide. The run of `build_all.sh` over the three pages belongs to the fresh-clone
+verification of section 12.
 
 ## 12. Push and repository verification
 
@@ -4521,7 +4631,8 @@ work is pushed to its `main` branch. (The remote named `upstream`, the author's 
 is never pushed to.) The repository carries a `.gitattributes` with `* -text`, so that git never
 rewrites line endings and every file checks out with the bytes that were committed.
 
-**The commits of 2026-09-24** (`git log --oneline -12`, times from `git log --date=iso`, PDT):
+**The commits of the work, 2026-09-24 and 2026-09-25** (`git log --oneline -18`, times from
+`git log --date=iso`, PDT; the work ran past midnight, so the last four commits are dated 2026-09-25):
 
 | commit | time | what it contains |
 |---|---|---|
@@ -4535,7 +4646,14 @@ rewrites line endings and every file checks out with the bytes that were committ
 | `c5892bd` | 20:38:49 | the finished fermion-fable solver: the Kohn–Sham fermion gas (stable integrals, per-7-volume mean field, gap equation), the stabilized and 8D models, `cargo test` 21 + 8 passing, and the independent scipy cross-check |
 | **`4fdfc40`** | **20:47:28** | **Part VII (this effort):** `claude-fable/cells_part7.wl`, the rebuilt notebook (198 Input cells, 528/528, 0 cells with messages), `run_fermion_fable_part7.log`, `verify_nb_part7.log`, `export_fermion_fable_tex.wls` and the fourteen generated TeX/text files |
 | `b7ea18d` | 20:48:42 | a wording correction, in an earlier provenance page, about the canonical connection's planes: for `k = 5, 6, 7` the `(0,k)` plane is a **boost** and the `(4,k)` plane a **rotation** (the fact is stated in section 9.6 of this page) |
-| `bc04ed1` | 21:24:04 | Part VIII (the coupled system, Sections 30–33; 217 Input cells, 642/642), its run log, and the Mathematica fermion references |
+| `bc04ed1` | 21:24:04 | Part VIII (the coupled system, Sections 30–33; 217 Input cells, 642/642, with its two comparisons of the Rust solver skipped because the solver's CSVs did not exist yet), its acceptance run log `run_fermion_fable_part8.log`, and the Mathematica fermion references |
+| `18a2501` | 22:13:42 | the wall-state solver of the coupled system (`fable-cosmology/fermion/waveguide*`): its derivation from the notebook's own `T16` (94/94 checks pass), its Python solver (validation 64/64), its independent Mathematica cross-check, and its report |
+| `fee5603` | 22:31:20 | the draft of this page, its LaTeX twin and its PDF (110 pages), with section 1 still a placeholder |
+| `2bc936d` | 23:12:51 | six defects of the solver `fable_fermion` fixed, among them the stable evaluation of the Dirac-sea energy `vac_over_rhoc` (section 8.3); `cargo test` 34/34 (23 unit + 11 integration, previously 21 + 8) |
+| `aca5102` | 2026-09-25 00:23:46 | notebooks 05–07 of the fermion fable executed and committed with their results (all seven notebooks pass the checker, `nbcheck` 7/7; `fable-cosmology/run_all.sh` passes end to end); the wall-state solver's input `fable-cosmology/fermion/waveguide_T16.json` committed (its derivation log still reports `94 checks, 94 PASS, 0 FAIL`); `waveguide.py validate` exits 1 whenever a check fails |
+| `1671155` | 00:28:54 | the final full run of the notebook recorded, `claude-fable/run_fermion_fable_final.log` (217 Input cells, 644/644, 0 cells with messages, 208.715 s, 46 witnesses): with the solver's CSVs now committed, Part VIII's two comparisons of the Rust solver with the Mathematica reference runs run and pass (642 + 2 = 644) |
+| `38701ef` | 05:40:19 | the drafts of the pages of Efforts B and C (markdown, LaTeX, PDF), the notebook figures their PDFs use (`provenance-latex/figures/`), and the repository's front page updated for Parts VII–VIII and the three pages |
+| `3a5020d` | 05:54:25 | Part VIII, Section 32: its Text cell and three assertion labels now write the listed spin-connection components with **both flat indices down** — `omega_{mu ab}`, `omega_{0 04}`, `omega_{i i4}`, `omega_{h 4h}` — as the arrays they compare have them (raising both indices flips the sign of every component in a plane with one timelike and one spacelike index; section 10.3); no computation changed. The final run re-recorded in `run_fermion_fable_final.log` (217 Input cells, 644/644, 0 cells with messages, 198.352 s, 46 witnesses, 0 identities accepted on numerical evidence alone, both Rust-vs-Mathematica comparisons passing); `verify_nb_part8.log` re-recorded (section 11.3); a comment in the solver's `models.rs` |
 
 **Checking that the remote has what was pushed:**
 
@@ -4547,28 +4665,32 @@ git ls-remote origin refs/heads/main        # the hash GitHub serves for main
 git status --short                          # what is not yet committed
 ```
 
-When this page was written (2026-09-24, about 21:28 PDT), `git ls-remote origin refs/heads/main`
-printed
+When the draft of this page was written (2026-09-24, about 21:28 PDT), `git ls-remote origin
+refs/heads/main` printed
 
 ```
 bc04ed16096e134857111ae16df5220d4ff18435	refs/heads/main
 ```
 
-which is the local `main` (`bc04ed1`, "Add Part VIII: fable as a source of the Einstein equations of
+which was the local `main` (`bc04ed1`, "Add Part VIII: fable as a source of the Einstein equations of
 the primordial field"). Everything of this effort that exists as code, log or generated file —
-`cells_part7.wl`, the rebuilt notebook, the two run logs, the checker's logs, the export script and
-the generated TeX/text files — is in that pushed commit.
+`cells_part7.wl`, the rebuilt notebook, the Part VII run log, the checker's logs, the export script
+and the generated TeX/text files — was in that pushed commit.
 
-**What was not yet committed when this page was written.** This page, its LaTeX twin and its PDF
-(they are committed with the pages of Efforts B and C); and, from the other efforts, working-tree
-changes in `fable-cosmology/` (a new notebook `05_fermion_fable_quantum_eos.ipynb` and its results,
-edits to other notebooks and to `fable-cosmology/fermion/crosscheck.py`, and a change to the
-solver's `constants.rs`). None of the numbers on this page is taken from those uncommitted files. The
-two `.mx` files of Section 12 were also showing as modified in the working tree, rewritten by a
-notebook evaluation running at the time; they are restored as in section 11.2 before any commit.
+**What was not yet committed when the draft was written, and where it went.** The draft of this
+page, its LaTeX twin and its PDF were committed in `fee5603`. The working-tree changes of the other
+efforts that were pending at that moment are all committed since: the changes to the solver's
+`constants.rs` and to `fable-cosmology/fermion/crosscheck.py` in `2bc936d`, and the new notebook
+`05_fermion_fable_quantum_eos.ipynb`, the edits to the other notebooks and their results in `aca5102`.
+None of the numbers on this page is taken from a file that is not committed. The two `.mx` files of
+Section 12 were also showing as modified in the working tree then, rewritten by a notebook evaluation
+running at the time; they are restored as in section 11.2 before any commit. This final version of
+the page, its LaTeX twin and its PDF are committed together with the final versions of the pages of
+Efforts B and C.
 
-**The fresh-clone verification.** The final state is verified from a fresh clone of the pushed
-`main`, with these commands (`<scratch>` is any empty directory outside the repository):
+**The final push and the fresh-clone verification.** The final state is verified from a fresh clone
+of the pushed `main`, with these commands (`<scratch>` is any empty directory outside the
+repository):
 
 ```bash
 cd <scratch>
@@ -4581,15 +4703,21 @@ python build_tools.py                                  # prints the four lines o
 cmp claude-fable_Einstein-Rosen-2-Planes.nb committed.nb && echo "notebook rebuilds byte for byte"
 wolframscript -file verify_nb.wls                      # section 11.3
 wolframscript -file run_from_nb.wls > fresh_run.log 2>&1
-sed -n '/RUN SUMMARY/,$p' fresh_run.log                # 217 cells, 642/642, cells w/ msgs 0
-diff <(grep '^  PASS' fresh_run.log) <(grep '^  PASS' run_fermion_fable_part8.log) && echo "every label identical"
+sed -n '/RUN SUMMARY/,$p' fresh_run.log                # 217 cells, 644/644, cells w/ msgs 0
+diff <(grep '^  PASS' fresh_run.log) <(grep '^  PASS' run_fermion_fable_final.log) && echo "every label identical"
 cd .. && bash provenance-latex/build_all.sh            # section 11.6
 ```
 
-At the time of writing that verification of the final pushed state (with the three pages
-committed) had not yet been run; it is the last step of the work and is recorded with the commit
-that contains these pages. The most recent completed fresh-clone verification in the repository's
-history is the one recorded in `2f6d322` (for the fable-cosmology work). The delivered copy of the
-notebook outside the repository, `C:/Users/nsh/Documents/8-dim/claude-fable_Einstein-Rosen-2-Planes.nb`,
-was still the 2026-09-16 version (273270 bytes) and is refreshed from `claude-fable/` at the same
-time.
+The Rust solver's two CSVs that Part VIII compares with its Mathematica reference runs,
+`fable-cosmology/results/nb06_fable4d_mass30eV.csv` and `nb06_fable4d_power.csv`, are committed (since
+`aca5102`), so a fresh clone runs both comparisons and its summary is compared with the final run,
+644/644. Before the final one, the most recent completed fresh-clone verification in the
+repository's history is the one recorded in `2f6d322` (for the fable-cosmology work). The delivered
+copy of the notebook outside the repository,
+`C:/Users/nsh/Documents/8-dim/claude-fable_Einstein-Rosen-2-Planes.nb`, is byte-identical to the
+committed notebook of `3a5020d` (545713 bytes, the `file bytes` of section 11.3; compared with `cmp`
+when this page was brought to its final state on 2026-09-25).
+
+The final commit hashes, the `git ls-remote` line of the final push, and the results of the
+fresh-clone verification of that pushed state (the rebuild, the run summary, the comparison of every
+label, the LaTeX build) are recorded here: {{FINAL-PUSH}}

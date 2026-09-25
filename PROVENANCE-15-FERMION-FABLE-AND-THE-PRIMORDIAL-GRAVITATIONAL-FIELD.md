@@ -25,11 +25,12 @@ marks:
 
 | mark | meaning |
 |---|---|
-| **[A]**, **[proved P §n]** | an assertion `cfAssert[label, test]` of the Mathematica notebook, Part P, Section n. The run log prints `PASS  label`; the label is quoted **verbatim**, in backticks, exactly as the log prints it. The Part VIII labels on this page were spliced into it by a script from `claude-fable/run_fermion_fable_part8.log`, not retyped |
+| **[A]**, **[proved P §n]** | an assertion `cfAssert[label, test]` of the Mathematica notebook, Part P, Section n. The run log prints `PASS  label`; the label is quoted **verbatim**, in backticks, exactly as the log prints it. The Part VIII labels on this page were spliced into it by a script from the final run log `claude-fable/run_fermion_fable_final.log` (commit `3a5020d`), not retyped |
 | **[D]**, **[displayed P §n]** | a displayed or printed output of the notebook (a table, a count, a closed form, a `Print` line of the run log), not an assertion |
 | **[P]**, **[prose P §n]** | stated only in a `Text` cell (or a code comment) of the notebook; not checked by an assertion |
-| **[nb05 §n]**, **[nb06 §n]** | a number printed by an executed cell of the fable-cosmology notebook `05_fermion_fable_quantum_eos.ipynb` or `06_fable_primordial_gravity_8d.ipynb`, section n; every such cell asserts the claims it prints (a failed assertion stops the notebook) |
+| **[nb05 §n]**, **[nb06 §n]**, **[nb07 §n]** | a number printed by an executed cell of the fable-cosmology notebook `05_fermion_fable_quantum_eos.ipynb`, `06_fable_primordial_gravity_8d.ipynb` or `07_fable_dft_states.ipynb`, section n, in the executed versions committed in `aca5102`; every such cell asserts the claims it prints (a failed assertion stops the notebook). A number quoted from the wall-state report and followed by **[nb07 §n]** is printed again by notebook 07 (or by a result file it writes in that section), to the digits it prints |
 | **[WG n]** | a result of the wall-state solver, quoted from its report `fable-cosmology/fermion/waveguide_REPORT.txt`, section n, which names the log of the run that produced it |
+| **[commit h]** | stated in the message of commit `h` of the repository (`git log --format=%B -1 h` prints it) |
 | **[derived here]** | a short derivation carried out on this page from marked results, every step shown |
 | **[file]** | read from a named file of the repository (code, CSV, log), which is named |
 
@@ -37,12 +38,11 @@ Numbers are quoted from the files and logs named next to them. Nothing is invent
 given a value anywhere: the notebook's last assertion of Part VIII checks that it is still
 undefined, `PART VIII [control]: a4 is STILL UNDEFINED -- nothing in Part VIII gave it a value; the scale factors scA, scB, scC were only ever substituted inside assertions, and none of them entered the canonical frame`.
 
-**Notebook 07.** The fable-cosmology notebook `07_fable_dft_states.ipynb` is the notebook that
-reproduces the wall-state and density-functional numbers of section 8 from the solver
-`fable-cosmology/fermion/waveguide.py`. When this page was written it was being generated and had
-not yet been executed. Every number of this page that it must re-confirm is followed by a
-re-confirmation mark (the name NB07 in double braces); the numbers themselves are quoted from
-`waveguide_REPORT.txt` and its logs.
+**Notebook 07.** The fable-cosmology notebook `07_fable_dft_states.ipynb` reproduces the wall-state
+and density-functional numbers of section 8 from the solver `fable-cosmology/fermion/waveguide.py`.
+It was executed and committed in `aca5102`. The numbers of section 8 are quoted from
+`waveguide_REPORT.txt` and its logs; each one that notebook 07 prints again carries the mark
+**[nb07 §n]**, and the few it does not print again are named at the end of section 8.
 
 **Two kinds of "section".** "Section n" with a capital S is a section of the Mathematica notebook
 (Sections 1–33; Part VII is Sections 26–29, Part VIII is Sections 30–33). "section n" in lower case
@@ -59,8 +59,9 @@ tensor with one index up and one down.
 | the Mathematica notebook (generated, never edited by hand) | `claude-fable/claude-fable_Einstein-Rosen-2-Planes.nb` |
 | its cell manifests; Part VIII (Sections 30–33) is this effort's symbolic side, Part VII (Sections 26–29) the fermion field | `claude-fable/cells_part1.wl` … `cells_part8.wl`; **`claude-fable/cells_part8.wl`**, `claude-fable/cells_part7.wl` |
 | the builder, the run harness, the runner, the checker, the section map | `claude-fable/build_tools.py`, `claude-fable/runner_header.wl`, `claude-fable/run_from_nb.wls`, `claude-fable/verify_nb.wls`, `claude-fable/nb_section_map.wls` |
-| the run log of the whole notebook, Parts I–VIII (217 Input cells, 642/642, 0 messages) | `claude-fable/run_fermion_fable_part8.log` |
-| the run log through Part VII (198 Input cells, 528/528) | `claude-fable/run_fermion_fable_part7.log` |
+| **the final run log of the whole notebook, Parts I–VIII** (217 Input cells, 644/644 assertions, 0 cells with messages, 198.352 s, 46 non-vanishing witnesses; commit `3a5020d`) | **`claude-fable/run_fermion_fable_final.log`** |
+| Part VIII's acceptance run (217 Input cells, 642/642: the two comparisons with the Rust solver's CSVs skipped, because those CSVs did not yet exist, and three spin-connection labels as they read before `3a5020d`; commit `bc04ed1`) | `claude-fable/run_fermion_fable_part8.log` |
+| the run log through Part VII, Part VII's own acceptance run (198 Input cells, 528/528) | `claude-fable/run_fermion_fable_part7.log` |
 | the checker's log and the section map | `claude-fable/verify_nb_part8.log`; `claude-fable/nb_section_map.log` |
 | the TeX/text export of the fermion field's equations | `provenance-latex/generated/*.tex`, `*.txt` (written by `claude-fable/export_fermion_fable_tex.wls`) |
 | the solver of the coupled system (Rust, pure-Rust SUNDIALS 7.8.0 CVODE) | `fable-cosmology/rust/fable_fermion/` (`src/constants.rs`, `numerics.rs`, `potentials.rs`, `kohn_sham.rs`, `models.rs`, `run.rs`, `cvode_driver.rs`, `main.rs`; `tests/cosmology.rs`) |
@@ -68,7 +69,7 @@ tensor with one index up and one down.
 | the Mathematica reference runs of the coupled system | `fable-cosmology/reference/make_reference_fermion.wls` → `mathematica_fable4d_mass30eV.csv`, `mathematica_fable4d_power.csv` |
 | the wall-state (x0) solver, its derivation, its Mathematica check, its report | `fable-cosmology/fermion/waveguide.py`; `waveguide_derivation.wls` → `waveguide_derivation.log`; `waveguide_check.wls`; `waveguide_REPORT.txt` |
 | the notebooks (generated by `notebooks/_build/nbgen.py`, checked by `notebooks/_build/nbcheck.py`) | `fable-cosmology/notebooks/05_fermion_fable_quantum_eos.ipynb`, `06_fable_primordial_gravity_8d.ipynb`, `07_fable_dft_states.ipynb` |
-| every CSV table and PNG figure the notebooks write | `fable-cosmology/results/nb05_*`, `nb06_*` (and `nb07_*`) |
+| every CSV table and PNG figure the notebooks write | `fable-cosmology/results/nb05_*`, `nb06_*`, `nb07_*` |
 | setup and the complete reproduction | `fable-cosmology/setup.sh`, `setup.ps1`; `fable-cosmology/run_all.sh`, `run_all.ps1` |
 | the LaTeX twin of this page, its preamble and build scripts | `provenance-latex/PROVENANCE-15-FERMION-FABLE-AND-THE-PRIMORDIAL-GRAVITATIONAL-FIELD.tex` → `.pdf`; `provenance-latex/preamble.tex`; `provenance-latex/build_all.sh`, `build_all.ps1` |
 
@@ -131,6 +132,13 @@ all three efforts is section 1.
 5. The wall-state solver `fable-cosmology/fermion/waveguide.py`, its symbolic derivation and its
    Mathematica check compute the discrete states along `x0` and their density-functional
    treatment (commit `18a2501`). Notebook `07_fable_dft_states.ipynb` reproduces them.
+6. Six defects of the solver that the notebooks exposed were fixed (commit `2bc936d`); notebooks
+   05–07 were then executed on the final solver and committed with their results (commit `aca5102`).
+7. The whole Mathematica notebook, Parts I–VIII, was run once more after notebook 06 had written the
+   Rust solver's CSVs, so that Part VIII's two comparisons with them ran (commit `1671155`); the
+   fact-check of this page then found that three Part VIII labels wrote spin-connection components with
+   upper flat indices where the compared array has both indices down, the labels and their Text cell
+   were corrected, and the final run was recorded again (commit `3a5020d`, 644/644).
 
 ## 1. The complete set of ideas
 
@@ -175,8 +183,12 @@ Each statement below is tagged with one of five kinds of evidence:
   26–29). Its labels are quoted verbatim from `claude-fable/run_fermion_fable_part7.log`, which
   reports `Assertions run: 528   passed: 528   failed: 0` for Parts I–VII together.
 - **[VIII]** proved in Part VIII, the notebook's coupled system (Sections 30–33). Its labels are
-  quoted verbatim from `claude-fable/run_fermion_fable_part8.log`, which reports
-  `Assertions run: 642   passed: 642   failed: 0` for Parts I–VIII together (sections 4–7 of this page).
+  quoted verbatim from the final run of the whole notebook, `claude-fable/run_fermion_fable_final.log`
+  (commit `3a5020d`), which reports `Assertions run: 644   passed: 644   failed: 0` for Parts I–VIII
+  together (sections 4–7 of this page). Part VIII's acceptance run,
+  `claude-fable/run_fermion_fable_part8.log` (commit `bc04ed1`), reports 642/642: in it the two
+  comparisons with the Rust solver's CSVs were skipped, because those CSVs did not yet exist, and three
+  spin-connection labels still wrote the components with upper flat indices (section 6.15).
 
 How an identity is certified (restated from Section 15 of the notebook). `cfZeroQ` and
 `cfZeroArrayQ` try three stages in turn:
@@ -1447,7 +1459,7 @@ properties the Einstein equations need.
 ## 4. The Einstein equations of the primordial gravitational field, with fable as their source
 
 This is Section 30 of the notebook (manifest `claude-fable/cells_part8.wl`, Input cells 199–203,
-28 assertions, 4.119 s in `claude-fable/run_fermion_fable_part8.log`). Part VIII opens with a
+28 assertions, 3.534 s in `claude-fable/run_fermion_fable_final.log`). Part VIII opens with a
 statement of purpose: Parts III–V built the 4+4 geometry of the pre-universe but never asked what
 **sources** it; Part VI put fields on it without letting them act back; Part VII made fable a
 quantized fermion with an energy–momentum tensor operator; Part VIII closes the loop [prose VIII,
@@ -1648,7 +1660,7 @@ alone; the frame must be generalized** (section 5).
 
 ## 5. The generalized frame, the (0,4) equation, the asymptotic region, and the 8-dimensional Bianchi-I system
 
-This is Section 31 of the notebook (Input cells 204–207, 21 assertions, 12.672 s). Section 30
+This is Section 31 of the notebook (Input cells 204–207, 21 assertions, 11.310 s). Section 30
 showed that the canonical frame, with its single free function `a4`, cannot absorb a positive
 energy density. Section 31 builds the family of frames on which fable can act back.
 
@@ -1678,7 +1690,7 @@ for the whole family, and on the canonical member everything reduces to Section 
 `WARPED [has content]: the contracted Bianchi identity nabla_mu G^mu_nu == 0 holds for the warped family, A, B, C arbitrary`,
 `WARPED [THE RESULT]: diag G^mu_nu == diag G_x0/C^2 + diag G_BI(A, B, C) EXACTLY (the x0-part of Section 30 and the unwarped Bianchi-I tensor)`,
 `WARPED [THE RESULT]: the only off-diagonal components are G^4_0 == 3 H Cot (2 H_C - H_A - H_B) and G^0_4 == -3 H Cot^3 (2 H_C - H_A - H_B)/C^2`,
-`WARPED [fidelity]: on the canonical member the warped Einstein tensor IS Section 30's, all 64 components, and the Bianchi-I part IS Section 30's a4-part` (the two geometries took 9.584 s and 0.709 s, `claude-fable/run_fermion_fable_part8.log`).
+`WARPED [fidelity]: on the canonical member the warped Einstein tensor IS Section 30's, all 64 components, and the Bianchi-I part IS Section 30's a4-part` (the two geometries took 8.727 s and 0.569 s, `claude-fable/run_fermion_fable_final.log`).
 
 **The Bianchi-I part, component by component** [derived here from the Ricci components asserted in
 section 5.4, `R^i_i = H_i' + H_i Theta` and `R^4_4 = Sum_7 (H_i' + H_i^2)`, with
@@ -1802,7 +1814,7 @@ the evolution form being the Ricci form `R^i_i = kappa (T^i_i − T/(D − 2))` 
 `BIANCHI-I [THE RESULT]: -G^4_4 == 3 H_A^2 + 3 H_B^2 + 9 H_A H_B + 3 H_A H_C + 3 H_B H_C == (Theta^2 - Sum_i H_i^2)/2, the sum over the 21 pairs of the seven directions`,
 `BIANCHI-I [has content]: R^i_i == H_i' + H_i Theta for i = A (x1), B (x5), C (x0), and R^4_4 == Sum over the seven directions of (H_i' + H_i^2)`,
 `BIANCHI-I [THE RESULT]: G^mu_nu == kappa T^mu_nu is EQUIVALENT to the constraint sum-over-pairs == kappa rho plus the evolution equations H_i' + H_i Theta == kappa (P_i - T/6), i = A, B, C`
-(the sign-flipped geometry took 0.680 s).
+(the sign-flipped geometry took 0.562 s).
 
 The same Bianchi-I Einstein tensor was re-computed numerically, from the metric, in notebook 06
 (section 4, for test functions `A, B, C`), and every statement agreed to machine precision
@@ -1882,8 +1894,13 @@ with `identities accepted on numerical evidence alone : 0` and `non-vanishing wi
 The Part VII run is recorded in `claude-fable/run_fermion_fable_part7.log`. It evaluates 198 Input cells
 and reports `Assertions run: 528   passed: 528   failed: 0` and `cells w/ msgs   : 0`, with
 `identities accepted on numerical evidence alone : 0` and `non-vanishing witnesses : 38`
-(Part VII adds 170 assertions and 11 witnesses to Parts I–VI). The full run of Parts I–VIII,
-`claude-fable/run_fermion_fable_part8.log`, reports `Assertions run: 642   passed: 642   failed: 0`.
+(Part VII adds 170 assertions and 11 witnesses to Parts I–VI). The acceptance run of Part VIII,
+`claude-fable/run_fermion_fable_part8.log`, reported `Assertions run: 642   passed: 642   failed: 0`;
+its two comparisons of the Rust solver with the Mathematica reference runs were skipped, because the
+solver's CSVs did not exist yet. The final run of the whole notebook,
+`claude-fable/run_fermion_fable_final.log`, evaluates 217 Input cells and reports
+`Assertions run: 644   passed: 644   failed: 0` and `cells w/ msgs   : 0`, with
+`identities accepted on numerical evidence alone : 0` and `non-vanishing witnesses : 46`.
 
 **How an identity is certified.** Each identity is certified in up to three stages:
 
@@ -1906,7 +1923,7 @@ values of the Bridge 3 parameter `lambdaOct`.
 
 | mark | meaning |
 |---|---|
-| **[proved P §n]** `"label"` or `label` | a `cfAssert` of Part P, Section n, that prints `PASS` in `run_fable51_part6.log` (Parts I–VI), `run_fermion_fable_part7.log` (Part VII) or `run_fermion_fable_part8.log` (Part VIII); the label is quoted verbatim |
+| **[proved P §n]** `"label"` or `label` | a `cfAssert` of Part P, Section n, that prints `PASS` in `run_fable51_part6.log` (Parts I–VI), `run_fermion_fable_part7.log` (Part VII) or `run_fermion_fable_final.log` (Part VIII, the final run); the label is quoted verbatim |
 | **[displayed P §n]** | the printed output of a cell of Part P, Section n (a table, a count or a closed form); an output, not an assertion |
 | **[prose P §n]** | stated only in prose in the notebook (a Text cell, or a comment inside an Input cell), not asserted |
 | **[derived here]** | a short derivation carried out in this section from results marked above, with every step shown |
@@ -2136,6 +2153,14 @@ listed by `cfShowConnection[omegaCanonical, "omega"]`. In subsections 6.6 and 6.
 
 That gives `6 directions x 2 planes x 2 orderings = 24` components. Every other component is zero.
 Part VII re-asserts the count and the pattern: **[proved VII §27]** `SPIN CONNECTION [has content]: metric compatible (omega_mu^{ab} antisymmetric) and every non-zero component is omega_mu^{mu 0} or omega_mu^{mu 4} (up to antisymmetry): omega_0 == omega_4 == 0`.
+That label writes the connection with both flat indices up, `omega_mu^{ab}`. Neither the
+antisymmetry nor the pattern of non-zero components depends on that position: raising both flat
+indices multiplies each component by `eta_aa eta_bb = ±1` [derived here]. The **sign** of a listed
+component does depend on it: raising both indices flips the components in the planes with exactly
+one timelike index — `(4,j)` and `(0,k)` here — and leaves the `(0,j)` and `(4,k)` components
+unchanged. That is why the table above is written with both flat indices down, as `omegaCanonical`
+is, and why Part VIII, Section 32, lists the components of the connections of its dynamical frames
+the same way (subsection 6.15).
 
 **Structure [derived here, from the table].**
 
@@ -2855,7 +2880,7 @@ connection of Parts III–VI was: the vielbein postulate of subsection 6.5, solv
 `cfLowerFirstFlat`, checked by the postulate residual (a regression test of the solver) and by
 antisymmetry (metric compatibility, which has content), and turned into the 16×16 matrices
 `Gamma_mu = (1/8) omega_{mu ab} [T16[a], T16[b]]` by Section 17's `cfSpinMatrix` [prose VIII §32]. This
-is Section 32 of the notebook (Input cells 208–210, 26 assertions, 4.694 s). The two frames are the
+is Section 32 of the notebook (Input cells 208–210, 26 assertions, 3.893 s). The two frames are the
 warped frame of section 5.1,
 
 ```
@@ -2863,7 +2888,7 @@ e_warped = diag( Tan[6 H x0] C,  A S^(-1/6) x3,  1,  B S^(-1/6) x3 ),        S =
 ```
 
 and the 8-dimensional Bianchi-I frame `e_BI = diag(C, A, A, A, 1, B, B, B)` of section 5.4 (the
-connections took 0.709 s and 0.509 s). **[proved VIII §32]**
+connections took 0.550 s and 0.355 s). **[proved VIII §32]**
 `SPIN CONNECTION [solver regression]: the vielbein-postulate residual is zero on the warped and on the Bianchi-I frame`,
 `SPIN CONNECTION [has content]: omega_mu[a,b] == -omega_mu[b,a] on both frames (metric compatibility)`.
 
@@ -2888,16 +2913,26 @@ only seven survive:
 omega[0; 0,4] = C',        omega[i; i,4] = A'   (i = 1,2,3),        omega[h; 4,h] = B'   (h = 5,6,7)
 ```
 
-**[proved VIII §32]** `SPIN CONNECTION [THE RESULT]: the complete list of non-zero omega_mu^{ab} of the WARPED frame is the thirteen stated components (and their antisymmetric partners) -- nothing else`,
-`SPIN CONNECTION [THE RESULT]: the complete list for the Bianchi-I frame is omega_0^{04} = C', omega_i^{i4} = A', omega_h^{4h} = B' -- nothing else`,
-`SPIN CONNECTION [fidelity]: on the canonical member (labelled substitution) the warped connection IS omegaCanonical of Section 16, and the new component omega_0^{04} vanishes there`.
+**[proved VIII §32]** `SPIN CONNECTION [THE RESULT]: the complete list of non-zero omega_{mu ab} (both flat indices down) of the WARPED frame is the thirteen stated components (and their antisymmetric partners) -- nothing else`,
+`SPIN CONNECTION [THE RESULT]: the complete list for the Bianchi-I frame is omega_{0 04} = C', omega_{i i4} = A', omega_{h 4h} = B' (both flat indices down) -- nothing else`,
+`SPIN CONNECTION [fidelity]: on the canonical member (labelled substitution) the warped connection IS omegaCanonical of Section 16, and the new component omega_{0 04} vanishes there`.
 
-**Index position.** The notebook's Text cell and the two labels write these components as
-`omega_mu^{ab}`; the assertion compares them with `cfOmegaWarp = cfLowerFirstFlat[...]`, whose two flat
-indices are both **down**, and the table above is that array [file: `claude-fable/cells_part8.wl`,
-the lists `cfOmegaWarpList`, `cfOmegaBIList` and the assertion that uses them]. Raising both flat indices
-with `eta4488` leaves the `(0,i)` and `(4,h)` planes unchanged and flips the sign of the `(i,4)`, `(0,4)`
-and `(0,h)` planes [derived here: one index of each of those planes is timelike]. **Recovery**
+**Index position.** The table and the Bianchi-I list are the arrays the assertions compare,
+`cfOmegaWarp = cfLowerFirstFlat[...]` and `cfOmegaBI`, whose two flat indices are both **down**,
+`omega_{mu ab}`, lowered with `eta4488` [file: `claude-fable/cells_part8.wl`, the lists `cfOmegaWarpList`,
+`cfOmegaBIList` and the assertions that use them]; `Gamma_mu = (1/8) omega_{mu ab} [T16[a], T16[b]]` uses
+them in that position, with `T16[a] = gamma^a` [prose VIII §32]. Until commit `3a5020d` the notebook's Text
+cell and the three labels above wrote these components with the flat indices **up**, as `omega_mu^{ab}`
+(`omega_0^{04}`, `omega_i^{i4}`, `omega_h^{4h}`); that commit corrected the Text cell and the labels to
+`omega_{mu ab}`, `omega_{0 04}`, `omega_{i i4}`, `omega_{h 4h}` (both flat indices down) and changed no
+computation **[commit 3a5020d]**. The labels quoted above are the corrected ones, from the final run log;
+Part VIII's acceptance run `claude-fable/run_fermion_fable_part8.log` still prints the old ones. The
+position matters for the sign: raising both flat indices with `eta4488 = diag(1,1,1,1,−1,−1,−1,−1)`
+multiplies the `(a,b)` component by `eta_aa eta_bb`, which leaves the `(0,i)` and `(4,h)` planes unchanged
+and flips the sign of the `(0,4)`, `(i,4)` and `(0,h)` planes [derived here: exactly one index of each of
+those three planes is timelike]. (The corrected Text cell says that raising both indices "would flip the
+sign of every plane that contains x4 or a hidden timelike direction"; for the `(4,h)` plane, which contains
+both, the two flips cancel, as just derived.) **Recovery**
 [derived here, and asserted by the fidelity label above]: at `A = Exp[-a4]`, `B = Exp[+a4]`, `C = 1`,
 `A' = −H a4' Exp[-a4]` and `B' = +H a4' Exp[a4]`, so `omega[i; 4,i] = H a4'/(E^A s^(1/6))` and
 `omega[h; 4,h] = E^A H a4'/s^(1/6)` with `A = a4[H x4]`: the 24 non-zero components of subsection 6.6.
@@ -2975,7 +3010,7 @@ removes the connection from the Dirac operator **exactly**, for a generic `chi(x
 **[proved VIII §32]** `WEITZENBOECK [THE RESULT]: the torsion vector of the warped frame is a GRADIENT, T_mu == d_mu Log[Sin[6 H x0]/(A^3 B^3 C)]; on the canonical member it is Part V's torsionVectorFable51`,
 `WEITZENBOECK [THE RESULT]: gamma^mu Gamma_mu == -(1/2) T_mu gamma^mu on the warped frame -- one vector term, a gradient`,
 `RESCALING [THE RESULT]: gamma^mu D_mu [Sqrt[Sin[6 H x0]] (A^3 B^3 C)^(-1/2) chi] == Sqrt[Sin[6 H x0]] (A^3 B^3 C)^(-1/2) gamma^mu d_mu chi for a GENERIC chi(x0, ..., x7): the connection is removed exactly`
-(the torsion took 0.078 s). The frame-independent form of subsection 6.12.3,
+(the torsion took 0.064 s). The frame-independent form of subsection 6.12.3,
 `T_mu = d_mu ln(e_mu^mu/det e)` for a diagonal frame, gives the same vector [derived here:
 `det e = Tan[6 H x0] C A^3 B^3/S`; for `mu = 0`, `e_0^0/det e = S/(A^3 B^3)`, whose `x0`-derivative is
 `6 H Cot[6 H x0]`; for `mu = 4`, `e_4^4 = 1` and `−d_4 ln det e = −Theta`, so `−(1/2) T_4 gamma^4 = (1/2) Theta T16[4]`].
@@ -3257,7 +3292,7 @@ compatible with a frozen hidden sheet is neither dark matter nor dark energy. **
 `FROZEN [THE RESULT]: on the non-trivial root (m = 2 c sigma7) rho == (eps_KS - m sigma_KS/2)/v, and Delta = eps_KS(m) - m sigma_KS/2 - eps_KS(0) has Delta(0+) = 0 and dDelta/dm = (g m^3/(4 pi^2))(L - kF/wF) > 0: the m = 0 branch has LOWER rho`,
 `FROZEN [has content]: witness numbers -- at g = 8, v = 1, c = 15, kF = 1 the non-trivial root m* exists (gap residual < 10^-20) and rho(m = 0) < rho(m*)`,
 `FROZEN [THE RESULT]: on the m = 0 branch the frozen-compatible fable is RADIATION: rho = eps_KS(kF, 0)/v, P_obs = rho/3, P_hid = 0`.
-The witness the run prints [displayed VIII §33, `claude-fable/run_fermion_fable_part8.log`]:
+The witness the run prints [displayed VIII §33, `claude-fable/run_fermion_fable_final.log`]:
 
 ```
   frozen-compatible witness (g = 8, v = 1, c = 15, kF = 1): non-trivial root m* = 3.97853200077825223420767254928521681893`12.;  rho(m = 0) = 0.10132118364233777144387946320972763891`12.  <  rho(m*) = 0.28374208489508058306307225309709278221`12.
@@ -3395,11 +3430,12 @@ mass-varying result on this page.
 The author asked to "use some of the relevant ideas from Density Functional Theory to obtain the
 fable ground and first excited states". Two systems are treated: the **homogeneous** fable gas of the
 present universe (8.1–8.2), and the fable **along the hidden coordinate `x0`** of the primordial field,
-where the wall `x0 = 0` binds discrete states (8.3–8.8). The homogeneous numbers are printed by
+where the wall `x0 = 0` binds discrete states (8.3–8.7). The homogeneous numbers are printed by
 notebook 05 **[nb05 §5.5, §5.6]**; the wall-state numbers are quoted from
 `fable-cosmology/fermion/waveguide_REPORT.txt` **[WG n]** and its logs, and notebook
-`07_fable_dft_states.ipynb` is the notebook that reproduces them (each number it must re-confirm
-carries a re-confirmation mark). The development logs that the report names are files under
+`07_fable_dft_states.ipynb`, executed and committed in `aca5102`, reproduces them (a number it prints
+again carries the mark **[nb07 §n]**, with the notebook's section; the numbers it does not print again
+are listed at the end of section 8.7). The development logs that the report names are files under
 `fable-cosmology/fermion/dev/`, a folder the repository ignores; the report, which is tracked, quotes them.
 
 ### 8.1 The functional, and the homogeneous Kohn–Sham ground state
@@ -3484,8 +3520,10 @@ with `K_inf`; nothing here or in the notebook gives `a4` a value). Units: `H = 1
 derivation, `fable-cosmology/fermion/waveguide_derivation.wls`, loads the notebook's own Input cells
 1–117 (with `DumpSave` blocked) and uses only the notebook's objects (`T16`, `sigma16`,
 `gammaCurvedCanonical`, `GammaSpinCanonical`, `cfDcov16`, `gCanonical`, `RicciScalarCanonical`, `eta4488`);
-its log records `94 checks, 94 PASS, 0 FAIL` in 171.4 s, and that the notebook's own 142 assertions of
-cells 1–117 passed while loading [file: `fable-cosmology/fermion/waveguide_derivation.log`].
+its log records `94 checks, 94 PASS, 0 FAIL` in 162.8 s, and that the notebook's own 142 assertions of
+cells 1–117 passed while loading [file: `fable-cosmology/fermion/waveguide_derivation.log`, the run of
+2026-09-25 00:06:38 committed in `aca5102`, which also wrote the committed `waveguide_T16.json`; the first
+committed run, in `18a2501`, had recorded the same 94 checks in 171.4 s].
 
 **The reduction.** With `Psi = e^{i k x1 − i omega x4} Sqrt[Sin[6 H x0]] Psi'(x0)` the Dirac equation
 `gamma^mu D_mu Psi = m Psi` (`m = H V'(s)`; `m = −2M` for the author's mass term) becomes **exactly**
@@ -3564,17 +3602,17 @@ reports `11 checks, 11 PASS, 0 FAIL` and agreement with the Python levels to at 
 
 | case | `waveguide.py` | Mathematica | difference |
 |---|---|---|---|
-| same-sign `K = 80`, `n = 0` (irrep −i) | `70.985307229908` {{NB07}} | `70.98530722995475448906` | `4.68e-11` |
-| same-sign `K = 80`, `n = 1` (irrep +i) | `78.1442493324274` {{NB07}} | `78.14424933243057439331` | `3.17e-12` |
-| same-sign `K = 80`, `n = 2` (irrep −i) | `79.3714957790936` {{NB07}} | `79.37149577909911904082` | `5.51e-12` |
-| same-sign `K = 80`, `n = 3` (irrep +i) | `79.9873085520475` {{NB07}} | `79.98730855204863978335` | `1.15e-12` |
-| same-sign `K = 8`, shallow (irrep −i) | `8.05383822789729` {{NB07}} | `8.053838227898042799445` | `7.53e-13` |
-| same-sign `K = 40`, `n = 1` (irrep +i) | `39.9665602657784` {{NB07}} | `39.96656026577953705636` | `1.14e-12` |
-| opposite-sign `K = 3`, edge (irrep −i) | `−2.93849067695725` {{NB07}} | `−2.938490676960405133909` | `3.16e-12` |
-| opposite-sign `K = 3`, edge (irrep +i) | `2.9384906769572` {{NB07}} | `2.938490676960405133909` | `3.21e-12` |
-| `g(0) = 0`, `K = 3`, flat band (irrep −i) | `1.` {{NB07}} | `1.000000000000000000000` | `0` |
-| `th = 1.0`, `K = 3` (irrep −i) | `−2.21043470304386` {{NB07}} | `−2.210434703050103980776` | `6.24e-12` |
-| same-sign `m = 4`, `K = 20` (irrep −i) | `20.1427411133772` {{NB07}} | `20.14274111338139405878` | `4.20e-12` |
+| same-sign `K = 80`, `n = 0` (irrep −i) | `70.985307229908` **[nb07 §5.5]** | `70.98530722995475448906` | `4.68e-11` |
+| same-sign `K = 80`, `n = 1` (irrep +i) | `78.1442493324274` **[nb07 §5.5]** | `78.14424933243057439331` | `3.17e-12` |
+| same-sign `K = 80`, `n = 2` (irrep −i) | `79.3714957790936` **[nb07 §5.5]** | `79.37149577909911904082` | `5.51e-12` |
+| same-sign `K = 80`, `n = 3` (irrep +i) | `79.9873085520475` **[nb07 §5.5]** | `79.98730855204863978335` | `1.15e-12` |
+| same-sign `K = 8`, shallow (irrep −i) | `8.05383822789729` **[nb07 §5.7]** | `8.053838227898042799445` | `7.53e-13` |
+| same-sign `K = 40`, `n = 1` (irrep +i) | `39.9665602657784` **[nb07 §5.7]** | `39.96656026577953705636` | `1.14e-12` |
+| opposite-sign `K = 3`, edge (irrep −i) | `−2.93849067695725` **[nb07 §5.3]** | `−2.938490676960405133909` | `3.16e-12` |
+| opposite-sign `K = 3`, edge (irrep +i) | `2.9384906769572` **[nb07 §5.8]** | `2.938490676960405133909` | `3.21e-12` |
+| `g(0) = 0`, `K = 3`, flat band (irrep −i) | `1.` **[nb07 §5.3]** | `1.000000000000000000000` | `0` |
+| `th = 1.0`, `K = 3` (irrep −i) | `−2.21043470304386` | `−2.210434703050103980776` | `6.24e-12` |
+| same-sign `m = 4`, `K = 20` (irrep −i) | `20.1427411133772` | `20.14274111338139405878` | `4.20e-12` |
 
 It also confirms the 4-fold multiplicities in the full 16-component system (four singular values below
 `1e-3` of the fifth, rising at `omega ± dw`) and the thresholds `K_c(1) = 6.70624065181` and
@@ -3592,16 +3630,16 @@ appears; exact count, bisection to `1e-9`; `dev/waveguide_run_threshold.log`):
 
 | `m/H` | `K_c(1)/H` | irrep | `K_c(1)/m` | `K_c(2)/H` | irrep | `K_c(2)/m` |
 |---|---|---|---|---|---|---|
-| 0.25 | `3.39259952` {{NB07}} | −i | `13.57040` | `33.87815035` {{NB07}} | +i | `135.51260` |
-| 0.50 | `4.77916520` {{NB07}} | −i | `9.55833` | `33.89177761` {{NB07}} | +i | `67.78356` |
-| 1.00 | `6.70624065` {{NB07}} | −i | `6.70624` | `33.91895851` {{NB07}} | +i | `33.91896` |
-| 2.00 | `9.33759991` {{NB07}} | −i | `4.66880` | `33.97299731` {{NB07}} | +i | `16.98650` |
-| 4.00 | `12.80358979` {{NB07}} | −i | `3.20090` | `34.07956537` {{NB07}} | +i | `8.51989` |
-| 8.00 | `17.04604924` {{NB07}} | −i | `2.13076` | `34.28513351` {{NB07}} | +i | `4.28564` |
+| 0.25 | `3.39259952` **[nb07 §5.6]** | −i | `13.57040` | `33.87815035` **[nb07 §5.6]** | +i | `135.51260` |
+| 0.50 | `4.77916520` **[nb07 §5.6]** | −i | `9.55833` | `33.89177761` **[nb07 §5.6]** | +i | `67.78356` |
+| 1.00 | `6.70624065` **[nb07 §5.6]** | −i | `6.70624` | `33.91895851` **[nb07 §5.6]** | +i | `33.91896` |
+| 2.00 | `9.33759991` **[nb07 §5.6]** | −i | `4.66880` | `33.97299731` **[nb07 §5.6]** | +i | `16.98650` |
+| 4.00 | `12.80358979` **[nb07 §5.6]** | −i | `3.20090` | `34.07956537` **[nb07 §5.6]** | +i | `8.51989` |
+| 8.00 | `17.04604924` **[nb07 §5.6]** | −i | `2.13076` | `34.28513351` **[nb07 §5.6]** | +i | `4.28564` |
 
 The first level always appears in irrep −i, with `K_c(1)` growing roughly like `6.7 (m/H)^(1/2) H`; the
 second always in the other irrep, at `K_c(2) = 33.9–34.3 H`, almost independent of `m`. Within irrep −i
-alone the second level appears only at `K = 49.540216755` {{NB07}} (`m = H`). **For `K < K_c(1)` there is no
+alone the second level appears only at `K = 49.540216755` **[nb07 §5.6]** (`m = H`). **For `K < K_c(1)` there is no
 bound level at all** — the design's first guess ("for `k != 0` the wall region is a potential pocket: bound
 states below `Sqrt[m^2 + k^2 e^{2 a4}]`") was refuted by the review (DFT-7), and the refutation is confirmed.
 
@@ -3610,58 +3648,58 @@ states below `Sqrt[m^2 + k^2 e^{2 a4}]`") was refuted by the review (DFT-7), and
 
 | `K` | `R` | `n = 0` (irrep −i) | `n = 1` (irrep +i) | `n = 2` (irrep −i) | `n = 3` (irrep +i) |
 |---|---|---|---|---|---|
-| 7 | `7.07106781` | `7.07061457` {{NB07}} [`4.53e-4`] | | | |
-| 8 | `8.06225775` | `8.05383823` {{NB07}} [`8.42e-3`] | | | |
-| 10 | `10.04987562` | `9.99920505` {{NB07}} [`0.0507`] | | | |
-| 20 | `20.02498439` | `19.39490065` {{NB07}} [`0.630`] | | | |
-| 34 | `34.01470270` | `31.96226139` {{NB07}} [`2.05`] | `34.01469386` {{NB07}} [`8.8e-6`] | | |
-| 40 | `40.01249805` | `37.21339774` {{NB07}} [`2.80`] | `39.96656027` {{NB07}} [`0.0459`] | | |
-| 50 | `50.00999900` | `45.83408535` {{NB07}} [`4.18`] | `49.72238768` {{NB07}} [`0.288`] | `50.00982259` {{NB07}} [`1.8e-4`] | |
-| 60 | `60.00833275` | `54.32136437` {{NB07}} [`5.69`] | `59.31765921` {{NB07}} [`0.691`] | `59.92357565` {{NB07}} [`0.0848`] | |
-| 80 | `80.00624976` | `70.98530723` {{NB07}} [`9.02`] | `78.14424933` {{NB07}} [`1.86`] | `79.37149578` {{NB07}} [`0.635`] | `79.98730855` {{NB07}} [`0.0189`] |
-| 100 | `100.00499988` | `87.32733251` {{NB07}} [`12.7`] | `96.59932036` {{NB07}} [`3.41`] | `98.43212058` {{NB07}} [`1.57`] | `99.66483153` {{NB07}} [`0.340`] |
+| 7 | `7.07106781` | `7.07061457` **[nb07 §5.7]** [`4.53e-4`] | | | |
+| 8 | `8.06225775` | `8.05383823` **[nb07 §5.7]** [`8.42e-3`] | | | |
+| 10 | `10.04987562` | `9.99920505` **[nb07 §5.7]** [`0.0507`] | | | |
+| 20 | `20.02498439` | `19.39490065` **[nb07 §5.7]** [`0.630`] | | | |
+| 34 | `34.01470270` | `31.96226139` **[nb07 §5.7]** [`2.05`] | `34.01469386` **[nb07 §5.7]** [`8.8e-6`] | | |
+| 40 | `40.01249805` | `37.21339774` **[nb07 §5.7]** [`2.80`] | `39.96656027` **[nb07 §5.7]** [`0.0459`] | | |
+| 50 | `50.00999900` | `45.83408535` **[nb07 §5.7]** [`4.18`] | `49.72238768` **[nb07 §5.7]** [`0.288`] | `50.00982259` **[nb07 §5.7]** [`1.8e-4`] | |
+| 60 | `60.00833275` | `54.32136437` **[nb07 §5.7]** [`5.69`] | `59.31765921` **[nb07 §5.7]** [`0.691`] | `59.92357565` **[nb07 §5.7]** [`0.0848`] | |
+| 80 | `80.00624976` | `70.98530723` **[nb07 §5.7]** [`9.02`] | `78.14424933` **[nb07 §5.7]** [`1.86`] | `79.37149578` **[nb07 §5.7]** [`0.635`] | `79.98730855` **[nb07 §5.7]** [`0.0189`] |
+| 100 | `100.00499988` | `87.32733251` **[nb07 §5.7]** [`12.7`] | `96.59932036` **[nb07 §5.7]** [`3.41`] | `98.43212058` **[nb07 §5.7]** [`1.57`] | `99.66483153` **[nb07 §5.7]** [`0.340`] |
 
-(at `K = 100` a fifth level `99.96879653` {{NB07}} [`0.0362`], irrep −i). The band gap at fixed `K`
-(`omega_1 − omega_0`) of the bare wall: `2.05243246` {{NB07}} (`K = 34`), `2.75316253` {{NB07}} (40),
-`4.99629484` {{NB07}} (60), `7.15894210` {{NB07}} (80), `9.27198785` {{NB07}} (100).
+(at `K = 100` a fifth level `99.96879653` **[nb07 §5.7]** [`0.0362`], irrep −i). The band gap at fixed `K`
+(`omega_1 − omega_0`) of the bare wall: `2.05243246` **[nb07 §5.14]** (`K = 34`), `2.75316253` **[nb07 §5.14]** (40),
+`4.99629484` **[nb07 §5.14]** (60), `7.15894210` **[nb07 §5.14]** (80), `9.27198785` (100).
 
 **The ground and first excited level at `K = 80`** (the case the review examined, DFT-7): in the full
-16-component problem the positive levels are `70.98531` {{NB07}} (`n = 0`, irrep −i), `78.14425` {{NB07}}
-(`n = 1`, from the **other** irrep, +i), `79.37150` {{NB07}} (`n = 2`, irrep −i) and `79.98731` {{NB07}}
+16-component problem the positive levels are `70.98531` **[nb07 §5.5]** (`n = 0`, irrep −i), `78.14425` **[nb07 §5.5]**
+(`n = 1`, from the **other** irrep, +i), `79.37150` **[nb07 §5.5]** (`n = 2`, irrep −i) and `79.98731` **[nb07 §5.5]**
 (`n = 3`, irrep +i), each 4-fold. The review's "`n = 1` at 79.37150" labelled the second level of one irrep;
-it is `n = 2` of the full problem, and the first excited level is `78.144249332` {{NB07}}. The
+it is `n = 2` of the full problem, and the first excited level is `78.144249332` **[nb07 §5.5]**. The
 `levels` command printed, for both irreps, `irrep -i: -79.987308552047, -78.144249332428, +70.985307229908, +79.371495779094;
-irrep +i: -79.371495779091, -70.985307229895, +78.144249332427, +79.987308552047` {{NB07}} — the `omega -> −omega`
+irrep +i: -79.371495779091, -70.985307229895, +78.144249332427, +79.987308552047` **[nb07 §5.5]** — the `omega -> −omega`
 symmetry between the irreps to `1e-11` **[WG 1]**.
 
-**Wavefunctions** (normalized in `L^2(dz)`): at `K = 80`, `n = 0` has `Int (f^2 − g^2) = 0.24150473` {{NB07}}
-with `f` and `g` nodeless; `n = 1` (+i) `0.01572127` {{NB07}}, `g` with one node; `n = 2` (−i) `0.02345024` {{NB07}},
+**Wavefunctions** (normalized in `L^2(dz)`): at `K = 80`, `n = 0` has `Int (f^2 − g^2) = 0.24150473` **[nb07 §5.10]**
+with `f` and `g` nodeless; `n = 1` (+i) `0.01572127` **[nb07 §5.10]**, `g` with one node; `n = 2` (−i) `0.02345024`,
 `f` and `g` one node each; they live within `z < 0.4/H` (decay rates `kappa = 36.9, 17.2, 10.1`) **[WG 4.5]**.
 
 **The opposite-sign wall: a gapless edge band.** For every `K > 0` there is one edge level per block, deep
-inside the gap: `|omega|/K -> (m/6H) B(m/6H, 13/12) = 0.9808227327` {{NB07}} as `K -> 0` (exact), `2.93849068`
-{{NB07}} at `K = 3`, and the ratio falls for larger `K` **[WG 4.3]**:
+inside the gap: `|omega|/K -> (m/6H) B(m/6H, 13/12) = 0.9808227327` **[nb07 §5.8]** as `K -> 0` (exact), `2.93849068`
+**[nb07 §5.8]** at `K = 3`, and the ratio falls for larger `K` **[WG 4.3]**:
 
 | `K` | `R` | edge `\|omega\|` | `\|omega\|/K` |
 |---|---|---|---|
-| 0.10 | `1.004988` | `0.09808212` {{NB07}} | `0.980821` |
-| 1.00 | `1.414214` | `0.98067175` {{NB07}} | `0.980672` |
-| 3.00 | `3.162278` | `2.93849068` {{NB07}} | `0.979497` |
-| 10.00 | `10.049876` | `9.69024420` {{NB07}} | `0.969024` |
-| 20.00 | `20.024984` | `18.99601285` {{NB07}} | `0.949801` |
-| 40.00 | `40.012498` | `36.76546650` {{NB07}} | `0.919137` |
-| 80.00 | `80.006250` | `70.51329445` {{NB07}} | `0.881416` |
-| 100.00 | `100.005000` | `86.85053394` {{NB07}} | `0.868505` |
+| 0.10 | `1.004988` | `0.09808212` **[nb07 §5.8]** | `0.980821` |
+| 1.00 | `1.414214` | `0.98067175` **[nb07 §5.8]** | `0.980672` |
+| 3.00 | `3.162278` | `2.93849068` **[nb07 §5.8]** | `0.979497` |
+| 10.00 | `10.049876` | `9.69024420` **[nb07 §5.8]** | `0.969024` |
+| 20.00 | `20.024984` | `18.99601285` **[nb07 §5.8]** | `0.949801` |
+| 40.00 | `40.012498` | `36.76546650` **[nb07 §5.8]** | `0.919137` |
+| 80.00 | `80.006250` | `70.51329445` **[nb07 §5.8]** | `0.881416` |
+| 100.00 | `100.005000` | `86.85053394` **[nb07 §5.8]** | `0.868505` |
 
 The edge band lies inside the bulk gap `|omega| < m` for `K < ~1.02 m`: massless fermions bound to the
 wall, 4 positive states per transverse momentum, with a small **negative** scalar density
-(`Int (f^2 − g^2) = −0.0498` {{NB07}} at `K = 3`). Further positive levels of the opposite-sign wall appear
-at `K = 33.80968834` {{NB07}} (irrep −i) and `48.79382020` {{NB07}} (+i).
+(`Int (f^2 − g^2) = −0.0498` at `K = 3`). Further positive levels of the opposite-sign wall appear
+at `K = 33.80968834` **[nb07 §5.6]** (irrep −i) and `48.79382020` **[nb07 §5.6]** (+i).
 
 **The dependence on the wall condition** (the uniform family `f(0) cos th + g(0) sin th = 0`, symmetry
 breaking except `th = ±Pi/4`): at `K = 3` the levels sweep the **whole** gap `(−R, R)` as `th` varies; at
-`K = 80` the lowest positive level moves from `omega = m = 1` {{NB07}} (`th = −Pi/2`, `g(0) = 0`) to
-`70.985` {{NB07}} (MIT+) and `70.513` {{NB07}} (MIT−). The wall condition, not the pocket, sets the low end
+`K = 80` the lowest positive level moves from `omega = m = 1` **[nb07 §5.9]** (`th = −Pi/2`, `g(0) = 0`) to
+`70.985` **[nb07 §5.9]** (MIT+) and `70.513` **[nb07 §5.9]** (MIT−). The wall condition, not the pocket, sets the low end
 of the spectrum **[WG 4.4]**.
 
 **Convergence:** the reference levels are accurate to about `1e-10` (tolerance-limited; matching point,
@@ -3690,11 +3728,11 @@ no-sea, `E_xc` neglected, a common Fermi level `mu`, Anderson mixing; the partic
 **(a) The author's mass term: exact.** For `W = m0 sigma` (`lam = 0`) the action is bilinear, the theory is
 **free**, the single-particle levels of 8.5 are the exact spectrum, and every many-body eigenstate is a
 Slater determinant of exact modes; no self-consistency is needed. Consequences: on the **same-sign** wall
-there is **no** bound positive level for `K < K_c(1) = 6.70624` {{NB07}}; every wall level lies above `m0` by
-more than `Sqrt[m0^2 + K_c^2] − m0 = 5.78 m0` {{NB07}}, while the bulk continuum starts at `m0`. The
+there is **no** bound positive level for `K < K_c(1) = 6.70624` **[nb07 §5.11]**; every wall level lies above `m0` by
+more than `Sqrt[m0^2 + K_c^2] − m0 = 5.78 m0` **[nb07 §5.11: `5.780388`]**, while the bulk continuum starts at `m0`. The
 `N_s`-fermion ground state of the free theory therefore has **no wall-localized fermions**; the wall levels
 are excited states. On the **opposite-sign** wall the gapless edge band lies below `m0` for `K < ~1.02 m0`;
-the free ground state of `N_s <= (4/6 pi^2)(1.02)^3 = 0.072 H^3` {{NB07}} fermions fills it — a genuine
+the free ground state of `N_s <= (4/6 pi^2)(1.02)^3 = 0.072 H^3` **[nb07 §5.8, §5.11: `0.071622`, with `K* = 1.01971543`]** fermions fills it — a genuine
 wall-bound massless (3+1)-dimensional Fermi sea — and beyond that the particles spill into the bulk.
 
 **(b) Same-sign wall, attractive `W`: the wall-band sector** (`lam = −0.01 H^-3`, `N_s = 100 H^3`, `m0 = 1`).
@@ -3706,16 +3744,16 @@ E/N = 9.37227736 H        mu = 11.6958993131 H
 band n = 0 (irrep -i) holds all N_s: k in [5.45898483, 11.80021359]; band bottom omega = 5.54982120 at the self-consistent threshold k_lo = 5.45898 (bare 6.70624)
 ```
 
-(every number in this block {{NB07}}); the density profile has `sigma = n = 0` at the wall, a maximum `sigma = 23.845616`
-{{NB07}} (mass minimum `m = 0.761543845` {{NB07}}) at `z = 0.167`, and an inverse-square tail. The truncation at
-`Z` converges slowly (a self-consistent tail `m − m0 = −0.032/z^2`); extrapolated, `E/A -> 936.46–936.53`
-{{NB07}}, `mu -> 11.692` {{NB07}}, `k_lo -> 5.439` {{NB07}}; grid, quadrature and `k`-grid are converged to
+(every number in this block **[nb07 §5.17]**, the bare threshold **[nb07 §5.6]**); the density profile has `sigma = n = 0` at the wall, a maximum `sigma = 23.845616`
+**[nb07 §5.17]** (mass minimum `m = 0.761543845` **[nb07 §5.17]**) at `z = 0.167`, and an inverse-square tail. The truncation at
+`Z` converges slowly (a self-consistent tail `m − m0 = −0.032/z^2`); extrapolated, `E/A -> 936.46–936.53`,
+`mu -> 11.692`, `k_lo -> 5.439`; grid, quadrature and `k`-grid are converged to
 `<= 4e-5` in `E/A` **[WG 6.5]**. **But this converged state is not the ground state.** (i) `mu − m0 = 10.696 > 0`:
 bulk continuum states lie below the Fermi level, so the global Kohn–Sham ground state has no wall layer at
 this coupling. (ii) Even within the wall-band sector the Walecka functional
 `Omega[m] = Sum_occ omega[m] + Int (m − m0)^2/(2 |lam|) dz/Sin` is **not stationary**: along
-`m = m0 + s (m_sc − m0)`, `Omega = 938.1963767831, 937.2277359473, 936.2641446367` {{NB07}} at `s = 0.98, 1.00, 1.02`
-and `d Omega/ds = −48.305804` {{NB07}} — the threshold term `(4/2 pi^2) k_lo^2 (−dk_lo/ds)(R(k_lo) − mu) = −48.306186`
+`m = m0 + s (m_sc − m0)`, `Omega = 938.1963767831, 937.2277359473, 936.2641446367` **[nb07 §5.17]** at `s = 0.98, 1.00, 1.02`
+and `d Omega/ds = −48.305804` **[nb07 §5.17]** — the threshold term `(4/2 pi^2) k_lo^2 (−dk_lo/ds)(R(k_lo) − mu) = −48.306186`
 (`dk_lo/ds = −1.301519`, `R(k_lo) = 5.549821`; agreement to `8e-6` relative):
 a deeper well pulls new bound states out of the continuum at the band bottom (energy `~5.55`) and they
 replace Fermi-surface states (energy `mu = 11.70`). So the result is reported as the **self-consistent
@@ -3726,27 +3764,27 @@ wall-band configuration**, not as a variational ground state.
 
 | `x` | `E/A` | `Delta E/A` | `Delta E` per promoted fermion |
 |---|---|---|---|
-| 0.01 | `957.9790646375` {{NB07}} | `20.7513286050` | `20.75132861` {{NB07}} |
-| 0.05 | `1041.8217858764` {{NB07}} | `104.5940498439` | `20.91880997` {{NB07}} |
-| 0.10 | `1148.4782948320` {{NB07}} | `211.2505587995` | `21.12505588` {{NB07}} |
-| 0.20 | `1367.8210883907` {{NB07}} | `430.5933523582` | `21.52966762` {{NB07}} |
+| 0.01 | `957.9790646375` **[nb07 §5.17]** | `20.7513286050` | `20.75132861` **[nb07 §5.17]** |
+| 0.05 | `1041.8217858764` **[nb07 §5.17]** | `104.5940498439` | `20.91880997` **[nb07 §5.17]** |
+| 0.10 | `1148.4782948320` **[nb07 §5.17]** | `211.2505587995` | `21.12505588` **[nb07 §5.17]** |
+| 0.20 | `1367.8210883907` **[nb07 §5.17]** | `430.5933523582` | `21.52966762` **[nb07 §5.17]** |
 
 The lowest Delta-SCF excitation is the `x -> 0+` limit, about `20.75 H` per promoted fermion, close to the
 bottom of band `n = 1` (`omega = 31.99` at `k_lo = 31.975`) minus the top of `n = 0` (`11.63`), `= 20.36`, the
 remaining `0.4` being the mean-field rearrangement. Intra-band particle–hole excitations are gapless. The
-self-consistent band gaps at fixed `k` (`omega_1 − omega_0`): `2.08513398` {{NB07}} (`k = 34`), `2.78024477` {{NB07}}
-(40), `5.02368345` {{NB07}} (60), `7.18485799` {{NB07}} (80).
+self-consistent band gaps at fixed `k` (`omega_1 − omega_0`): `2.08513398` **[nb07 §5.17]** (`k = 34`), `2.78024477` **[nb07 §5.17]**
+(40), `5.02368345` **[nb07 §5.17]** (60), `7.18485799` **[nb07 §5.17]** (80).
 
 **(c) Opposite-sign wall: the edge band is a true ground state** (`m0 = 1`, `N_s = 0.05 H^3`). The edge band
-starts at the Dirac point (`omega = 0`, `k = 0`); `N_s = 0.05` fills it to `k_F = 0.90459` {{NB07}} with `mu < m0`:
+starts at the Dirac point (`omega = 0`, `k = 0`); `N_s = 0.05` fills it to `k_F = 0.90459` **[nb07 §5.12]** with `mu < m0`:
 every state below `mu` is a bound wall state, so this is a genuine ground state of `N_s` fermions.
 
 | | `lam = −0.01 H^-3` | `lam = −10 H^-3` |
 |---|---|---|
 | iterations | 3 (`max \|dm\| < 1e-10`) | 6 (`max \|dm\| < 1e-10`) |
-| `E/A` | `0.033268937058 H^4` {{NB07}} | `0.033267529405 H^4` {{NB07}} |
-| `E/N` | `0.66537874 H` {{NB07}} | `0.66535059 H` {{NB07}} |
-| `mu` | `0.8871343842 H` {{NB07}} | `0.8870591549 H` {{NB07}} |
+| `E/A` | `0.033268937058 H^4` **[nb07 §5.12]** | `0.033267529405 H^4` **[nb07 §5.12]** |
+| `E/N` | `0.66537874 H` **[nb07 §5.12]** | `0.66535059 H` **[nb07 §5.12]** |
+| `mu` | `0.8871343842 H` **[nb07 §5.12]** | `0.8870591549 H` **[nb07 §5.12]** |
 | `sigma(z)` | in `[−7.964e-4, 0]` (negative: `f ~ −g`) | in `[−7.986e-4, 0]` |
 | `m(z)` | in `[1, 1.00000796]` | in `[1, 1.00798557]` (the attraction **raises** `m` near the wall) |
 | Walecka check | slope `−1.2e-14`, curvature `+5.6e-13` | slope `+2.0e-13`, curvature `+5.6e-10` |
@@ -3756,7 +3794,7 @@ massless value `(3/4) v k_F` with `v = 0.9807`: the wall fermions are essentiall
 converged (`Z = 45`, a finer grid and more quadrature points change `E/A` by at most `1.6e-12`). **Its first
 excited state**: there is no bound band `n = 1` at the occupied momenta (the next positive bands of the
 opposite-sign wall appear only at `K = 33.81` and `48.79`); the lowest excitations are gapless intra-band
-particle–hole pairs and promotion into the bulk continuum, which costs at least `m0 − mu = 0.113 H` {{NB07}}
+particle–hole pairs and promotion into the bulk continuum, which costs at least `m0 − mu = 0.113 H` **[nb07 §5.12: `m0 − mu` from its `mu`]**
 and unbinds the fermion. A Delta-SCF with a finite fraction in a bound band `n = 1` would require
 `k >= 33.81`, at `omega − mu >= ~32.9 H`.
 
@@ -3779,8 +3817,8 @@ at this coupling either.
   exact free Fermi sea. The first excitations are gapless particle–hole pairs; pair creation starts at
   `w_F + |m|` (`q = k_F`) and at `2 w_F` for `q = 0`.
 - **Along `x0`.** The geometry binds states only above a transverse-momentum threshold on the same-sign
-  wall (`K_c(1) = 6.70624 H` at `m = H` {{NB07}}), so the **ground state of the free fable has no
-  wall-bound fermions there**; the wall levels (ground `70.98531` {{NB07}}, first excited `78.14425` {{NB07}} at
+  wall (`K_c(1) = 6.70624 H` at `m = H` **[nb07 §5.6]**), so the **ground state of the free fable has no
+  wall-bound fermions there**; the wall levels (ground `70.98531` **[nb07 §5.5]**, first excited `78.14425` **[nb07 §5.5]** at
   `K = 80`) are excited states of the many-body system. On the opposite-sign wall a gapless edge band of
   massless wall fermions exists at every `K`, and it carries a variationally consistent Kohn–Sham ground
   state; its first excitations are gapless.
@@ -3796,10 +3834,25 @@ at this coupling either.
   local functional `m(z) = W'(sigma(z))`; the Delta-SCF states are stationary configurations with constrained
   occupations, not eigenstates of an exact many-body Hamiltonian.
 
-**Notebook 07.** `fable-cosmology/notebooks/07_fable_dft_states.ipynb` is the notebook that re-runs these
-computations with `waveguide.py`, writes their tables and figures under `fable-cosmology/results/nb07_*`, and
-asserts the numbers marked for re-confirmation above; its executed output is the record against which they are
-re-confirmed.
+**Notebook 07.** `fable-cosmology/notebooks/07_fable_dft_states.ipynb` re-runs these computations with
+`waveguide.py` (its same-sign Kohn–Sham runs at a reduced resolution, `{'Z': 30.0, 'h_near': 0.006, 'n_gl': 12}`,
+compared in its §5.17 with the solver's full-resolution run, which it starts in the background at its
+beginning), writes their tables and figures under `fable-cosmology/results/nb07_*`, and asserts every number
+it prints. Executed and committed in `aca5102`, it prints again every wall-state number above that carries
+the mark **[nb07 §n]** (to the digits it prints; a few only in a result file of that section). Its comparison
+with the full-resolution run ends `largest relative difference: opposite-sign (same resolution) 2.8e-09;
+same-sign ground state (reduced) 1.4e-04; Delta-SCF (reduced) 3.0e-06` **[nb07 §5.17]**. The numbers of this
+section that it does **not** print again, and which are therefore quoted from the report alone **[WG n]**,
+are: the levels `−2.21043470304386` (`th = 1.0`, `K = 3`) and `20.1427411133772` (`m = 4`, `K = 20`) of the
+Mathematica comparison of section 8.4; the bare band gap `9.27198785` at `K = 100` (it prints the two levels
+at `K = 100` whose difference that is, `96.59932036 − 87.32733251 = 9.27198785` [derived here]);
+`Int (f^2 − g^2) = 0.02345024` of the level `n = 2` at `K = 80` and `−0.0498` of the opposite-sign edge
+level at `K = 3`; and the extrapolation of the same-sign Kohn–Sham state to `Z -> infinity`
+(`E/A -> 936.46–936.53`, `mu -> 11.692`, `k_lo -> 5.439`). For that last item notebook 07 prints instead
+the larger box `Z = 45`: `E/A = 937.06107832 (Z = 30: 937.22904016; difference -0.167962, -1.79e-04
+relative); mu = 11.69499658 (-9.07e-04); k_lo = 5.454492` and the tail `sigma(20)/sigma(10) = 0.2529 (an
+inverse-square tail gives 0.25)` **[nb07 §5.13]**, consistent with the slow convergence in `Z` described in
+section 8.6.
 
 ## 9. Solving the coupled equations from the beginning of the present universe to today
 
@@ -3839,8 +3892,10 @@ Initial state: `H_B = H_C = 0`, `H_A` from the constraint, `t(a_i) = 1/(2 H_A(a_
 **boundary-value problem** (`H_B = H_C = 0` at `a_i`; `H_A = B = C = 1` today), solved by an outer shooting
 (bracket and Brent) on the fable's amplitude and an inner secant iteration on `ln v(a_i)`. It runs forward
 only (9.11). [prose nb06 §4, §4.1; file: `fable-cosmology/rust/fable_fermion/src/models.rs` and `run.rs`,
-module documentation.] (The module summary of `models.rs` still lists the unscaled state
-`(ln B, ln C, H_A, H_B, H_C, t)`; its right-hand side and the notebook integrate the scaled one above.)
+module documentation.] (Since commit `3a5020d` the module summary of `models.rs` names both: the physical
+state `(ln B, ln C, H_A, H_B, H_C, t)`, and the scaled state `(ln B, ln C, h_A, h_B, h_C, tau)` with
+`h_i = H_i A^2` and `tau = t/A^2` that CVODE integrates; before, it listed only the physical one. The change is
+a comment only **[commit 3a5020d]**.)
 
 **`fable4d` — the stabilized model, the physical one.** `fable8d` plus a zero-energy stabilizing stress
 `P_stab = −F_total/2` added to the hidden pressures of `B` and `C`. Then `F_total + 2 P_stab = 0`, `H_B = H_C = 0` is
@@ -4145,7 +4200,7 @@ Each exits with code 1 and one line of physical reason **[nb06 §5.9]**:
 $ fable_fermion fable4d --potential lorentz --points 1001
   exit code 1: fable_fermion: rho_hat = H_A^2 <= 0 from N = -0.7597808064 (a = 0.4677689478) on: the Kohn-Sham ground state has negative energy there (m_eff = -3.802078e-2, sigma8 = -9.789374e-4, rho_f = -4.830421e-1 (U = -4.847891e-1) against rho_r + rho_b = 4.830421e-1); H_A^2 = rho_hat is impossible (the onset located past the last accepted CVODE step and bisected)
 $ fable_fermion fable4d --potential quadratic --param gq=0.5 --points 1001
-  exit code 1: fable_fermion: gap-branch jump (sign of m_eff) between N = -0.027631021115929855 and N = 0: m = -3.1667192351800344e-1 -> 4.060727073199006e2: a first-order transition of the Kohn-Sham ground state; the RHS is discontinuous there and energy conservation would need the Maxwell construction, which this solver does not implement
+  exit code 1: fable_fermion: gap-branch jump at N = -0.0037262796 (a = 0.9962806544): a first-order transition of the Kohn-Sham ground state, the lowest-energy gap root jumps from the branch m_eff = -1.518260e0 (rho_f = 6.856759e-1) to the branch m_eff = 4.083552e2 (rho_f = 9.536521e-1); the right-hand side is discontinuous there, and energy conservation across it would need the Maxwell construction, which this solver does not implement (the transition detected inside the right-hand side and bisected in N to adjacent doubles)
 $ fable_fermion fable8d --potential mass --direction backward
   exit code 1: fable_fermion: fable8d runs forward only (design review E4): backward in time the shear modes grow as A^-3 v^-1 relative to H_A ~ A^-2, the solution runs to the 8D Kasner point H_B/H_A = -0.2929 and the constraint drifts to O(1); use fable4d --direction backward
 all three refused with exit code 1 and the expected reason
@@ -4154,12 +4209,14 @@ all three refused with exit code 1 and the expected reason
 `lorentz`: the Kohn–Sham ground state moves to the negative-`sigma` branch, whose energy is negative (a well of
 `W` on `sigma < 0` that the quantum gas reaches and the classical `s >= 0` field never did). Repulsive `quadratic`:
 a first-order transition (section 8.1). `fable8d` backward: the constraint grows backward (section 5.4).
-(These lines are the notebook's execution of 22:53 PDT. The solver commit `2bc936d` of 23:12 detects both the
-negative-energy onset and the gap-branch jump inside the right-hand side, on every internal CVODE step, and
-bisects them to adjacent doubles, independently of the output grid: its message records `lorentz` at
-`a = 0.4677689478` "whatever --points is" and the repulsive-quadratic jump at `a = 0.9962806544` "for any grid",
-with scipy agreeing to `8e-12`. The quadratic line above brackets the jump only between two output rows; the
-re-executed notebook 06 is expected to print the bisected location instead, and its output is the record.)
+(These lines are the output of the committed notebook 06 (commit `aca5102`), executed on the final solver of
+commit `2bc936d`. That commit detects both the negative-energy onset and the gap-branch jump inside the
+right-hand side, on every internal CVODE step, and bisects them to adjacent doubles, independently of the
+output grid: `lorentz` refuses at `a = 0.4677689478` "whatever --points is", the repulsive quadratic at
+`a = 0.9962806544` "for any grid", and scipy agrees to `8e-12`; before it, the negative-energy onset moved
+with the output grid, and `--points 11` died with a CVODE `mxstep` error **[commit 2bc936d]**. The
+repulsive-quadratic line above is that bisected refusal: at `N = -0.0037262796` the lowest-energy gap root
+jumps from the branch `m_eff = -1.518260e0` to the branch `m_eff = 4.083552e2`.)
 
 ### 9.12 Three implementations, one answer: CVODE, scipy and Mathematica
 
@@ -4167,13 +4224,13 @@ re-executed notebook 06 is expected to print the bisected location instead, and 
 reference script: every tenth row (71 of 701) by exact algebra from Section 29's closed forms (with
 `FindRoot` for the gap), the age of `mass30eV` by `NIntegrate` between the rows, and the age of `power` by
 `NDSolve` of the pair `(m(N), ln t(N))` with the **differentiated** gap equation
-`dm/dN = −W''(sigma) (d sigma/d k_F) k_F / (1 − W''(sigma) d sigma/dm)` instead of solving it [prose VIII §33]. The run
-printed [displayed VIII §33, `claude-fable/run_fermion_fable_part8.log`]:
+`dm/dN = −W''(sigma) (d sigma/d k_F) k_F / (1 − W''(sigma) d sigma/dm)` instead of solving it [prose VIII §33]. Besides
+the `PASS` lines quoted after it, the run printed [displayed VIII §33, `claude-fable/run_fermion_fable_final.log`]:
 
 ```
-  [0.242 s]  fable4d mass30eV: 71 rows by exact algebra, the age by NIntegrate between the rows
-  [0.603 s]  fable4d power: NDSolve of (m(N), ln t(N)) with the differentiated gap equation
-  [0.047 s]  fable4d power: 71 rows by exact algebra (FindRoot of the gap at every row)
+  [0.220 s]  fable4d mass30eV: 71 rows by exact algebra, the age by NIntegrate between the rows
+  [0.538 s]  fable4d power: NDSolve of (m(N), ln t(N)) with the differentiated gap equation
+  [0.045 s]  fable4d power: 71 rows by exact algebra (FindRoot of the gap at every row)
   mass30eV: m0 = 30 eV = 12182.18122 E_c;  kF0 = 0.0544035545089 E_c = 0.00013397491 eV;  V0 = 0.6856647126;  a_nr = kF0/m0 = 4.46583e-6;  t0 = 0.951246513195 / H0
   power:    m_today = 100 eV;  kF0 = 0.0464558024014 E_c;  lam = 217.736704888;  m0 = 27.15187044 eV;  U_today = 0.4006647126;  w_f(1) = -0.421457436338;  t0 = 0.9218031611 / H0
   P_stab(a) [units of rho_c0] at a = 1e-10, 1e-6, 1e-3, 1:   mass30eV {-2.4626e28, -6.53147e16, -1.57121e8, -0.842786};   power {-2.46243e28, -4.87299e16, -9.93078e7, -0.700286}
@@ -4187,10 +4244,22 @@ and asserted **[proved VIII §33]**
 `fable4d RUNS [fidelity]: the reference CSVs have the expected header and 701 rows`,
 `fable4d RUNS [fidelity]: at every tenth row ALL TEN columns agree with fable-cosmology/reference/mathematica_fable4d_mass30eV.csv and _power.csv to 1e-10 (relative; P_obs_f relative to rho_f; N and w_f absolute)`.
 The comparison with the reference CSVs printed `max difference per column {0., 0., 0., 0., 0., 0., 0., 0., 0., 0.}`
-for both files (three-digit formatting). When this log was recorded the Rust CSVs
-`results/nb06_fable4d_mass30eV.csv` and `nb06_fable4d_power.csv` did not yet exist, and the conditional
-comparison with them was skipped, not failed (`NOTE  Rust CSV not found; that comparison was skipped, not failed`);
-notebook 06 now writes them, and the three-way comparison below includes them.
+for both files (three-digit formatting). The final run was made after notebook 06 had written the Rust
+solver's CSVs `results/nb06_fable4d_mass30eV.csv` and `nb06_fable4d_power.csv`, so the conditional comparison
+of Section 33 with them ran, at every one of the 71 rows, and passed [displayed VIII §33,
+`claude-fable/run_fermion_fable_final.log`; `<repo>` stands for the absolute path of the clone]:
+
+```
+  Rust <repo>\claude-fable\..\fable-cosmology\results\nb06_fable4d_mass30eV.csv: 71 rows compared; max difference per column {a, t, H_A, rho_f, P_obs_f, w_f, m_eff, sigma, kF_over_m}: {4.9e-14, 2.35e-9, 3.35e-11, 1.87e-13, 6.22e-15, 6.8e-15, 2.22e-15, 1.39e-13, 4.84e-14}
+  Rust <repo>\claude-fable\..\fable-cosmology\results\nb06_fable4d_power.csv: 71 rows compared; max difference per column {a, t, H_A, rho_f, P_obs_f, w_f, m_eff, sigma, kF_over_m}: {4.9e-14, 1.39e-9, 3.36e-11, 1.92e-13, 1.34e-14, 1.39e-14, 5.04e-14, 1.41e-13, 8.82e-14}
+```
+
+**[proved VIII §33]** `fable4d RUNS [fidelity]: the Rust solver's mass30eV run agrees with this cell to 1e-6 in every column, at every one of the rows its grid covers`,
+`fable4d RUNS [fidelity]: the Rust solver's power run agrees with this cell to 1e-6 in every column, at every one of the rows its grid covers`. In Part VIII's acceptance run,
+`claude-fable/run_fermion_fable_part8.log`, those CSVs did not yet exist, and the comparison was skipped, not
+failed (`NOTE  Rust CSV not found; that comparison was skipped, not failed`): these two assertions are the
+difference between its `Assertions run: 642` and the final run's `Assertions run: 644`. The three-way
+comparison below includes the same CSVs.
 
 **The reference script** `fable-cosmology/reference/make_reference_fermion.wls` writes
 `mathematica_fable4d_mass30eV.csv` and `mathematica_fable4d_power.csv`: 701 values of `N` from `ln 1e-10` to 0,
@@ -4444,8 +4513,9 @@ cargo test --release
 It runs the unit tests of `src/` and the end-to-end tests of `tests/cosmology.rs` (each end-to-end test runs
 the real binary, writes a CSV and reads it back). At commit `c5892bd` (the finished solver) the commit
 records `cargo test --release: 21 + 8 tests pass (re-run independently)`; at commit `2bc936d` (six defects
-fixed, 23:12 PDT) it records `34/34 (23 unit + 11 integration, previously 21 + 8)`. The 34 tests [listed from
-the source files]:
+fixed, 23:12 PDT) it records `34/34 (23 unit + 11 integration, previously 21 + 8)`. That is the final solver:
+the only later change to the crate is a comment in the module summary of `src/models.rs` (commit `3a5020d`,
+section 9.1). The 34 tests [listed from the source files]:
 
 | file | tests |
 |---|---|
@@ -4526,7 +4596,7 @@ $ fable_fermion fable4d --potential mass --param m0_ev=30 --points 1001 --out re
   # t(A=1) cross-check: CVODE 6.666064305910978e-1 vs Gauss-Kronrod quadrature 6.666064296244345e-1 (rel. diff 1.45e-9, quadrature error estimate 2.4e-14)
   # NOTE: W = m0 sigma alone (no V0): the closure forces Omega_f0 = 1 - Omega_b0 - Omega_r0 = 0.950665: an Einstein-de Sitter-like universe (q0 = 0.5000, +1/2 for pure dust)
   # the DM/DE split (rho_qp = eps/v vs rho_U = W - sigma W') is a convention: the condensate has P = -rho_U in all seven spatial directions, i.e. it is an 8D vacuum energy
-  # stats: model=fable4d direction=Forward potential=mass steps=373 rhs_evals=459 nonlin_iters=456 err_test_fails=18 jac_evals=7 wall=0.011s (summed over every CVODE integration of the run, shooting included)
+  # stats: model=fable4d direction=Forward potential=mass steps=373 rhs_evals=459 nonlin_iters=456 err_test_fails=18 jac_evals=7 wall=0.010s (summed over every CVODE integration of the run, shooting included)
   # fable_fermion 0.1.0, sundials_rs 7.8.0 (pure Rust), CVODE BDF
 ```
 
@@ -4538,7 +4608,7 @@ included), as the notebooks recorded them:
 ```bash
 # notebook 05, section 5.7: the author's mass term on the pre-universe (cooling cross-check)
 $F fable4d --potential mass --param m0_ev=30 --points 1001 --out results/nb05_fable4d_mass30.csv
-#   prints: # stats: model=fable4d direction=Forward potential=mass steps=373 rhs_evals=459 nonlin_iters=456 err_test_fails=18 jac_evals=7 wall=0.011s (summed over every CVODE integration of the run, shooting included)
+#   prints: # stats: model=fable4d direction=Forward potential=mass steps=373 rhs_evals=459 nonlin_iters=456 err_test_fails=18 jac_evals=7 wall=0.010s (summed over every CVODE integration of the run, shooting included)
 ```
 
 ```bash
@@ -4558,7 +4628,7 @@ $F fable4d --potential lambda-mass --param m0_ev=30 --a-start 1e-10 --points 100
 $F fable8d --potential lambda-mass --param m0_ev=30 --a-start 1e-12 --points 1001
 #   prints: # stats: model=fable8d direction=Forward potential=lambda-mass steps=37544 rhs_evals=42447 nonlin_iters=42339 err_test_fails=654 jac_evals=647 wall=0.040s (summed over every CVODE integration of the run, shooting included)
 $F fable8d --potential lambda-mass --param m0_ev=30 --a-start 1e-11 --points 1001
-#   prints: # stats: model=fable8d direction=Forward potential=lambda-mass steps=36759 rhs_evals=41619 nonlin_iters=41511 err_test_fails=618 jac_evals=634 wall=0.038s (summed over every CVODE integration of the run, shooting included)
+#   prints: # stats: model=fable8d direction=Forward potential=lambda-mass steps=36759 rhs_evals=41619 nonlin_iters=41511 err_test_fails=618 jac_evals=634 wall=0.039s (summed over every CVODE integration of the run, shooting included)
 $F fable8d --potential lambda-mass --param m0_ev=30 --a-start 1e-10 --points 1001
 #   prints: # stats: model=fable8d direction=Forward potential=lambda-mass steps=34762 rhs_evals=39367 nonlin_iters=39262 err_test_fails=576 jac_evals=593 wall=0.037s (summed over every CVODE integration of the run, shooting included)
 ```
@@ -4570,7 +4640,7 @@ $F fable4d --potential mass --param m0_ev=1 --points 1001 --out results/nb06_mas
 $F fable4d --potential mass --param m0_ev=30 --points 1001 --out results/nb06_mass_m30_4d.csv
 #   prints: # stats: model=fable4d direction=Forward potential=mass steps=373 rhs_evals=459 nonlin_iters=456 err_test_fails=18 jac_evals=7 wall=0.010s (summed over every CVODE integration of the run, shooting included)
 $F fable4d --potential mass --param m0_ev=100 --points 1001 --out results/nb06_mass_m100_4d.csv
-#   prints: # stats: model=fable4d direction=Forward potential=mass steps=387 rhs_evals=467 nonlin_iters=464 err_test_fails=16 jac_evals=7 wall=0.011s (summed over every CVODE integration of the run, shooting included)
+#   prints: # stats: model=fable4d direction=Forward potential=mass steps=387 rhs_evals=467 nonlin_iters=464 err_test_fails=16 jac_evals=7 wall=0.010s (summed over every CVODE integration of the run, shooting included)
 $F fable4d --potential mass --param m0_ev=1000 --points 1001 --out results/nb06_mass_m1000_4d.csv
 #   prints: # stats: model=fable4d direction=Forward potential=mass steps=377 rhs_evals=463 nonlin_iters=460 err_test_fails=19 jac_evals=7 wall=0.010s (summed over every CVODE integration of the run, shooting included)
 $F fable4d --potential mass --param m0_ev=2000 --points 1001 --out results/nb06_mass_m2000_4d.csv
@@ -4580,37 +4650,37 @@ $F fable4d --potential mass --param m0_ev=2000 --points 1001 --out results/nb06_
 ```bash
 # notebook 06, section 5.3: runs (b), lambda-mass, and Part VIII's reference case
 $F fable4d --potential lambda-mass --param m0_ev=30 --points 1001 --out results/nb06_lm_m30_4d.csv
-#   prints: # stats: model=fable4d direction=Forward potential=lambda-mass steps=430 rhs_evals=542 nonlin_iters=539 err_test_fails=25 jac_evals=8 wall=0.011s (summed over every CVODE integration of the run, shooting included)
+#   prints: # stats: model=fable4d direction=Forward potential=lambda-mass steps=430 rhs_evals=542 nonlin_iters=539 err_test_fails=25 jac_evals=8 wall=0.010s (summed over every CVODE integration of the run, shooting included)
 $F fable4d --potential lambda-mass --param m0_ev=100 --points 1001 --out results/nb06_lm_m100_4d.csv
-#   prints: # stats: model=fable4d direction=Forward potential=lambda-mass steps=418 rhs_evals=515 nonlin_iters=512 err_test_fails=21 jac_evals=8 wall=0.012s (summed over every CVODE integration of the run, shooting included)
+#   prints: # stats: model=fable4d direction=Forward potential=lambda-mass steps=418 rhs_evals=515 nonlin_iters=512 err_test_fails=21 jac_evals=8 wall=0.010s (summed over every CVODE integration of the run, shooting included)
 $F fable4d --potential lambda-mass --param m0_ev=1000 --points 1001 --out results/nb06_lm_m1000_4d.csv
-#   prints: # stats: model=fable4d direction=Forward potential=lambda-mass steps=407 rhs_evals=509 nonlin_iters=506 err_test_fails=21 jac_evals=8 wall=0.010s (summed over every CVODE integration of the run, shooting included)
+#   prints: # stats: model=fable4d direction=Forward potential=lambda-mass steps=407 rhs_evals=509 nonlin_iters=506 err_test_fails=21 jac_evals=8 wall=0.009s (summed over every CVODE integration of the run, shooting included)
 $F fable4d --potential lambda-mass --param m0_ev=2000 --points 1001 --out results/nb06_lm_m2000_4d.csv
-#   prints: # stats: model=fable4d direction=Forward potential=lambda-mass steps=425 rhs_evals=527 nonlin_iters=524 err_test_fails=21 jac_evals=8 wall=0.013s (summed over every CVODE integration of the run, shooting included)
+#   prints: # stats: model=fable4d direction=Forward potential=lambda-mass steps=425 rhs_evals=527 nonlin_iters=524 err_test_fails=21 jac_evals=8 wall=0.010s (summed over every CVODE integration of the run, shooting included)
 $F fable4d --potential lambda-mass --param m0_ev=30 --param omega_dm=0.265 --a-start 1e-10 --points 701 --out results/nb06_fable4d_mass30eV.csv
-#   prints: # stats: model=fable4d direction=Forward potential=lambda-mass steps=429 rhs_evals=548 nonlin_iters=545 err_test_fails=29 jac_evals=8 wall=0.009s (summed over every CVODE integration of the run, shooting included)
+#   prints: # stats: model=fable4d direction=Forward potential=lambda-mass steps=429 rhs_evals=548 nonlin_iters=545 err_test_fails=29 jac_evals=8 wall=0.008s (summed over every CVODE integration of the run, shooting included)
 ```
 
 ```bash
 # notebook 06, section 5.4: runs (c), the dark-energy potentials, and Part VIII's mass-varying reference case
 $F fable4d --potential power --param nu=0.236 --param m_today_ev=30 --points 1001 --out results/nb06_power_0.236_m30_4d.csv
-#   prints: # stats: model=fable4d direction=Forward potential=power steps=390 rhs_evals=482 nonlin_iters=479 err_test_fails=20 jac_evals=7 wall=0.012s (summed over every CVODE integration of the run, shooting included)
+#   prints: # stats: model=fable4d direction=Forward potential=power steps=390 rhs_evals=482 nonlin_iters=479 err_test_fails=20 jac_evals=7 wall=0.011s (summed over every CVODE integration of the run, shooting included)
 $F fable4d --potential power --param nu=0.236 --param m_today_ev=100 --points 1001 --out results/nb06_power_0.236_m100_4d.csv
-#   prints: # stats: model=fable4d direction=Forward potential=power steps=401 rhs_evals=505 nonlin_iters=502 err_test_fails=23 jac_evals=7 wall=0.011s (summed over every CVODE integration of the run, shooting included)
+#   prints: # stats: model=fable4d direction=Forward potential=power steps=401 rhs_evals=505 nonlin_iters=502 err_test_fails=23 jac_evals=7 wall=0.010s (summed over every CVODE integration of the run, shooting included)
 $F fable4d --potential power --param nu=0.5 --param m_today_ev=30 --points 1001 --out results/nb06_power_0.5_m30_4d.csv
-#   prints: # stats: model=fable4d direction=Forward potential=power steps=430 rhs_evals=551 nonlin_iters=548 err_test_fails=26 jac_evals=8 wall=0.023s (summed over every CVODE integration of the run, shooting included)
+#   prints: # stats: model=fable4d direction=Forward potential=power steps=430 rhs_evals=551 nonlin_iters=548 err_test_fails=26 jac_evals=8 wall=0.021s (summed over every CVODE integration of the run, shooting included)
 $F fable4d --potential power --param nu=0.5 --param m_today_ev=100 --points 1001 --out results/nb06_power_0.5_m100_4d.csv
-#   prints: # stats: model=fable4d direction=Forward potential=power steps=433 rhs_evals=545 nonlin_iters=542 err_test_fails=24 jac_evals=8 wall=0.022s (summed over every CVODE integration of the run, shooting included)
+#   prints: # stats: model=fable4d direction=Forward potential=power steps=433 rhs_evals=545 nonlin_iters=542 err_test_fails=24 jac_evals=8 wall=0.027s (summed over every CVODE integration of the run, shooting included)
 $F fable4d --potential expdamp --param xt=0.4524886877828054 --param m_today_ev=30 --points 1001 --out results/nb06_expdamp_m30_4d.csv
 #   prints: # stats: model=fable4d direction=Forward potential=expdamp steps=423 rhs_evals=527 nonlin_iters=524 err_test_fails=21 jac_evals=8 wall=0.019s (summed over every CVODE integration of the run, shooting included)
 $F fable4d --potential expdamp --param xt=0.4524886877828054 --param m_today_ev=100 --points 1001 --out results/nb06_expdamp_m100_4d.csv
-#   prints: # stats: model=fable4d direction=Forward potential=expdamp steps=434 rhs_evals=542 nonlin_iters=539 err_test_fails=23 jac_evals=8 wall=0.020s (summed over every CVODE integration of the run, shooting included)
+#   prints: # stats: model=fable4d direction=Forward potential=expdamp steps=434 rhs_evals=542 nonlin_iters=539 err_test_fails=23 jac_evals=8 wall=0.019s (summed over every CVODE integration of the run, shooting included)
 $F fable4d --potential quadratic --param gq=-0.5 --param m_today_ev=30 --points 1001 --out results/nb06_quadratic_m30_4d.csv
-#   prints: # stats: model=fable4d direction=Forward potential=quadratic steps=451 rhs_evals=562 nonlin_iters=559 err_test_fails=23 jac_evals=8 wall=0.011s (summed over every CVODE integration of the run, shooting included)
+#   prints: # stats: model=fable4d direction=Forward potential=quadratic steps=451 rhs_evals=562 nonlin_iters=559 err_test_fails=23 jac_evals=8 wall=0.012s (summed over every CVODE integration of the run, shooting included)
 $F fable4d --potential quadratic --param gq=-0.5 --param m_today_ev=100 --points 1001 --out results/nb06_quadratic_m100_4d.csv
 #   prints: # stats: model=fable4d direction=Forward potential=quadratic steps=451 rhs_evals=558 nonlin_iters=555 err_test_fails=22 jac_evals=8 wall=0.011s (summed over every CVODE integration of the run, shooting included)
 $F fable4d --potential power --param m_today_ev=100 --param nu=0.5 --param omega_dm=0.55 --a-start 1e-10 --points 701 --out results/nb06_fable4d_power.csv
-#   prints: # stats: model=fable4d direction=Forward potential=power steps=379 rhs_evals=483 nonlin_iters=480 err_test_fails=24 jac_evals=7 wall=0.007s (summed over every CVODE integration of the run, shooting included)
+#   prints: # stats: model=fable4d direction=Forward potential=power steps=379 rhs_evals=483 nonlin_iters=480 err_test_fails=24 jac_evals=7 wall=0.008s (summed over every CVODE integration of the run, shooting included)
 ```
 
 ```bash
@@ -4618,7 +4688,7 @@ $F fable4d --potential power --param m_today_ev=100 --param nu=0.5 --param omega
 $F fable4d --potential power --param nu=0.236 --param m_today_ev=1 --points 1001 --out results/nb06_power_0.236_m1_4d.csv
 #   prints: # stats: model=fable4d direction=Forward potential=power steps=397 rhs_evals=487 nonlin_iters=484 err_test_fails=18 jac_evals=7 wall=0.011s (summed over every CVODE integration of the run, shooting included)
 $F fable4d --potential power --param nu=0.5 --param m_today_ev=1 --points 1001 --out results/nb06_power_0.5_m1_4d.csv
-#   prints: # stats: model=fable4d direction=Forward potential=power steps=429 rhs_evals=553 nonlin_iters=550 err_test_fails=28 jac_evals=8 wall=0.020s (summed over every CVODE integration of the run, shooting included)
+#   prints: # stats: model=fable4d direction=Forward potential=power steps=429 rhs_evals=553 nonlin_iters=550 err_test_fails=28 jac_evals=8 wall=0.019s (summed over every CVODE integration of the run, shooting included)
 $F fable4d --potential expdamp --param xt=0.4524886877828054 --param m_today_ev=1 --points 1001 --out results/nb06_expdamp_m1_4d.csv
 #   prints: # stats: model=fable4d direction=Forward potential=expdamp steps=428 rhs_evals=560 nonlin_iters=557 err_test_fails=32 jac_evals=8 wall=0.018s (summed over every CVODE integration of the run, shooting included)
 $F fable4d --potential quadratic --param gq=-0.5 --param m_today_ev=1 --points 1001 --out results/nb06_quadratic_m1_4d.csv
@@ -4632,15 +4702,15 @@ $F fable8d --potential mass --param m0_ev=1 --points 1001 --out results/nb06_mas
 $F fable8d --potential mass --param m0_ev=100 --points 1001 --out results/nb06_mass_m100_8d.csv
 #   prints: # stats: model=fable8d direction=Forward potential=mass steps=40808 rhs_evals=45860 nonlin_iters=45758 err_test_fails=474 jac_evals=702 wall=0.042s (summed over every CVODE integration of the run, shooting included)
 $F fable8d --potential lambda-mass --param m0_ev=30 --points 1001 --out results/nb06_lm_m30_8d.csv
-#   prints: # stats: model=fable8d direction=Forward potential=lambda-mass steps=37544 rhs_evals=42447 nonlin_iters=42339 err_test_fails=654 jac_evals=647 wall=0.040s (summed over every CVODE integration of the run, shooting included)
+#   prints: # stats: model=fable8d direction=Forward potential=lambda-mass steps=37544 rhs_evals=42447 nonlin_iters=42339 err_test_fails=654 jac_evals=647 wall=0.039s (summed over every CVODE integration of the run, shooting included)
 $F fable8d --potential lambda-mass --param m0_ev=1000 --points 1001 --out results/nb06_lm_m1000_8d.csv
 #   prints: # stats: model=fable8d direction=Forward potential=lambda-mass steps=38558 rhs_evals=42762 nonlin_iters=42657 err_test_fails=595 jac_evals=669 wall=0.040s (summed over every CVODE integration of the run, shooting included)
 $F fable8d --no-fable --omega-b 0 --points 1001 --out results/nb06_radiation_only_8d.csv
 #   prints: # stats: model=fable8d direction=Forward potential=none steps=7 rhs_evals=13 nonlin_iters=7 err_test_fails=0 jac_evals=2 wall=0.008s (summed over every CVODE integration of the run, shooting included)
 $F fable8d --no-fable --points 1001 --out results/nb06_radiation_baryons_8d.csv
-#   prints: # stats: model=fable8d direction=Forward potential=none steps=2109 rhs_evals=2379 nonlin_iters=2370 err_test_fails=37 jac_evals=38 wall=0.009s (summed over every CVODE integration of the run, shooting included)
+#   prints: # stats: model=fable8d direction=Forward potential=none steps=2109 rhs_evals=2379 nonlin_iters=2370 err_test_fails=37 jac_evals=38 wall=0.010s (summed over every CVODE integration of the run, shooting included)
 $F fable8d --potential lambda-mass --param m0_ev=30 --freeze-hidden --points 1001
-#   prints: # stats: model=fable8d direction=Forward potential=lambda-mass steps=395 rhs_evals=475 nonlin_iters=472 err_test_fails=15 jac_evals=7 wall=0.009s (summed over every CVODE integration of the run, shooting included)
+#   prints: # stats: model=fable8d direction=Forward potential=lambda-mass steps=395 rhs_evals=475 nonlin_iters=472 err_test_fails=15 jac_evals=7 wall=0.011s (summed over every CVODE integration of the run, shooting included)
 ```
 
 ```bash
@@ -4648,7 +4718,7 @@ $F fable8d --potential lambda-mass --param m0_ev=30 --freeze-hidden --points 100
 $F fable4d --potential lorentz --points 1001
 #   prints: exit code 1: fable_fermion: rho_hat = H_A^2 <= 0 from N = -0.7597808064 (a = 0.4677689478) on: the Kohn-Sham ground state has negative energy there (m_eff = -3.802078e-2, sigma8 = -9.789374e-4, rho_f = -4.830421e-1 (U = -4.847891e-1) against rho_r + rho_b = 4.830421e-1); H_A^2 = rho_hat is impossible (the onset located past the last accepted CVODE step and bisected)
 $F fable4d --potential quadratic --param gq=0.5 --points 1001
-#   prints: exit code 1: fable_fermion: gap-branch jump (sign of m_eff) between N = -0.027631021115929855 and N = 0: m = -3.1667192351800344e-1 -> 4.060727073199006e2: a first-order transition of the Kohn-Sham ground state; the RHS is discontinuous there and energy conservation would need the Maxwell construction, which this solver does not implement
+#   prints: exit code 1: fable_fermion: gap-branch jump at N = -0.0037262796 (a = 0.9962806544): a first-order transition of the Kohn-Sham ground state, the lowest-energy gap root jumps from the branch m_eff = -1.518260e0 (rho_f = 6.856759e-1) to the branch m_eff = 4.083552e2 (rho_f = 9.536521e-1); the right-hand side is discontinuous there, and energy conservation across it would need the Maxwell construction, which this solver does not implement (the transition detected inside the right-hand side and bisected in N to adjacent doubles)
 $F fable8d --potential mass --direction backward
 #   prints: exit code 1: fable_fermion: fable8d runs forward only (design review E4): backward in time the shear modes grow as A^-3 v^-1 relative to H_A ~ A^-2, the solution runs to the 8D Kasner point H_B/H_A = -0.2929 and the constraint drifts to O(1); use fable4d --direction backward
 ```
@@ -4823,18 +4893,28 @@ What they print, quoted: `waveguide_derivation.wls` ends its log with
 ```
 ==================================================================================
  waveguide_derivation.wls: 94 checks, 94 PASS, 0 FAIL
- total time 171.4 s
+ total time 162.8 s
 ==================================================================================
 ```
 
-after `[load] notebook Input cells: 217; evaluated cells 1..117 in 132.3 s`,
+after `[load] notebook Input cells: 217; evaluated cells 1..117 in 125. s`,
 `[load] cells that raised messages while loading (incidental to this script): {}` and
 `[load] the notebook's own assertions in cells 1..117: 142 run, 142 passed; not passed: {}`
-[file: `fable-cosmology/fermion/waveguide_derivation.log`]. `validate` reports 64/64 PASS;
+[file: `fable-cosmology/fermion/waveguide_derivation.log`, the run of 2026-09-25 00:06:38 committed in `aca5102`;
+the first committed run, in `18a2501`, took 171.4 s with `evaluated cells 1..117 in 132.3 s`]. `validate` reports 64/64 PASS;
 `waveguide_check.wls` reports `Summary: 11 checks, 11 PASS, 0 FAIL, no messages`, with its level table as in
 section 8.4; `levels --K 80 --m 1 --wall same` prints the eight levels quoted in section 8.5 **[WG 1, WG 3, WG 5]**.
-(The module docstring of `waveguide.py` still mentions an earlier count of 81 checks for the derivation; its
-log, above, records 94.)
+The derivation's section 8 writes the notebook's `T16[0..8]`, `sigma16` and the block basis `U` to
+`fable-cosmology/fermion/waveguide_T16.json` (its log: `8. Export T16[0..8], sigma16 and the block basis U to
+fermion/waveguide_T16.json` and `PASS  export: T16 and sigma16 read back identical from waveguide_T16.json`),
+which `waveguide.py`, `waveguide_check.wls` and notebook 07 read. That file is committed (commit `aca5102`; it
+used to be in the ignored `dev/`, which broke a fresh clone without Mathematica, and the regenerated file is
+byte-identical **[commit aca5102]**). `waveguide.py validate` exits with code 1 whenever any of its 64 checks
+fails; if `waveguide_T16.json` is missing, the checks that need it (V7, the 16-component multiplicities, and
+V8, the block reduction by `U`) are recorded as failures, with the command that rewrites the file, and every
+other check still runs [file: `fable-cosmology/fermion/waveguide.py`, its module docstring, `validate` and
+`main`]. (Before commit `aca5102` the module docstring gave an earlier count of
+81 checks for the derivation; it now quotes the last line of the committed log, 94 checks.)
 
 ### 11.8 The notebook: Parts VII and VIII
 
@@ -4856,13 +4936,15 @@ run_all.wls    : 217 Input cells
 notebook       : 384 cells -> <repo>\claude-fable\claude-fable_Einstein-Rosen-2-Planes.nb
 ```
 
-and the rebuilt notebook and `run_all.wls` were byte-identical to the committed ones.
+and the rebuilt notebook and `run_all.wls` were byte-identical to the committed ones. Re-run for this page on
+2026-09-25 on the manifests of commit `3a5020d`, it printed the same four lines, and the rebuilt notebook and
+`run_all.wls` were again byte-identical to the committed ones.
 
 **Run it end to end, straight out of the `.nb`:**
 
 ```bash
 cd "$(git rev-parse --show-toplevel)/claude-fable"
-wolframscript -file run_from_nb.wls > run_fermion_fable_part8.log 2>&1
+wolframscript -file run_from_nb.wls > run_fermion_fable_final.log 2>&1
 git checkout -- claude-fable_Einstein-Rosen-2-Planes-eLa.mx claude-fable_Einstein-Rosen-2-Planes-eLazt.mx
 ```
 
@@ -4872,67 +4954,77 @@ raised any), every `PASS`/`FAIL` label, and the run summary. It must run inside 
 helper packages `ConvertMapleToMathematicaV2.wl` and `EtoExp.wl` are found in the working directory). Section 12
 of the notebook rewrites the two `.mx` files with `DumpSave`, whose bytes are not reproducible, so they are
 restored after every run. It prints first `evaluating 217 Input cells straight out of the .nb`, and it ends
-[file: `claude-fable/run_fermion_fable_part8.log`]:
+[file: `claude-fable/run_fermion_fable_final.log`, the final run, commit `3a5020d`]:
 
 ```
 identities accepted on numerical evidence alone : 0   (stage 3 returned True)
 non-vanishing witnesses                         : 46   (cfNonZeroWitnessQ found a probe point at which every entry is a
                                                      number and one of them is non-zero: a complete proof of non-vanishing)
   PASS  no identity in this notebook was accepted on numerical evidence alone
-Assertions run: 642   passed: 642   failed: 0
+Assertions run: 644   passed: 644   failed: 0
 CELL 217  t=0.000 s
 ==================== RUN SUMMARY ====================
 cells evaluated : 217
-total seconds   : 233.289
+total seconds   : 198.352
 cells w/ msgs   : 0
 ---- slowest cells ----
-  cell 80  80.343 s
-  cell 88  23.494 s
-  cell 204  10.364 s
-  cell 86  9.821 s
-  cell 137  9.306 s
-  cell 191  9.225 s
-  cell 87  8.387 s
-  cell 121  6.069 s
-  cell 160  4.250 s
-  cell 196  4.185 s
-  cell 107  3.836 s
-  cell 193  3.140 s
+  cell 80  68.159 s
+  cell 88  22.525 s
+  cell 204  9.360 s
+  cell 86  8.072 s
+  cell 191  7.887 s
+  cell 87  7.193 s
+  cell 137  6.985 s
+  cell 121  4.579 s
+  cell 160  3.822 s
+  cell 107  3.505 s
+  cell 196  3.334 s
+  cell 193  2.970 s
 ==================== ASSERTIONS ====================
-assertions run  : 642
-passed          : 642
+assertions run  : 644
+passed          : 644
 FAILED          : 0
 ====================================================
-RUN-DONE
 ```
 
-(`RUN-DONE` was appended by the wrapper that ran the command.) The notebook's final assertion is
+(The earlier run logs end with one more line, `RUN-DONE`, which the wrapper that ran them appended; the final
+run was captured without it.) The notebook's final assertion is
 `no identity in this notebook was accepted on numerical evidence alone`: every identity of Parts I–VIII is closed symbolically, and the 46
-non-vanishing claims are complete proofs by witness. Part VIII (cells 199–217) took 24.011 s of the
-233.289 s and added 114 assertions to Part VII's 528 [counted from the log]:
+non-vanishing claims are complete proofs by witness. Part VIII (cells 199–217) took 20.994 s of the
+198.352 s and added 116 assertions to Part VII's 528 [counted from the log]:
 
 | notebook Section | subject | Input cells | assertions | seconds | this page |
 |---|---|---|---|---|---|
-| 30 | the Einstein tensor of the canonical metric, and what it demands of its source | 199–203 | 28 | 4.119 | 4 |
-| 31 | the generalized warped frame, its asymptotic region, and the 8-dimensional Bianchi-I limit | 204–207 | 21 | 12.672 | 5 |
-| 32 | the canonical spin connection of the interacting system | 208–210 | 26 | 4.694 | 6.14–6.22 |
-| 33 | the coupled equations of fable and the primordial field, and their solution from the radiation era to today | 211–217 | 39 | 2.526 | 7, 9 |
-| **Part VIII** | | **19 cells** | **114** | **24.011** | |
+| 30 | the Einstein tensor of the canonical metric, and what it demands of its source | 199–203 | 28 | 3.534 | 4 |
+| 31 | the generalized warped frame, its asymptotic region, and the 8-dimensional Bianchi-I limit | 204–207 | 21 | 11.310 | 5 |
+| 32 | the canonical spin connection of the interacting system | 208–210 | 26 | 3.893 | 6.14–6.22 |
+| 33 | the coupled equations of fable and the primordial field, and their solution from the radiation era to today | 211–217 | 41 | 2.257 | 7, 9 |
+| **Part VIII** | | **19 cells** | **116** | **20.994** | |
 
-The log's other non-assertion lines are the four `EXPECTED MESSAGE(S)` announcements of Parts II and V, the
-`NOTE` that `a4` is undefined (Part III), and the two `NOTE  Rust CSV not found; that comparison was skipped,
-not failed` lines of Section 33 (section 9.12); none is a message raised by a cell. The Part VII log
-`claude-fable/run_fermion_fable_part7.log` was produced by the same command with the notebook of Parts I–VII
-(198 cells, `Assertions run: 528   passed: 528   failed: 0`, 232.146 s).
+The log's other non-assertion lines are the four `EXPECTED MESSAGE(S)` announcements of Parts II and V and the
+`NOTE` that `a4` is undefined (Part III); none is a message raised by a cell. Its lines for cells 1–198 are
+identical to those of Part VII's own acceptance run, `claude-fable/run_fermion_fable_part7.log`, apart from the
+first line (the cell count) and the timing lines [checked for this page with `diff`]; that log was produced by
+the same command with the notebook of Parts I–VII (198 cells, `Assertions run: 528   passed: 528   failed: 0`,
+232.146 s), and it remains the record of Part VII. Part VIII's acceptance run,
+`claude-fable/run_fermion_fable_part8.log` (commit `bc04ed1`), was made by the same command before notebook 06
+had written the Rust solver's CSVs: 217 cells, 0 cells with messages, 233.289 s, 46 witnesses and
+`Assertions run: 642   passed: 642   failed: 0`, with two `NOTE  Rust CSV not found; that comparison was
+skipped, not failed` lines in Section 33 (section 9.12) and the three spin-connection labels of section 6.15
+in their earlier form, with upper flat indices; every other `PASS` label is identical to the final run's. The
+full run of commit `1671155`, the first with both comparisons, recorded 644/644 with 0 cells with messages in
+208.7 s **[commit 1671155]**; commit `3a5020d` replaced its log by the run made after the label correction.
 
 **Check a log:**
 
 ```bash
 cd "$(git rev-parse --show-toplevel)/claude-fable"
-grep -c '^  PASS' run_fermion_fable_part8.log         # 642
-grep -n '^  FAIL' run_fermion_fable_part8.log         # no output: no assertion failed
-grep -c 'MESSAGES: ' run_fermion_fable_part8.log      # 0: no cell raised a message
-sed -n '/RUN SUMMARY/,$p' run_fermion_fable_part8.log  # the summary above
+grep -c '^  PASS' run_fermion_fable_final.log         # 644
+grep -n '^  FAIL' run_fermion_fable_final.log         # no output: no assertion failed
+grep -c 'MESSAGES: ' run_fermion_fable_final.log      # 0: no cell raised a message
+sed -n '/RUN SUMMARY/,$p' run_fermion_fable_final.log  # the summary above
+diff <(grep '^  PASS' run_fermion_fable_part8.log) <(grep '^  PASS' run_fermion_fable_final.log)
+                                                      # the three relabelled lines and the two new ones
 ```
 
 **Check the notebook without evaluating it** (about 4 s):
@@ -4941,15 +5033,15 @@ sed -n '/RUN SUMMARY/,$p' run_fermion_fable_part8.log  # the summary above
 wolframscript -file "$(git rev-parse --show-toplevel)/claude-fable/verify_nb.wls"
 ```
 
-prints [file: `claude-fable/verify_nb_part8.log`]:
+prints [file: `claude-fable/verify_nb_part8.log`, rewritten in commit `3a5020d` for the corrected notebook]:
 
 ```
-file bytes: 545408
+file bytes: 545713
 Head: Notebook
 cells: 384
 style tally: {{Title, 8}, {Subtitle, 1}, {Subsubtitle, 1}, {Text, 123}, {Section, 34}, {Input, 217}}
 input cells with plain-string BoxData: 217
-total input characters: 347187
+total input characters: 347237
 input cells that FAIL to parse: {}
 first cell: InputForm[(* --- provenance banner, as in the original notebook ------------------------------------]
 last cell : InputForm[cfAssert["PART VIII [control]: a4 is STILL UNDEFINED -- nothing in Part VIII gave it a val]
@@ -5008,23 +5100,27 @@ the solver binary, read the unit system from it, run every case, write their CSV
 `results/`, and assert every claim they print (a failed assertion stops the execution). The interactive last
 two cells (name the notebook, the save dialog) detect the headless run and print
 `Headless execution: no prompt; the notebook keeps its name 05_fermion_fable_quantum_eos` and
-`Headless execution: the save dialog is skipped; the notebook stays where it is.` (and likewise for 06). The
+`Headless execution: the save dialog is skipped; the notebook stays where it is.` (and likewise for 06 and 07). The
 notebooks themselves are generated from `notebooks/_build/nbgen.py`; they are never edited by hand. Notebook 05
-prints its summary as ten numbered statements (sections 7–8 quote them), notebook 06 its answers (section 10).
+prints its summary as ten numbered statements (sections 7–8 quote them), notebook 06 its answers (section 10),
+notebook 07 its summary as nine numbered statements (section 8).
 Their execution times were not recorded in a repository log.
 
 `nbcheck.py` checks every notebook against eight requirements (a terminal launch explanation and how to rebuild
 its solver; no reference to another notebook; markdown before every code cell; the naming cell; the save
 dialog with a fallback; the field, Lagrangian, energy–momentum tensor, equations of motion and the first-order
 system handed to SUNDIALS, with a glossary; valid executed nbformat-4 paired with its solver model; its own
-results with a plain-Python read-back) and prints a `FAIL` block per failing notebook and the count. Run for this
-page on 2026-09-24 at 23:04 PDT (0.11 s), on the six executed notebooks, it printed
+results with a plain-Python read-back) and prints a `FAIL` block per failing notebook and, last, the count,
+`{len(paths) - failed}/{len(paths)} notebooks pass all eight requirements`; it exits with code 1 if any notebook
+fails [file: `fable-cosmology/notebooks/_build/nbcheck.py`]. With the seven executed notebooks committed in
+`aca5102` (01–04 of the classical fable, 05–07 of this work) it passes: that commit records "All seven notebooks
+pass all eight requirements (nbcheck 7/7)" **[commit aca5102]**, that is, the last line
 
 ```
-6/6 notebooks pass all eight requirements
+7/7 notebooks pass all eight requirements
 ```
 
-with exit code 0; with notebook 07 executed the expected line is `7/7 notebooks pass all eight requirements` {{NB07}}.
+and exit code 0.
 
 ### 11.10 Reproduce everything
 
@@ -5037,8 +5133,10 @@ After `setup.sh`, it runs, printing a header per step [file: `fable-cosmology/ru
 `rust/fable_fermion`, its `running`/`test result` lines and any `FAILED` or `panicked` line); `== 2. notebooks`
 (`executing notebooks/0*.ipynb` for every notebook, in order, with the `nbconvert` command of 11.9);
 `== 3. notebook requirements` (`nbcheck.py`); `== 4. the paper` (`latexmk` of the classical fable-cosmology paper,
-then its `ls -la` line); and `== all done`. Its output on the final pushed state is recorded with the fresh-clone
-verification of section 12.
+then its `ls -la` line); and `== all done`. It runs under `set -euo pipefail`, so any failing step stops it with a
+non-zero exit code. At commit `aca5102` it passed: the commit records that `bash fable-cosmology/run_all.sh`
+"passes end to end (both crates' tests, all notebooks, the checker, the paper)" **[commit aca5102]**. Its output
+on the final pushed state is recorded with the fresh-clone verification of section 12.
 
 ### 11.11 Build the LaTeX twin of this page
 
@@ -5062,7 +5160,8 @@ pushed to its `main` branch. (The remote named `upstream`, the author's other re
 The repository carries a `.gitattributes` with `* -text`, so git never rewrites line endings and every file
 checks out with the bytes that were committed.
 
-**The commits of 2026-09-24 so far** (`git log --oneline`, times from `git log --date=iso`, PDT):
+**The commits of this work** (`git log --oneline`, times from `git log --date=iso`, PDT; on 2026-09-24
+up to `2bc936d`, on 2026-09-25 from `aca5102` on):
 
 | commit | time | what it contains |
 |---|---|---|
@@ -5079,7 +5178,11 @@ checks out with the bytes that were committed.
 | **`bc04ed1`** | **21:24:04** | **Part VIII of the notebook (this effort's symbolic side**, Sections 30–33; 217 Input cells, 642/642, 0 cells with messages; an independent re-run confirmed it), its run log, and the Mathematica reference runs `make_reference_fermion.wls` with their two CSVs |
 | **`18a2501`** | **22:13:42** | **the wall-state solver** `fable-cosmology/fermion/waveguide.py`, its derivation (94/94) with its log, its Mathematica check (11/11) and its report |
 | `fee5603` | 22:31:20 | the page of Effort A (draft), with its LaTeX twin |
-| **`2bc936d`** | **23:12:51** | **six solver defects fixed**: the negative-energy refusal and the first-order transition located inside the right-hand side and bisected, independently of the output grid; the `fable8d` shooting no longer accepts `\|H_A(1) − 1\| > 1e-6`; `vac_over_rhoc` evaluated stably (a series in `(m − M)/M`, `1.8e-15` against 120-digit references); `gap_residual` measured against the scale of `W'`; one CODATA `hbar` for all units (`E_c = 2.46261317732986325e-3 eV`, `Omega_r0 = 9.20960546728882807e-5`); `cargo test` 34/34; the scipy cross-check still passes (largest difference `1.1e-8`) |
+| **`2bc936d`** | **23:12:51** | **six solver defects fixed**: the negative-energy refusal and the first-order transition located inside the right-hand side and bisected, independently of the output grid; the `fable8d` shooting no longer accepts `\|H_A(1) − 1\| > 1e-6`; `vac_over_rhoc` evaluated stably (a series in `(m − M)/M`, `1.8e-15` against 120-digit references); `gap_residual` measured against the scale of `W'`; one CODATA `hbar` for all units (`E_c = 2.46261317732986325e-3 eV`, `Omega_r0 = 9.20960546728882807e-5`); `cargo test` 34/34 (23 unit + 11 integration); the scipy cross-check still passes (largest difference `1.1e-8`). This is the final solver |
+| **`aca5102`** | **00:23:46** | **notebooks 05–07 of this work**, executed on the final solver, with every `results/nb05_*`, `nb06_*`, `nb07_*` table and figure they write; fixes of the notebook generator for the classical notebooks 01–04 (their 59 result files byte-identical to before); the checker and conventions for both solvers and all seven notebooks (`nbcheck` 7/7); setup and reproduction scripts that build and test both crates (`run_all.sh` passes end to end); `fable-cosmology/fermion/waveguide_T16.json` committed and the derivation re-run (94/94, 162.8 s); `waveguide.py validate` exits 1 on any failure |
+| `1671155` | 00:28:54 | the full run of the notebook after notebook 06 had written the Rust solver's CSVs, so that Part VIII's two comparisons with them ran and passed: 217 Input cells, 644/644, 0 cells with messages, 208.7 s, 46 witnesses |
+| `38701ef` | 05:40:19 | this page and the page of the complete solution, as drafts, with their LaTeX twins and PDFs, the figures the PDFs use, and the repository's front page updated for the pages of this work |
+| **`3a5020d`** | **05:54:25** | **Part VIII's spin-connection labels corrected**: the Text cell of Section 32 and three assertion labels write the listed components with both flat indices down, `omega_{mu ab}` (section 6.15; no computation changed); the final run recorded again (`claude-fable/run_fermion_fable_final.log`: 217 Input cells, 644/644, 0 cells with messages, 198.352 s, 46 witnesses, 0 identities on numerical evidence alone); `verify_nb_part8.log` rewritten (384 cells, none failing to parse); a comment of `src/models.rs` (section 9.1) |
 
 **Checking that the remote has what was pushed:**
 
@@ -5091,27 +5194,27 @@ git ls-remote origin refs/heads/main        # the hash GitHub serves for main
 git status --short                          # what is not yet committed
 ```
 
-When this page was written (2026-09-24, 23:26 PDT), `git ls-remote origin refs/heads/main` printed
+When this page was brought to its final state (2026-09-25, 06:04 PDT), `git ls-remote origin refs/heads/main`
+printed
 
 ```
-2bc936d0dfd6f6c1243214fc6b1b9947f5bded6e	refs/heads/main
+3a5020d766d6e306e29ef469c9c0800a16b82e54	refs/heads/main
 ```
 
-which is the local `main` (`2bc936d`). Everything of this effort that exists as a notebook part, a log, the
-reference runs, the solver or the wall-state solver is in that pushed history: Part VIII and its log in
-`bc04ed1`, the wall-state solver in `18a2501`, the solver crate in `c5892bd` and `2bc936d`.
+which is the local `main` (`3a5020d`). Everything of this effort that exists as a notebook part, a log, the
+reference runs, the solver, the wall-state solver or a notebook is in that pushed history: Part VIII in
+`bc04ed1` and `3a5020d`, its final run log in `3a5020d`, the wall-state solver in `18a2501` and `aca5102`, the
+solver crate in `c5892bd` and `2bc936d`, notebooks 05–07 and their results in `aca5102`.
 
-**What was not yet committed when this page was written.** This page, its LaTeX twin and its PDF; the
-fable-cosmology notebooks `05_fermion_fable_quantum_eos.ipynb` and `06_fable_primordial_gravity_8d.ipynb` and
-every `results/nb05_*` and `results/nb06_*` file they write (the numbers of sections 7–10 are quoted from them);
-notebook `07_fable_dft_states.ipynb` (being generated); and the other working-tree changes (the notebook
-generator and checker, the four classical notebooks, the setup and reproduction scripts, and documentation).
-Notebooks 05 and 06 were executed at 22:53 PDT, before the solver commit `2bc936d`; they are re-executed on the
-final solver before they are committed. Two kinds of printed number are known to be touched by that commit: the
-location of the repulsive-quadratic refusal (noted in section 9.11), and the Dirac-sea column `vac_over_rhoc` at
-keV masses, where the commit records that the old closed form left rounding noise of `1.6e4–5e4 rho_c0` at 1 keV
-(noise of that size, relative to a total density of order `rho_c0` at `a >= 0.3`, is far below every ratio of
-that column that this page quotes, the smallest being the scan minimum `3.79e9`). They are committed together at the end of the work.
+**What is committed, and what is not yet.** Every code file, log, notebook and result that this page quotes is
+committed and pushed. The numbers of sections 7–10 are quoted from the committed notebooks 05 and 06 and their
+`results/nb05_*` and `results/nb06_*` files, and those of section 8 from the committed wall-state report, its
+derivation log and notebook 07 with its `results/nb07_*` files (commit `aca5102`); the notebooks were executed
+on the final solver of `2bc936d`, and the refusal of section 9.11 is the bisected one of that solver. The
+Dirac-sea column `vac_over_rhoc` is evaluated stably since that commit; the old closed form had left rounding
+noise of `1.6e4–5e4 rho_c0` at 1 keV **[commit 2bc936d]**, far below every ratio of that column that this page
+quotes, the smallest being the scan minimum `3.79e9`. This final version of the page, its LaTeX twin and its
+PDF replace the drafts of `38701ef` with the final push below.
 
 **The final push and the fresh-clone verification.** The final state is verified from a fresh clone of the
 pushed `main`, with these commands (`<scratch>` is any empty directory outside the repository):
@@ -5127,8 +5230,8 @@ python build_tools.py                                  # the four lines of secti
 cmp claude-fable_Einstein-Rosen-2-Planes.nb committed.nb && echo "notebook rebuilds byte for byte"
 wolframscript -file verify_nb.wls                      # section 11.8
 wolframscript -file run_from_nb.wls > fresh_run.log 2>&1
-sed -n '/RUN SUMMARY/,$p' fresh_run.log                # 217 cells, 642/642, cells w/ msgs 0
-diff <(grep '^  PASS' fresh_run.log) <(grep '^  PASS' run_fermion_fable_part8.log) && echo "every label identical"
+sed -n '/RUN SUMMARY/,$p' fresh_run.log                # 217 cells, 644/644, cells w/ msgs 0
+diff <(grep '^  PASS' fresh_run.log) <(grep '^  PASS' run_fermion_fable_final.log) && echo "every label identical"
 cd ../fable-cosmology
 bash setup.sh                                          # section 11.1
 bash run_all.sh                                        # section 11.10: cargo test, notebooks 01-07, nbcheck, the paper
