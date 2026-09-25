@@ -130,8 +130,10 @@ Consequences, each an assertion in Part VI:
    oscillates between −1 and +1 with the virial average `⟨w⟩ = (n − 1)/(n + 1)` for `V ∝ φ^{2n}`
    (`⟨w⟩ = 0` for the mass term, exactly, from `φ = A Cos[m x4]`, `w = −Cos[2 m x4]`).
 3. **A static x0 profile is a cosmological constant *on the observed sheet*.** With `V = 0`,
-   `∂_0(Sec Cot² ∂_0φ) = 0` has the solution `∂_0φ = C Sin[6Hx0]²/Cos[6Hx0]`, so `G0 = C²/2` is
-   constant, and `ρ = G0`, `P_1 = −G0`, `w = −1` exactly. **[rev]** Along the hidden direction
+   `∂_0(Sec Cot² ∂_0φ) = 0` has the solution `∂_0φ = C Sin[6Hx0]²/Cos[6Hx0]`, so
+   `G0 = C² Sin[6Hx0]²/2` **[corr 2026-09-24: this read `G0 = C²/2`; Part VI asserts
+   `C² Sin[6Hx0]²/2`]** is independent of `x4` (and of `x1, x2, x3`), i.e. constant for the observer
+   at fixed `x0`, and `ρ = G0`, `P_1 = −G0`, `w = −1` exactly. **[rev]** Along the hidden direction
    itself `P_0 = +G0 = +ρ`, so in eight dimensions this is an anisotropic stress, not a Λ term;
    the Λ-like behaviour is a statement about the observed sheet.
 4. **The 4-dimensional reference model and the volume bookkeeping. [rev]** Integrating the
@@ -213,7 +215,8 @@ i.e. exactly for the solutions with constant `V'`, and then `ρ_Ψ = V(s)`,
    `0 < n < 2/3` accelerating (`n = 0.236` gives Unite's constant-w value −0.764 exactly), `n < 0`
    phantom. A potential whose slope changes sign at `s*` with `V(s*) > 0` lets `w_Ψ` **cross the
    phantom divide** with no wrong-sign kinetic term — the classical mechanism of the spinor
-   quintom (Cai & Wang, JCAP 2008). **[rev]** The stability of perturbations is not examined here.
+   quintom (Y.-F. Cai and J. Wang, Class. Quantum Grav. 25 (2008) 165014, arXiv:0806.3890
+   **[corr 2026-09-24: this read "JCAP 2008"]**). **[rev]** The stability of perturbations is not examined here.
 3. **No dilution in the pre-universe.** For `Ψ' = Ψ'(x4)`: `∂_4Ψ' = −H V'(s) gamma^4 Ψ'`
    (`(gamma^4)² = −ID16`), so `ds'/dx4 = −2HV' Ψ'ᵀ\[Sigma]16 gamma^4 Ψ' = 0` and `s = Sin[6Hx0] s'`
    is constant in `x4`; Part VI also proves `ds/dx4 = 0` on shell for a generic `Ψ(x0, x4)`.
@@ -231,7 +234,7 @@ i.e. exactly for the solutions with constant `V'`, and then `ρ_Ψ = V(s)`,
 | `power` | `m s + λ s^n` | `(m s + nλ s^n)/(m s + λ s^n) − 1` | for `n < 1`: dust → `n − 1` (accelerating for `n < 2/3`; the field-driven dark energy of this class); reversed order for `n > 1` |
 | `hilltop` | `V0 − μ (s − s*)²` | `−2μ s (s − s*)/V − 1` | crosses −1 at `s = s*`; **[rev]** unbounded below: valid only on `s < s* + Sqrt[V0/μ]`, i.e. late times; a local textbook form, run only inside its window |
 | `lorentz` | `V0 + m s/(1 + (s/s1)²)` | `m s(1 − u)/((1+u)² V) − 1`, `u = (s/s1)²` | **positive everywhere**; `w → −1⁻` as `s → ∞`, minimum below −1, crosses −1 at `s = s1`, `w → −1⁺` as `s → 0` |
-| `expdamp` | `V0 + m s e^{−s/s1}` | `m s e^{−s/s1}(1 − s/s1)/V − 1` | **bounded below by V0**; the same crossing pattern at `s = s1`; with `(V0, m, s1) = (1.566, 0.839, 2.21)` the run gives `w(1) = −0.861`, min `w ≈ −1.27` near `z ≈ 1`, crossing at `a = 0.768` |
+| `expdamp` | `V0 + m s e^{−s/s1}` | `m s e^{−s/s1}(1 − s/s1)/V − 1` | **bounded below by V0**; the same crossing pattern at `s = s1`; with `(V0, m, s1) = (1.566, 0.839, 2.21)` the run gives `w(1) = −0.861`, min `w = −1.302` at `a = 0.543` (`z = 0.84`) **[corr 2026-09-24: this read "min `w ≈ −1.27` near `z ≈ 1`"]**, crossing at `a = 0.768` |
 
 ## 4. The numerical models (what the solver integrates)
 
@@ -324,16 +327,24 @@ finite-difference Jacobian, `CVodeSetStopTime`, outputs at prescribed abscissae 
       model      : scalar-flrw | scalar-cpl | spinor-flrw | scalar-pre | scalar-pre-x0
       defaults   : FLRW models --n0 -7 --n1 0 --points 701; pre-universe models --n0 0 --n1 50 (x4 range);
                    cosmological params om=0.3 or=8.4e-5 w0=-0.861 wa=-0.60; potential params as in §3/§4 (v0, lambda, alpha, f, m, mu, sstar, s1, n)
-      output     : CSV, header line naming every column, one line per output point, 15 significant digits
-      stderr     : "# initial conditions: …", "# stats: model=… steps=… rhs_evals=… nonlin_iters=… err_test_fails=…",
+      output     : CSV, header line naming every column, one line per output point, Rust format {:.15e}
+                   (15 decimals, i.e. 16 significant digits) [corr 2026-09-24: this read "15 significant digits"];
+                   without --out the CSV goes to standard output
+      stderr     : "# initial conditions: …" (FLRW models only), "# stats: model=… steps=… rhs_evals=… nonlin_iters=… err_test_fails=…",
                    "# potential=…" (the potential after normalisation), the version line
-      exit code  : 0 success; 1 solver or physics error (V ≤ 0, ρ ≤ 0, normalisation not bracketed) with a one-line reason; 2 usage
+      exit code  : 0 success; 1 solver or physics error (V ≤ 0, ρ ≤ 0, normalisation not bracketed, x0 grid outside (0, π/12))
+                   with a one-line reason, and also an unknown model or potential name; 2 a malformed command line
+                   (no arguments, unknown option, missing or non-numeric value, --points < 2, unknown --method)
+                   [corr 2026-09-24: an unknown model or potential name exits 1, not 2; verified against the binary]
     fable_cosmo --version   prints "fable_cosmo 0.1.0, sundials_rs 7.8.0 (pure Rust), CVODE BDF"
 
 Cross-checks: `scipy.integrate.solve_ivp` (DOP853, `rtol = 1e-11`) of every model in the notebooks
 (Models A and B agree to `1e-10` and `2e-8` in `w` in the development runs); a Mathematica
-`NDSolve` reference for one case of Model A and one of Model B exported by Part VI
-(`fable-cosmology/reference/mathematica_*.csv`) as a third integrator.
+`NDSolve` reference for one case of Model A and one of Model B, written by
+`fable-cosmology/reference/make_reference.wls` (`fable-cosmology/reference/mathematica_*.csv`) and
+repeated by Part VI, which asserts agreement with those files at every row to `1e-9`, as a third
+integrator **[corr 2026-09-24: this read "exported by Part VI"; Part VI reads and checks the files,
+it does not write them]**.
 
 ## 6. The Mathematica side: Part VI of the notebook (`claude-fable/cells_part6.wl`)
 
@@ -358,7 +369,9 @@ Part VI is that `a4` is still undefined.
   stated and the `−G5` sector shown; `φ̈ = −V'` for `φ(x4)` [THE RESULT: no friction]; the static
   x0 profile with `w = −1` on the sheet and `P_0 = +ρ`; the virial average on the exact quadratic
   solution; the reduced 4-volume factorisation `Sqrt[g_8] = q³ Tan p³`; the 4-dimensional
-  reference equations `NDSolve`d for `exp` → `reference/mathematica_scalar_exp.csv`.
+  reference equations `NDSolve`d for `exp` and compared at every row with
+  `reference/mathematica_scalar_exp.csv` (written by `reference/make_reference.wls`) **[corr 2026-09-24:
+  the arrow suggested Part VI writes the file; it reads and checks it]**.
 - **24. fable** — definition with `s` and a generic `V`; the Euler–Lagrange equation by explicit
   variation and its equality with `Sqrt[g][(2/H)(A^μ∂_μΨ + ½DΨ) − 2V'\[Sigma]16Ψ]`; the divergence
   term equals `gamma^μ Gamma^spin_μ` and `−3H Cot² T16[0]` on this frame, with the anticommutator
@@ -368,7 +381,8 @@ Part VI is that `a4` is still undefined.
   `ρ = V + K_h`, `P = sV' − V` on shell; `K_h = 0` and `ρ = V` for `Sqrt[Sin] Ψ'(x4)`; `ds/dx4 = 0`;
   dust for the mass term [THE RESULT]; `w_Ψ` closed forms for the potentials of §3 with the
   crossing points; the FLRW frame: `gamma^μ Gamma_μ = (3/2)(a'/a) gamma^4`, `d(a³ s)/dt = 0`;
-  `NDSolve` reference `reference/mathematica_spinor_expdamp.csv`.
+  the `NDSolve` of Model B compared at every row with `reference/mathematica_spinor_expdamp.csv`
+  (written by `reference/make_reference.wls`).
 - **25. Reading the two mechanisms side by side** — the table of §7, the kinematic identification
   `ln a = −a4` with its sign hypothesis, the volume bookkeeping and its caveats, the honest
   statement of what is proved on the 8-manifold versus what is the reference model, and the
@@ -382,7 +396,7 @@ Part VI is that `a4` is still undefined.
 | phantom divide? | never with `ρ_φ > 0` (NEC: `ρ + P = 2KE ≥ 0`) | crossed at `V'(s*) = 0` by `lorentz`/`expdamp`, classical spinor-quintom mechanism; perturbative stability not examined |
 | dark matter? | coherent oscillations (`⟨w⟩ = 0`, quadratic `V`, Model C; and Model A `quadratic` dilutes as dust once oscillating) | the author's mass term **is** dust, exactly; `s ∝ a^{−3}` is the dust dilution law |
 | dark energy? | slow roll / flat `V` (`w → −1`); the static `x0` gradient (`w = −1` on the sheet) | `power` with `0 < n < 2/3` (field-driven; `n = 0.236` ↔ `−0.764`); `V0` terms are a bare Λ and are reported as such |
-| Unite `(−0.861, −0.60)`? **[rev]** | a thawing fableScalar gives `w0 > −1` and `wa < 0` (the same sign pattern) with `w0 + wa` below −1 in the CPL *extrapolation*, while never having `w < −1`; whether `|wa| ≈ 0.6` is reachable is what Model A measures | `expdamp`/`lorentz` give a genuine phantom phase in the past, `w(1) ≈ −0.86`, `wa < 0`; the fits are reported |
+| Unite `(−0.861, −0.60)`? **[rev]** | a thawing fableScalar gives `w0 > −1` and `wa < 0` (the same sign pattern) with `w0 + wa` below −1 in the CPL *extrapolation*, while never having `w < −1`; whether `\|wa\| ≈ 0.6` is reachable is what Model A measures | `expdamp`/`lorentz` give a genuine phantom phase in the past, `w(1) ≈ −0.86`, `wa < 0`; the fits are reported |
 | the volume bookkeeping | any constant 8-density has `ρ_4 ∝ a^{−3}` in the reduction — a volume effect, not dust; undetermined without a gravitational sector | same |
 
 ## 8. File layout of the deliverable
@@ -402,7 +416,7 @@ Part VI is that `a4` is still undefined.
         04_dark_matter_dark_energy.ipynb      the comparison, the questions answered, the figures for the paper
         _build/nbgen.py, nbcheck.py, CONVENTIONS.md
       results/                       CSVs and PNGs written by the notebooks (committed: they are the evidence)
-      reference/                     mathematica_*.csv from Part VI
+      reference/                     make_reference.wls and the mathematica_*.csv it writes (Part VI checks them)
       latex/fable_cosmology.tex, fable_cosmology.pdf, figures/   the paper, compiled with latexmk (MiKTeX / TeX Live)
     claude-fable/cells_part6.wl      Part VI of the notebook
     PROVENANCE-13-FABLE-COSMOLOGY.md the provenance page: every command, every result

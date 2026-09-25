@@ -670,7 +670,7 @@ branch M s < 0.  For a general V on the rescaled solutions w = s V'(s)/V(s) - 1,
 for V ~ s^n: dust at n = 1, accelerating for 0 < n < 2/3 (n = 0.236 gives Unite's constant-w
 value -0.764 exactly), PHANTOM for n < 0.  And w + 1 = s V'/V changes sign where V' does: a
 potential whose slope changes sign at s* with V(s*) > 0 lets w CROSS THE PHANTOM DIVIDE with no
-wrong-sign kinetic term -- the classical spinor-quintom mechanism (Cai & Wang, JCAP 2008).  The
+wrong-sign kinetic term -- the classical spinor-quintom mechanism (Cai & Wang, Class. Quantum Grav. 25 (2008) 165014).  The
 stability of perturbations is not examined here.  The six potentials of the numerical work and
 their closed-form w are recorded and asserted; for lorentz and expdamp V is positive everywhere,
 w -> -1 from below as s -> infinity (the far past, s ~ a^-3 in the reference model), crosses -1

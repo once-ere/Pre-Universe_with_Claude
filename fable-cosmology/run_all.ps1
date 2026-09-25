@@ -7,7 +7,10 @@ Set-Location $PSScriptRoot
 $py = ".venv\Scripts\python.exe"
 
 Write-Host "== 1. solver tests"
-Push-Location rust\fable_cosmo; cargo test --release; Pop-Location
+Push-Location rust\fable_cosmo; cargo test --release
+# $ErrorActionPreference does not stop on a failing native command, so check its exit code
+if ($LASTEXITCODE -ne 0) { Pop-Location; throw "cargo test failed" }
+Pop-Location
 
 Write-Host "== 2. notebooks"
 New-Item -ItemType Directory -Force results | Out-Null

@@ -15,8 +15,10 @@ cd "$HERE"
 
 # ---------------------------------------------------------------- 1. Python
 if [ ! -x .venv/bin/python ] && [ ! -x .venv/Scripts/python.exe ]; then
-  echo "== creating .venv"
-  python -m venv .venv
+  # many macOS and Linux systems have python3 but no python; Git Bash on Windows usually has python
+  if command -v python3 >/dev/null 2>&1 && python3 -c "import sys" >/dev/null 2>&1; then SYSPY=python3; else SYSPY=python; fi
+  echo "== creating .venv with $SYSPY"
+  "$SYSPY" -m venv .venv
 fi
 if [ -x .venv/Scripts/python.exe ]; then PY=.venv/Scripts/python.exe; else PY=.venv/bin/python; fi
 echo "== installing Python requirements into .venv"

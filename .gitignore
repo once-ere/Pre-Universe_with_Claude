@@ -9,8 +9,9 @@
 #       an exception list somebody has to remember to update.
 #
 #  Job 3 is why there is no blanket "*.log" rule.  This repository is
-#  mostly provenance: 42 of its 118 tracked files are .log, and they are
-#  the record of exactly what the notebook printed.  Ignoring them by extension
+#  mostly provenance: 51 of its 232 tracked files were .log on 2026-09-24
+#  (42 of 118 when this was first written), and they are the record of
+#  exactly what the notebook printed.  Ignoring them by extension
 #  and rescuing them by name would mean every new one is dropped in silence.
 #  Scratch is named instead.  See section 3 for the full reasoning.
 #
@@ -215,9 +216,10 @@ Untitled*
 # LaTeX is the one tool that would argue for *.log, since it writes <doc>.log
 # beside <doc>.tex.  Section 2 covers its other products (*.aux, *.toc, *.out and
 # the rest) but NOT its log, precisely because *.log cannot be scoped by
-# extension without catching the 42 provenance logs.  There are no .tex sources
-# in this repository, so nothing writes a LaTeX log today.  If one is ever added,
-# scope the rule to it by name, for example
+# extension without catching the provenance logs.  The one .tex source is
+# fable-cosmology/latex/fable_cosmology.tex; its LaTeX log, latexmk's log and its
+# synctex file are ignored BY NAME in section 4.  If another .tex source is ever
+# added, scope its rules to it by name in the same way, for example
 #
 #     paper.log
 #
