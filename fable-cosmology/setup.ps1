@@ -4,7 +4,8 @@
 #   2. a sparse clone of rustSolveIt_Win11_SUNDIALS_7_8_0 into rust\vendor\rustSolveIt, restricted
 #      to its vendored pure-Rust SUNDIALS 7.8.0 (sundials_rs), which the solver crate depends on
 #      by path exactly as rustSolveIt's own planet_Mercury\mercury_rs does;
-#   3. a release build of the solver crate rust\fable_cosmo, and a smoke test of it.
+#   3. release builds of the two solver crates, rust\fable_cosmo (the classical fields) and
+#      rust\fable_fermion (the quantized fermion fable), and a smoke test of each (--version).
 #
 # Run it from anywhere:   powershell -ExecutionPolicy Bypass -File fable-cosmology\setup.ps1
 # It is idempotent.
@@ -37,10 +38,15 @@ Push-Location rust\vendor\rustSolveIt
 Write-Host ("== engine: " + (git remote get-url origin) + " @ " + (git rev-parse --short HEAD))
 Pop-Location
 
-# ---------------------------------------------------------------- 3. the solver
-Write-Host "== building rust\fable_cosmo (release)"
-Push-Location rust\fable_cosmo
-cargo build --release
-Pop-Location
-& rust\fable_cosmo\target\release\fable_cosmo.exe --version
+# ---------------------------------------------------------------- 3. the solvers
+foreach ($crate in @("fable_cosmo", "fable_fermion")) {
+  Write-Host "== building rust\$crate (release)"
+  Push-Location "rust\$crate"
+  cargo build --release
+  # $ErrorActionPreference does not stop on a failing native command, so check its exit code
+  if ($LASTEXITCODE -ne 0) { Pop-Location; throw "cargo build failed for rust\$crate" }
+  Pop-Location
+  & "rust\$crate\target\release\$crate.exe" --version
+  if ($LASTEXITCODE -ne 0) { throw "rust\$crate\target\release\$crate.exe --version failed" }
+}
 Write-Host "== setup complete"

@@ -1,0 +1,9 @@
+matrix,count,all_symmetric,all_antisymmetric,consequence
+sigma16,1,True,False,theta^T sigma16 theta = 0: no mass term for a real Grassmann spinor
+sigma16 T16[a],8,False,True,"theta^T sigma16 gamma d theta = (1/2) d(theta^T sigma16 gamma theta): a total derivative, no dynamics"
+sigma16 Gamma_ab,28,False,True,"antisymmetric: a real Grassmann tensor bilinear survives, but it is not a scalar"
+sigma16 Gamma_abc,56,True,False,"the spin-connection term theta^T sigma16 {gamma, Gamma} theta = 0 on every frame"
+sigma16 Gamma_abcd,70,True,False,symmetric: vanishes on real Grassmann spinors
+sigma16 T16[8],1,True,False,symmetric: no pseudoscalar mass term for a real Grassmann spinor either
+Cplus = sigma16 T16[8],1,True,False,symmetric: a Majorana spinor with Cplus has no mass term
+Cplus T16[a],8,True,False,symmetric: the Majorana kinetic term theta^T Cplus gamma d theta is dynamical

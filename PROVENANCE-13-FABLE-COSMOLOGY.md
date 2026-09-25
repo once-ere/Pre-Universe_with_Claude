@@ -1169,8 +1169,31 @@ the reported items:
   `$ErrorActionPreference = "Stop"` does not apply to native commands. The script now checks
   `$LASTEXITCODE` after `cargo test` and throws, as it already did for the other steps.
 
-The `nbgen.py` items above remain. Correcting them means regenerating and re-executing the four
-notebooks, which is scheduled with the notebooks of the fermion-fable work.
+**The four `nbgen.py` items above were fixed on 2026-09-24, with the notebooks of the
+fermion-fable work.** The generator `fable-cosmology/notebooks/_build/nbgen.py` now says:
+
+- notebook 03, section 3: `G0 = C² Sin[6Hx0]²/2` (as Part VI asserts), independent of `x4` and
+  therefore constant for the observer at fixed `x0`;
+- notebooks 01 (section 5.8) and 02 (section 5.10): the reference CSV "was written by
+  `fable-cosmology/reference/make_reference.wls` (a wolframscript) and is checked by Part VI of
+  the Mathematica notebook, which reads it back";
+- notebook 01, section 5: every number is written as `{:.15e}`, "15 decimals, i.e. 16
+  significant digits";
+- notebooks 01, 02 and 03, section 5: exit code 1 is a solver or physics error "and also an
+  unknown model or potential name"; exit code 2 is "a malformed command line (an unknown option,
+  or a missing or non-numeric value)". This was checked against the binary before the text was
+  written: `fable_cosmo nosuchmodel` and `fable_cosmo spinor-flrw --potential nosuch` exit 1,
+  `fable_cosmo spinor-flrw --bogus` and `fable_cosmo spinor-flrw --points x` exit 2.
+
+How this was verified. The four notebooks were regenerated with
+`.venv/Scripts/python.exe notebooks/_build/nbgen.py 01 02 03 04` and re-executed in place with
+`nbconvert --execute --inplace` (7 s, 7 s, 53 s and 6 s). None of the stale phrases occurs in the
+executed notebooks any more (`grep -c` finds 0 in each). `nbcheck.py` reports `4/4 notebooks pass
+all eight requirements`. The re-execution rewrote every CSV and PNG under
+`fable-cosmology/results/` that the four notebooks own, and all 59 are byte-identical to the
+committed files: `git diff --stat -- fable-cosmology/results` is empty, and the SHA-256 of each
+file equals that of its `HEAD` blob (`checked 59 files, 0 differ`). The corrections are to
+markdown text only; no code cell and no result changed.
 
 **Not done in this session.** The author's instruction "verify the pushed repo runs from a fresh
 clone" needs the files of this session to be committed and pushed first. Section 8.6 is a local

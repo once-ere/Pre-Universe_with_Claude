@@ -1,0 +1,5 @@
+Q,hermitian,involution,commutes_with_J,covariant_Spin13,dim_plus_space,max_scalar_density_form,max_normal_current_form,real_C_invariant
++1,True,True,True,True,8,2.23711431708e-17,2.23711431708e-17,True
+-1,True,True,True,True,8,2.23711431708e-17,2.23711431708e-17,True
++J,True,True,True,True,8,2.23711431708e-17,2.23711431708e-17,False
+-J,True,True,True,True,8,2.23711431708e-17,2.23711431708e-17,False

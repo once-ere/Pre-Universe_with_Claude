@@ -10,7 +10,7 @@
    FindRoot with Brent's method), and the decaying eigenvector computed by Mathematica's NullSpace.
    The Python value is used only to choose a bracket [w0 - d, w0 + d] (d = 1e-3 R, clipped below the
    continuum); inside it the root is re-solved from scratch.  Also:
-     - the full 16-component system (T16 from the notebook, via dev/waveguide_T16.json) is integrated
+     - the full 16-component system (T16 from the notebook, via the committed waveguide_T16.json) is integrated
        with NDSolve (K = 3, 8; 25 digits) or, at K = 80 where NDSolve on the 16x8 matrix system did not
        finish in 30 min, with an independently coded 4th-order Magnus / MatrixExp propagator, and the
        multiplicity of each level is read off the singular values of [Q_L | Q_R];
@@ -29,7 +29,7 @@ $HistoryLength = 0;
 t0 = AbsoluteTime[];
 dir = DirectoryName[ExpandFileName[$InputFileName]];
 refFile = FileNameJoin[{dir, "dev", "waveguide_levels_reference.csv"}];
-tFile = FileNameJoin[{dir, "dev", "waveguide_T16.json"}];
+tFile = FileNameJoin[{dir, "waveguide_T16.json"}];
 Print["waveguide_check.wls   ", DateString[{"Year", "-", "Month", "-", "Day", " ", "Time"}], "   ", $Version];
 Print["reference: ", refFile];
 ref = Rest[Import[refFile, "CSV"]];

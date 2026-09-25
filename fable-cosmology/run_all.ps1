@@ -1,5 +1,6 @@
 # fable-cosmology/run_all.ps1 -- reproduce everything from a fresh clone, after setup.ps1:
-#   1. the solver's own tests;  2. every notebook, executed headlessly in order;
+#   1. the tests of both solvers (rust\fable_cosmo, rust\fable_fermion);
+#   2. every notebook (01-07), executed headlessly in order;
 #   3. the eight-requirement check;  4. the paper, compiled to PDF with latexmk (MiKTeX).
 # Run it from anywhere:   powershell -ExecutionPolicy Bypass -File fable-cosmology\run_all.ps1
 $ErrorActionPreference = "Stop"
@@ -7,10 +8,13 @@ Set-Location $PSScriptRoot
 $py = ".venv\Scripts\python.exe"
 
 Write-Host "== 1. solver tests"
-Push-Location rust\fable_cosmo; cargo test --release
-# $ErrorActionPreference does not stop on a failing native command, so check its exit code
-if ($LASTEXITCODE -ne 0) { Pop-Location; throw "cargo test failed" }
-Pop-Location
+foreach ($crate in @("fable_cosmo", "fable_fermion")) {
+  Write-Host ("   rust\" + $crate)
+  Push-Location "rust\$crate"; cargo test --release
+  # $ErrorActionPreference does not stop on a failing native command, so check its exit code
+  if ($LASTEXITCODE -ne 0) { Pop-Location; throw "cargo test failed for rust\$crate" }
+  Pop-Location
+}
 
 Write-Host "== 2. notebooks"
 New-Item -ItemType Directory -Force results | Out-Null

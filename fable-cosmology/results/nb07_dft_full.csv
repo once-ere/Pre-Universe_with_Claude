@@ -1,0 +1,25 @@
+quantity,value_full_resolution
+same: E/A,937.227736033
+same: sum omega,936.054008687
+same: E_int,1.1737273454
+same: mu,11.6958993131
+same: E/N,9.37227736
+same: k_lo,5.45898483
+same: kF,11.80021359
+same: band bottom,5.5498212
+same: sigma_max,23.8456155
+same: Walecka slope,-48.305804
+same: gap at k = 34,2.08513398
+same: gap at k = 40,2.78024477
+same: gap at k = 60,5.02368345
+same: gap at k = 80,7.18485799
+Delta-SCF x = 0.01: per promoted fermion,20.75132861
+Delta-SCF x = 0.05: per promoted fermion,20.91880997
+Delta-SCF x = 0.1: per promoted fermion,21.12505588
+Delta-SCF x = 0.2: per promoted fermion,21.52966762
+opposite lam = -0.01: E/A,0.033268937058
+opposite lam = -0.01: mu,0.8871343842
+opposite lam = -0.01: E/N,0.66537874
+opposite lam = -10: E/A,0.033267529405
+opposite lam = -10: mu,0.8870591549
+opposite lam = -10: E/N,0.66535059

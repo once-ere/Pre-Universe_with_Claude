@@ -1,0 +1,7 @@
+bound,value_eV,detail
+Delta N_eff(BBN) < 0.3,10.2645,Delta N_eff = 6.6922 (m/eV)^(-1.3333)
+Delta N_eff(BBN) < 0.2,13.9126,same fit
+"free streaming, v_rms0 matched to thermal WDM of 3.3 keV (Viel et al. 2013: m_WDM > 3.3 keV)",1124.92,v_rms0 = 8.2629e-03 km/s
+"free streaming, v_rms0 matched to thermal WDM of 5.3 keV (Irsic et al. 2017: m_WDM > 5.3 keV)",1806.69,v_rms0 = 4.3932e-03 km/s
+"Tremaine-Gunn, g = 8, sigma = 10 km/s, r_c = 0.3 kpc",231.315,m^4 > 9 h^3/(2 (2 pi)^(5/2) g G sigma r_c^2)
+"Tremaine-Gunn, g = 8, sigma = 7 km/s, r_c = 0.15 kpc",357.639,m^4 > 9 h^3/(2 (2 pi)^(5/2) g G sigma r_c^2)

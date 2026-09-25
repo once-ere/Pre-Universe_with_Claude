@@ -1,0 +1,49 @@
+run,quantity,w0,wa,dist_to_unite
+mass 1 eV (EdS),w_f,-7.6938159e-08,1.0018181e-06,1.0494389
+mass 1 eV (EdS),w_DE_inf,nan,nan,nan
+mass 30 eV (EdS),w_f,-8.8543086e-12,1.1529222e-10,1.0494384
+mass 30 eV (EdS),w_DE_inf,nan,nan,nan
+mass 100 eV (EdS),w_f,-3.5711767e-13,4.6500398e-12,1.0494384
+mass 100 eV (EdS),w_DE_inf,nan,nan,nan
+mass 1000 eV (EdS),w_f,-7.6938669e-16,1.0018207e-14,1.0494384
+mass 1000 eV (EdS),w_DE_inf,nan,nan,nan
+mass 2000 eV (EdS),w_f,-1.2117081e-16,1.5777688e-15,1.0494384
+mass 2000 eV (EdS),w_DE_inf,nan,nan,nan
+lambda-mass 30 eV,w_f,-0.75727814,1.0099725,1.6133101
+lambda-mass 30 eV,w_DE_inf,-1,1.3250962e-09,0.61589041
+lambda-mass 100 eV,w_f,-0.75727814,1.0099725,1.6133101
+lambda-mass 100 eV,w_DE_inf,-1,5.3442877e-11,0.61589041
+lambda-mass 1000 eV,w_f,-0.75727814,1.0099725,1.6133101
+lambda-mass 1000 eV,w_DE_inf,-1,1.158874e-13,0.61589041
+lambda-mass 2000 eV,w_f,-0.75727814,1.0099725,1.6133101
+lambda-mass 2000 eV,w_DE_inf,-1,1.7234009e-14,0.61589041
+lambda-mass 30 eV (reference),w_f,-0.75686163,1.0092139,1.61258
+lambda-mass 30 eV (reference),w_DE_inf,-1,1.310825e-09,0.61589041
+"power nu=0.236, 30 eV",w_f,-0.78256297,0.44463002,1.0475706
+"power nu=0.236, 30 eV",w_DE_inf,-0.082216325,-7.9855157,7.4264626
+"power nu=0.236, 100 eV",w_f,-0.78256297,0.44463002,1.0475706
+"power nu=0.236, 100 eV",w_DE_inf,-0.082216325,-7.9855157,7.4264626
+"power nu=0.5, 30 eV",w_f,-0.80426876,-0.35846585,0.2481072
+"power nu=0.5, 30 eV",w_DE_inf,-0.24899592,-10.190509,9.6100159
+"power nu=0.5, 100 eV",w_f,-0.80424844,-0.35856657,0.24801379
+"power nu=0.5, 100 eV",w_DE_inf,-0.24897911,-10.190674,9.6101816
+"expdamp xt=1/2.21, 30 eV",w_f,-0.82949606,-0.31676069,0.28498598
+"expdamp xt=1/2.21, 30 eV",w_DE_inf,-0.12774231,-11.778422,11.202446
+"expdamp xt=1/2.21, 100 eV",w_f,-0.82947522,-0.31686397,0.28488563
+"expdamp xt=1/2.21, 100 eV",w_DE_inf,-0.12772043,-11.778641,11.202666
+"quadratic gq=-0.5, 30 eV",w_f,-0.72961899,-0.48331851,0.17571437
+"quadratic gq=-0.5, 30 eV",w_DE_inf,-0.18020793,-9.3209725,8.7475048
+"quadratic gq=-0.5, 100 eV",w_f,-0.7295996,-0.48341226,0.17566663
+"quadratic gq=-0.5, 100 eV",w_DE_inf,-0.18019306,-9.3211037,8.7476367
+"power nu=0.5, 100 eV, Omega_qp0=0.55",w_f,-0.44756657,0.26378792,0.95763081
+"power nu=0.5, 100 eV, Omega_qp0=0.55",w_DE_inf,-0.32650796,-9.6822445,9.0979584
+"power nu=0.236, 1 eV (Delta N_eff)",w_f,-0.78256441,0.44463701,1.0475775
+"power nu=0.236, 1 eV (Delta N_eff)",w_DE_inf,-0.082220293,-7.9854869,7.4264335
+"power nu=0.5, 1 eV (Delta N_eff)",w_f,-0.80660172,-0.34690264,0.25887728
+"power nu=0.5, 1 eV (Delta N_eff)",w_DE_inf,-0.25092098,-10.171647,9.5910701
+"expdamp xt=1/2.21, 1 eV (Delta N_eff)",w_f,-0.83188313,-0.30491257,0.29652046
+"expdamp xt=1/2.21, 1 eV (Delta N_eff)",w_DE_inf,-0.1302617,-11.753164,11.177077
+"quadratic gq=-0.5, 1 eV (Delta N_eff)",w_f,-0.73183748,-0.47256179,0.18144821
+"quadratic gq=-0.5, 1 eV (Delta N_eff)",w_DE_inf,-0.18193476,-9.3056887,8.7321329
+Unite CPL,reference,-0.861,-0.6,0
+Unite constant w,reference,-0.764,0,0.60779026

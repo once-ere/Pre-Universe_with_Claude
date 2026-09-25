@@ -12,7 +12,8 @@
    Every result is printed with a PASS/FAIL check.  Nothing here is fitted or assumed numerically.
 
    Run (from anywhere):   wolframscript -file fable-cosmology/fermion/waveguide_derivation.wls
-   The log is saved by the caller as fable-cosmology/fermion/waveguide_derivation.log.
+   The log is saved by the caller as fable-cosmology/fermion/waveguide_derivation.log.  Section 8
+   (re)writes the committed file fable-cosmology/fermion/waveguide_T16.json (T16, sigma16, block basis U).
 
    Conventions (fixed by the notebook): eta = diag(+,+,+,+,-,-,-,-); {T16[a],T16[b]} = 2 eta_ab;
    frame e = diag(Tan[6Hx0], q,q,q, 1, p,p,p), q = e^{-a4}/Sin^{1/6}, p = e^{+a4}/Sin^{1/6};
@@ -496,9 +497,9 @@ wgCheck["constant K, MIT- (th = Pi/4): om = -K with kappa = m > 0 (the in-gap ed
 (* ---------------------------------------------------------------------------------------------
    8.  Export of the notebook's matrices for the numerical cross-checks (waveguide.py full16)
    --------------------------------------------------------------------------------------------- *)
-wgSection["8. Export T16[0..8], sigma16 and the block basis U to fermion/dev/waveguide_T16.json"];
-wgOut = FileNameJoin[{wgRepo, "fable-cosmology", "fermion", "dev", "waveguide_T16.json"}];
-If[!DirectoryQ[DirectoryName[wgOut]], CreateDirectory[DirectoryName[wgOut]]];
+wgSection["8. Export T16[0..8], sigma16 and the block basis U to fermion/waveguide_T16.json"];
+(* the committed file next to this script, read by waveguide.py, waveguide_check.wls and notebook 07 *)
+wgOut = FileNameJoin[{wgRepo, "fable-cosmology", "fermion", "waveguide_T16.json"}];
 Export[wgOut, <|"source" -> "claude-fable_Einstein-Rosen-2-Planes.nb, Input cells 1..117 (T16, sigma16); block basis U of waveguide_derivation.wls",
     "T16" -> Table[T[a], {a, 0, 8}], "sigma16" -> \[Sigma]16,
     "U_re" -> N[Re[ComplexExpand[U]]], "U_im" -> N[Im[ComplexExpand[U]]],

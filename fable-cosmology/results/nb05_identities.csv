@@ -1,0 +1,7 @@
+identity,largest_residual
+eps - 3P - m sigma (rel. to eps),1.532e-15
+eps + P - wF n (rel.),5.551e-16
+d eps/dn|m - wF (rel.),7.439e-11
+d eps/dm|kF - sigma (rel.),3.610e-08
+chi - d sigma/dm (rel.),2.633e-07
+max chi/chi0,1.000e+00

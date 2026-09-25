@@ -1,10 +1,10 @@
 ==================================================================================
- waveguide_derivation.wls   2026-09-24 22:06:41
+ waveguide_derivation.wls   2026-09-25 00:06:38
  Mathematica 15.0.1 for Microsoft Windows (64-bit) (July 2, 2026)
  notebook: C:\Users\nsh\Documents\8-dim\Pre-Universe_14SEP26-77\claude-fable\claude-fable_Einstein-Rosen-2-Planes.nb
 ==================================================================================
 [load] DumpSave was blocked while loading: nothing was written into claude-fable/
-[load] notebook Input cells: 217; evaluated cells 1..117 in 132.3 s
+[load] notebook Input cells: 217; evaluated cells 1..117 in 125. s
 [load] cells that raised messages while loading (incidental to this script): {}
 [load] the notebook's own assertions in cells 1..117: 142 run, 142 passed; not passed: {}
   PASS  the symbols used by this script are not defined by the notebook (cells 1..117)
@@ -182,11 +182,11 @@
   PASS  constant K, MIT- (th = Pi/4): om = -K with kappa = m > 0 (the in-gap edge level of the opposite-sign wall)
 
 ---------------------------------------------------------------------------
-8. Export T16[0..8], sigma16 and the block basis U to fermion/dev/waveguide_T16.json
+8. Export T16[0..8], sigma16 and the block basis U to fermion/waveguide_T16.json
 ---------------------------------------------------------------------------
   PASS  export: T16 and sigma16 read back identical from waveguide_T16.json
 
 ==================================================================================
  waveguide_derivation.wls: 94 checks, 94 PASS, 0 FAIL
- total time 171.4 s
+ total time 162.8 s
 ==================================================================================

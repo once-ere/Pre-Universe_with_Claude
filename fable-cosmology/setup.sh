@@ -3,9 +3,10 @@
 #
 #   1. a Python virtual environment (.venv) with numpy, scipy, matplotlib, jupyter;
 #   2. a sparse clone of the rustSolveIt repository FOR THIS PLATFORM into rust/vendor/rustSolveIt,
-#      restricted to its vendored pure-Rust SUNDIALS 7.8.0 (sundials_rs), which the solver crate
-#      depends on by path exactly as rustSolveIt's own planet_Mercury/mercury_rs does;
-#   3. a release build of the solver crate rust/fable_cosmo, and a smoke test of it.
+#      restricted to its vendored pure-Rust SUNDIALS 7.8.0 (sundials_rs), which both solver crates
+#      depend on by path exactly as rustSolveIt's own planet_Mercury/mercury_rs does;
+#   3. release builds of the two solver crates, rust/fable_cosmo (the classical fields) and
+#      rust/fable_fermion (the quantized fermion fable), and a smoke test of each (--version).
 #
 # Run it from anywhere:   bash fable-cosmology/setup.sh
 # It is idempotent: re-running it updates nothing that is already in place.
@@ -42,9 +43,11 @@ if [ ! -d rust/vendor/rustSolveIt/sundials_rs/crates/cvode_rs ]; then
 fi
 echo "== engine: $(cd rust/vendor/rustSolveIt && git remote get-url origin) @ $(cd rust/vendor/rustSolveIt && git rev-parse --short HEAD)"
 
-# ---------------------------------------------------------------- 3. the solver
-echo "== building rust/fable_cosmo (release)"
-( cd rust/fable_cosmo && cargo build --release )
-if [ -x rust/fable_cosmo/target/release/fable_cosmo.exe ]; then BIN=rust/fable_cosmo/target/release/fable_cosmo.exe; else BIN=rust/fable_cosmo/target/release/fable_cosmo; fi
-"$BIN" --version
+# ---------------------------------------------------------------- 3. the solvers
+for CRATE in fable_cosmo fable_fermion; do
+  echo "== building rust/$CRATE (release)"
+  ( cd "rust/$CRATE" && cargo build --release )
+  if [ -x "rust/$CRATE/target/release/$CRATE.exe" ]; then BIN="rust/$CRATE/target/release/$CRATE.exe"; else BIN="rust/$CRATE/target/release/$CRATE"; fi
+  "$BIN" --version
+done
 echo "== setup complete"
