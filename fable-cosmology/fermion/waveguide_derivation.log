@@ -1,0 +1,192 @@
+==================================================================================
+ waveguide_derivation.wls   2026-09-24 22:06:41
+ Mathematica 15.0.1 for Microsoft Windows (64-bit) (July 2, 2026)
+ notebook: C:\Users\nsh\Documents\8-dim\Pre-Universe_14SEP26-77\claude-fable\claude-fable_Einstein-Rosen-2-Planes.nb
+==================================================================================
+[load] DumpSave was blocked while loading: nothing was written into claude-fable/
+[load] notebook Input cells: 217; evaluated cells 1..117 in 132.3 s
+[load] cells that raised messages while loading (incidental to this script): {}
+[load] the notebook's own assertions in cells 1..117: 142 run, 142 passed; not passed: {}
+  PASS  the symbols used by this script are not defined by the notebook (cells 1..117)
+
+---------------------------------------------------------------------------
+1. The x0-problem from gammaCurvedCanonical, GammaSpinCanonical and cfDcov16
+---------------------------------------------------------------------------
+  PASS  [notebook] {T16[a], T16[b]} == 2 eta_ab ID16 (a,b = 0..7) and T16[a] real
+  PASS  [notebook] T16[a] is real symmetric for a = 0..3 and real antisymmetric for a = 4..7
+  PASS  [notebook] gammaCurvedCanonical = {Cot T0, (1/q) T1..T3, T4, (1/p) T5..T7}
+  PASS  Sum_mu gamma^mu Gamma_mu == -3 H Cot[6Hx0]^2 T16[0] on the canonical frame, for ANY a4[H x4] (the a4' terms cancel)
+  PASS  Sum_mu {gamma^mu, Gamma_mu} == 0 (so the connection enters the Dirac operator only as the term above)
+  PASS  with a4 frozen to a constant A4 the a4' terms of Gamma_mu vanish and gamma^mu, Gamma_mu depend on x0 only
+  PASS  unrescaled: gamma^mu D_mu Psi = e^{i k x1 - i om x4} [Cot T0 d0 + i k e^{A4} Sin^(1/6) T1 - i om T4 - 3H Cot^2 T0] phi
+  PASS  RESCALING: with Psi = Sqrt[Sin[6Hx0]] Psi' the connection term is removed EXACTLY: (gamma.D - m) Psi = Sqrt[Sin] e^{..} [Cot T0 d0 + i k e^{A4} Sin^(1/6) T1 - i om T4 - m] Psi'
+  PASS  [control] without the factor Sqrt[Sin] the same operator differs from the target by exactly -3H Cot^2 T0 phi, which is non-zero (witness: H = 1, x0 = 1/10, phi_j = j)
+
+---------------------------------------------------------------------------
+1b. Proper distance z = -Log[Cos[6Hx0]]/(6H); Cot[6Hx0] d/dx0 = d/dz; K(z)
+---------------------------------------------------------------------------
+  PASS  dz/dx0 = Sqrt[g00] = Tan[6Hx0]  (proper distance along x0)
+  PASS  z(x0) -> 0 as x0 -> 0 (the wall is at FINITE proper distance) and z -> Infinity as 6Hx0 -> Pi/2
+  PASS  x0(z) inverts z(x0) on 0 < 6Hx0 < Pi/2
+  PASS  chain rule: Cot[6Hx0] d/dx0 chi(z(x0)) == chi'(z)
+  PASS  Sin[6 H x0(z)] == Sqrt[1 - Exp[-12 H z]]  and  Cos[6 H x0(z)] == Exp[-6 H z]
+  PASS  transverse term: k e^{A4} Sin[6Hx0]^(1/6) == K(z) = K_inf (1 - e^{-12 H z})^(1/12) with K_inf = k e^{A4}
+  PASS  measure: Sqrt|det g| = Sec[6Hx0] (notebook's gCanonical) and Sqrt|g| dx0 = dz / Sin[6Hx0]
+  PASS  hence Sqrt|g| |Psi|^2 dx0 = |Psi'|^2 dz: the one-particle space of Psi' is L^2(dz) (per unit transverse coordinate volume)
+    K(z)/K_inf near the wall (series) = InputForm[2^(1/6)*3^(1/12)*(H*zz)^(1/12)]
+  PASS  near the wall K(z) = K_inf (12 H z)^(1/12) (1 - H z/2 + O(z^2)): K(0) = 0, K continuous, K' ~ z^(-11/12) INTEGRABLE
+  PASS  far from the wall K(z) = K_inf (1 - e^{-12Hz}/12 + O(e^{-24Hz})): the pocket has width ~ 1/(12H)
+    Ricci scalar (a4 frozen) = InputForm[-3*H^2*(55 + 7*Cos[12*H*x0])*Cot[6*H*x0]^2*Csc[6*H*x0]^2]
+  PASS  the wall is a curvature singularity at finite proper distance: R z^2 -> -31/24 as z -> 0 (R ~ 1/z^2)
+
+---------------------------------------------------------------------------
+2. Hamiltonian form  om phi = h phi,  h = -i alz d_z + K(z) alx + m bet ;  J
+---------------------------------------------------------------------------
+  PASS  J = -i T0 T1 T2 T3 T4 equals the Krein metric G = -i sigma16 T4 (the canonical anticommutator matrix)
+  PASS  sigma16 == J . bet (Psibar = Psi^ddag sigma16 = Psi^dagger bet with the Hilbert adjoint Psi^dagger = Psi^ddag J)
+  PASS  i T4 (T0 dd + i K T1 - i om T4 - m) == -(om - h),  h = -i alz dd + K alx + m bet : the equation is om phi = h phi
+  PASS  alz, alx, bet are Hermitian (alz, alx real symmetric; bet imaginary antisymmetric)
+  PASS  alz^2 = alx^2 = bet^2 = 1 and they anticommute pairwise (a 3-generator Clifford algebra)
+  PASS  J Hermitian, J^2 = 1, [J, T0] = [J, T1] = [J, T4] = 0, hence [J, alz] = [J, alx] = [J, bet] = 0 and [J, h] = 0
+  PASS  J anticommutes with T5, T6, T7 (hidden timelike directions) -- why the admissible sector has zero hidden momenta
+  PASS  the rescaled x0-operator is formally symmetric in L^2(dz): h - h^dagger = 0 up to the boundary term  i phi^dagger alz psi |_{z=0}
+
+---------------------------------------------------------------------------
+3. Invariant 2-dim subspaces: the algebra <T0, T1, T4, J> and the 2x2 blocks
+---------------------------------------------------------------------------
+  PASS  w3 = alz alx bet satisfies w3^2 = -1 and commutes with alz, alx, bet, J (central): irreps labelled by w3 = +-i
+  PASS  T0 = i bet alz, T1 = i bet alx, T4 = i bet: the algebra generated by T0,T1,T4 IS the algebra generated by alz, alx, bet
+  PASS  dim <alz, alx, bet, J> = 16 = 4 x dim M2(C): A = M2 (+) M2 (+) M2 (+) M2, one M2 per character (w3, J) = (+-i, +-1)
+  PASS  dim of the commutant of <alz, alx, bet, J> in M16(C) = 16 = 4 x 2^2: each of the four 2-dim irreps occurs TWICE
+    ranks of the joint projectors {w3 = s i, J = e, rank} = InputForm[{{{-1, 1, 4}, {-1, -1, 4}}, {{1, 1, 4}, {1, -1, 4}}}]
+  PASS  every joint eigenspace (w3 = +-i, J = +-1) has dimension 4 = 2 blocks x 2
+  PASS  8 blocks found (2 per character)
+  PASS  U (columns = the 16 block basis vectors) is unitary
+  PASS  alz, alx, bet, T0, T1, T4, J, sigma16 are all block diagonal in U (the 2-dim blocks are invariant)
+    per block {w3/i, J, alz==sy, alx==(+sx for w3=-i | -sx for w3=+i), bet==sz, T0==sx, J==J*1, sigma16==J*sz}:
+      {-1, 1, True, True, True, True, True, True}
+      {-1, 1, True, True, True, True, True, True}
+      {-1, -1, True, True, True, True, True, True}
+      {-1, -1, True, True, True, True, True, True}
+      {1, 1, True, True, True, True, True, True}
+      {1, 1, True, True, True, True, True, True}
+      {1, -1, True, True, True, True, True, True}
+      {1, -1, True, True, True, True, True, True}
+  PASS  in every block: alz = sy, bet = sz, T0 = sx, J = +-1 (scalar), sigma16 = J sz; alx = +sx (w3=-i) and -sx (w3=+i)
+  PASS  reviewer's basis for w3 = +i (v2 = +alx.v1): alz = -sy, alx = sx, bet = sz and T0 = -sx (so there MIT+ reads f = -g)
+  PASS  the 16-component equation T0 Psi' + i K T1 Psi - i om T4 Psi = m Psi  <=>  Psi' = T0 (m - i K T1 + i om T4) Psi
+  PASS  reduction: U^dagger [T0 (m - iK T1 + i om T4)] U is block diagonal
+  PASS  irrep w3 = -i (4 blocks):  f' = -K f + (m + om) g,  g' = K g + (m - om) f   [the claimed ODE]
+  PASS  irrep w3 = +i (4 blocks) in the basis v2 = -alx.v1:  the SAME ODE with K -> -K, and T0 = sx (MIT+ reads f = g)
+  PASS  irrep w3 = +i in the reviewer's basis v2 = +alx.v1:  f' = K f - (m+om) g,  g' = -K g - (m-om) f  (= K -> -K AND g -> -g; MIT+ reads f = -g)
+  PASS  hence the pair of statements 'K -> -K for the other irrep' and 'MIT+ is f = -g in irrep +i' holds only in the reviewer's basis where the +i ODE ALSO has g -> -g; literally K -> -K with f = -g would be MIT-
+  PASS  Hamiltonian in the irrep -i block: h = -i sy d + K sx + m sz; in irrep +i (basis v2 = -alx.v1): h = -i sy d - K sx + m sz
+
+---------------------------------------------------------------------------
+4. Wall conditions at z = 0
+---------------------------------------------------------------------------
+  PASS  MIT from an infinite outside mass M: for z < 0, T0 Psi' ~ M Psi decays as z -> -Infinity iff T0 Psi = sign(M) Psi (T0 has eigenvalues +-1, each 8-fold)
+  PASS  MIT T16[0] Psi = eps Psi (eps = +-1) in EVERY block (basis above) reads f(0) = eps g(0)
+  PASS  normal current: i Psibar gamma^z Psi = i Psi^dag sigma16 T0 Psi = -Psi^dag J alz Psi (sigma16 T0 = i J alz); per block J=e: -2 e Im(f* g)
+    boundary form u^dagger sigma_y u on the line u = (1, c + i d), c, d real = InputForm[2*d]
+  PASS  a line u = (1, c + i d) is isotropic (zero normal current) iff d = 0; the line u = (0, 1) is isotropic too: the maximal isotropic (self-adjoint) block conditions are EXACTLY the real lines f(0) cos th + g(0) sin th = 0, th in [0, Pi)
+  PASS  Psibar Psi of a J=e block vector = e (|f|^2 - |g|^2); the Krein-weighted e Psibar Psi = |f|^2 - |g|^2 = phi^dag bet phi
+  PASS  number density of a J=e block vector: e Psi^ddag G Psi = Psi^dag Psi = |f|^2 + |g|^2 >= 0 (G = J)
+  PASS  MIT+ (T0 Psi = +Psi, 8-dim): Psibar Psi = 0 and normal current i Psibar T0 Psi = 0 for EVERY complex Psi in it
+  PASS  MIT- (T0 Psi = -Psi, 8-dim): Psibar Psi = 0 and normal current = 0 for EVERY complex Psi in it
+  PASS  reason: sigma16 is real symmetric (Psi^dag sigma16 Psi real) and sigma16 T0 real antisymmetric (Psi^dag sigma16 T0 Psi imaginary)
+  PASS  for the general th the wall value Psibar Psi = e |g(0)|^2 (tan^2 th - 1) vanishes only at th = +-Pi/4 (the two MIT conditions)
+  PASS  B(vp) = cos vp bet + sin vp T0 is Hermitian, B^2 = 1, [B, J] = 0 (J-compatible) for all vp
+  PASS  B(vp) Psi(0) = Psi(0) reads f cos th + g sin th = 0 in EVERY block with vp = 2 th + Pi
+  PASS  MIT+ = th = -Pi/4 (vp = Pi/2: B = +T0);  MIT- = th = +Pi/4 (vp = 3Pi/2: B = -T0)
+    {a, b, [bet, S_ab]==0, [T0, S_ab]==0} for the 21 wall generators (a,b in 1..7):
+      {1, 2, True, True}
+      {1, 3, True, True}
+      {1, 4, False, True}
+      {1, 5, True, True}
+      {1, 6, True, True}
+      {1, 7, True, True}
+      {2, 3, True, True}
+      {2, 4, False, True}
+      {2, 5, True, True}
+      {2, 6, True, True}
+      {2, 7, True, True}
+      {3, 4, False, True}
+      {3, 5, True, True}
+      {3, 6, True, True}
+      {3, 7, True, True}
+      {4, 5, False, True}
+      {4, 6, False, True}
+      {4, 7, False, True}
+      {5, 6, True, True}
+      {5, 7, True, True}
+      {6, 7, True, True}
+  PASS  T0 commutes with all 21 generators S_ab of the wall directions x1..x7
+  PASS  bet commutes with the rotations S_ij (i,j in 1..3), S_hh' (h,h' in 5..7) and S_ih, but ANTICOMMUTES with the boosts S_i4 of the wall's Spin(1,3) and with S_4h
+  PASS  [B(vp), S_ab] = 0 for all generators of Spin(1,3)_{x1..x4}  <=>  cos vp = 0  <=>  vp = Pi/2, 3Pi/2 (MIT+, MIT-): only the two MIT conditions are covariant
+
+---------------------------------------------------------------------------
+4b. Covariant J-preserving walls P Psi(0) = Psi(0), P = T0 Q, Q a Hermitian involution in the commutant of Cl(T0..T4)
+---------------------------------------------------------------------------
+  PASS  the commutant of the algebra generated by T0, T1, T2, T3, T4 in M16(C) has dimension 8 (= M2 (+) M2: the 'flavour' algebra of the admissible sector)
+  PASS  J lies in this commutant
+  PASS  the centre of the commutant is 2-dimensional and spanned by {1, J}: the flavour-symmetric Hermitian involutions are Q = +-1, +-J
+  PASS  the constructed mixed Q is a Hermitian involution in the commutant, NOT in its centre
+  PASS  Q=+1: P = T0 Q is a Hermitian involution, commutes with J and with all six S_ab of Spin(1,3)_{x1..x4}; P Psi = Psi (8-dim) has zero normal current and Psibar Psi = 0
+      Q=+1: P real (invariant under the charge conjugation Psi -> Psi^*, which maps (K,om) -> (-K,-om))? True;  eigenvalues of Q on the characters (w3,J) = (-i,+1),(-i,-1),(+i,+1),(+i,-1): {{1, 1, 1, 1}, {1, 1, 1, 1}, {1, 1, 1, 1}, {1, 1, 1, 1}}
+  PASS  Q=-1: P = T0 Q is a Hermitian involution, commutes with J and with all six S_ab of Spin(1,3)_{x1..x4}; P Psi = Psi (8-dim) has zero normal current and Psibar Psi = 0
+      Q=-1: P real (invariant under the charge conjugation Psi -> Psi^*, which maps (K,om) -> (-K,-om))? True;  eigenvalues of Q on the characters (w3,J) = (-i,+1),(-i,-1),(+i,+1),(+i,-1): {{-1, -1, -1, -1}, {-1, -1, -1, -1}, {-1, -1, -1, -1}, {-1, -1, -1, -1}}
+  PASS  Q=+J: P = T0 Q is a Hermitian involution, commutes with J and with all six S_ab of Spin(1,3)_{x1..x4}; P Psi = Psi (8-dim) has zero normal current and Psibar Psi = 0
+      Q=+J: P real (invariant under the charge conjugation Psi -> Psi^*, which maps (K,om) -> (-K,-om))? False;  eigenvalues of Q on the characters (w3,J) = (-i,+1),(-i,-1),(+i,+1),(+i,-1): {{1, 1, 1, 1}, {-1, -1, -1, -1}, {1, 1, 1, 1}, {-1, -1, -1, -1}}
+  PASS  Q=-J: P = T0 Q is a Hermitian involution, commutes with J and with all six S_ab of Spin(1,3)_{x1..x4}; P Psi = Psi (8-dim) has zero normal current and Psibar Psi = 0
+      Q=-J: P real (invariant under the charge conjugation Psi -> Psi^*, which maps (K,om) -> (-K,-om))? False;  eigenvalues of Q on the characters (w3,J) = (-i,+1),(-i,-1),(+i,+1),(+i,-1): {{-1, -1, -1, -1}, {1, 1, 1, 1}, {-1, -1, -1, -1}, {1, 1, 1, 1}}
+  PASS  Q=mixed: P = T0 Q is a Hermitian involution, commutes with J and with all six S_ab of Spin(1,3)_{x1..x4}; P Psi = Psi (8-dim) has zero normal current and Psibar Psi = 0
+      Q=mixed: P real (invariant under the charge conjugation Psi -> Psi^*, which maps (K,om) -> (-K,-om))? False;  eigenvalues of Q on the characters (w3,J) = (-i,+1),(-i,-1),(+i,+1),(+i,-1): {{-1, -1, 1, 1}, {-1, -1, -1, -1}, {-1, -1, 1, 1}, {-1, -1, -1, -1}}
+  PASS  charge conjugation (T16 real) maps P = T0 Q to T0 Q^*: J^* = -J, so Q = +-J walls are NOT C-invariant; flavour symmetry (Q central) AND C select Q = +-1, the uniform MIT walls
+  PASS  in the block basis P = sigma_x (x) q: a mixed Q imposes MIT+ on one copy and MIT- on the other copy of a character (Q = +-J: MIT+- on J = +1 and MIT-+ on J = -1 blocks)
+  PASS  without J-preservation there are more covariant walls, e.g. P = T0 exp(i vt T0 T5) = cos vt T0 + i sin vt T5: Hermitian involution, Spin(1,3)-covariant, zero normal current, but [P, J] != 0 for sin vt != 0
+
+---------------------------------------------------------------------------
+5. Symmetries: K -> -K (rotation), (K, om) -> (-K, -om) (conjugation), swap map; degeneracies
+---------------------------------------------------------------------------
+  PASS  R = T1 T2 is unitary, commutes with T0, T4, bet, J and anticommutes with T1: R maps a solution at (K, om) to one at (-K, om) with the same wall condition B(vp)
+  PASS  R anticommutes with w3: it maps irrep w3 = -i onto w3 = +i
+  PASS  complex conjugation: (T0 (m - iK T1 + i om T4))^* = T0 (m + iK T1 - i om T4): it maps (K, om) -> (-K, -om) (checked at K = 1/3, om = 2/7, m = 5/11 and symbolically with real K, om, m)
+  PASS  conjugation maps B(vp) to B(Pi - vp) (bet^* = -bet): among the family it preserves exactly the MIT conditions vp = Pi/2, 3Pi/2
+  PASS  hence, with MIT walls, the 16-component spectrum at K is symmetric: S(K) = S(-K) = -S(K)
+  PASS  swap map: (f, g) solves the w3=-i ODE at (K, om) iff (g, f) solves it at (-K, -om); the condition f cos th + g sin th = 0 becomes th -> Pi/2 - th
+  PASS  MIT conditions (th = +-Pi/4) are fixed by th -> Pi/2 - th (mod Pi)
+    CONSEQUENCE (MIT walls):  S_16(K) = A(K) (+) (-A(K)),  A(K) = spectrum of the w3=-i ODE with f(0) = eps g(0);
+    the w3 = -i levels occur in 4 blocks (J = +1 twice, J = -1 twice), the w3 = +i levels (= -A(K)) in the other 4.
+    A positive level om of S_16 is therefore 4-fold per transverse momentum vector, 8-fold only when om and -om both lie in A(K).
+    For the general family (uniform th in all blocks):  S_16(K) = A_th(K) (+) (-A_(Pi/2-th)(K)),  each 4-fold.
+
+---------------------------------------------------------------------------
+6. Second-order form; z = 0 regular (limit circle), z -> Infinity limit point
+---------------------------------------------------------------------------
+  PASS  for m + om != 0: f'' = (K^2 - K' + m^2 - om^2) f  (pocket V_f = K^2 - K', attractive near the wall for K > 0)
+  PASS  for m - om != 0: g'' = (K^2 + K' + m^2 - om^2) g  (V_g = K^2 + K'; K -> -K exchanges the roles)
+  PASS  the coefficient matrix Mminus(z) is continuous on [0, Infinity) (K(0) = 0): z = 0 is a REGULAR endpoint, every solution is bounded there (limit circle) -> a wall condition must be chosen
+  PASS  as z -> Infinity Mminus -> constant with eigenvalues +-kappa, kappa = Sqrt[K_inf^2 + m^2 - om^2]: exactly one L^2 solution (limit point); continuum |om| >= Sqrt[m^2 + K_inf^2]
+  PASS  Pruefer angle: with (f, g) = r (cos p, sin p),  p' = m cos 2p + K sin 2p - om  (so dp/d om < 0: levels are monotone in the angle)
+  PASS  decaying direction at z -> Infinity (constant K, m): p_d = (alpha - ArcCos[om/R])/2, alpha = ArcTan[m, K], R = Sqrt[m^2+K^2]
+
+---------------------------------------------------------------------------
+7. Exact solutions used to validate the numerics
+---------------------------------------------------------------------------
+  PASS  constant K, MIT- (f = -g): om = -K, phi = e^{-m z} (1, -1) is an exact normalizable level (any K, m > 0)
+  PASS  true profile K(z), th = Pi/2 (g(0) = 0): om = m, phi = (Exp[-Int_0^z K], 0) is an exact level for EVERY K_inf > 0 (a flat band); for K_inf < 0 it is not normalizable
+  PASS  constant K, any th: om = -(m cos 2th + K sin 2th) with kappa = K + (m + om) cot th is a level iff kappa > 0 (closed form for validation)
+  PASS    ... and kappa = K + (m + om) cot th simplifies to kappa = m sin 2th - K cos 2th
+  PASS  constant K > 0, m > 0, MIT+ (th = -Pi/4): the closed form gives om = K with kappa = -m < 0: NO bound state (no edge state for the same-sign wall)
+  PASS  constant K, MIT- (th = Pi/4): om = -K with kappa = m > 0 (the in-gap edge level of the opposite-sign wall)
+
+---------------------------------------------------------------------------
+8. Export T16[0..8], sigma16 and the block basis U to fermion/dev/waveguide_T16.json
+---------------------------------------------------------------------------
+  PASS  export: T16 and sigma16 read back identical from waveguide_T16.json
+
+==================================================================================
+ waveguide_derivation.wls: 94 checks, 94 PASS, 0 FAIL
+ total time 171.4 s
+==================================================================================

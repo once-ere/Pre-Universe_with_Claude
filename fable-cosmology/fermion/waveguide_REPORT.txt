@@ -1,0 +1,742 @@
+WAVEGUIDE REPORT -- the discrete ("ground and first excited") states of the quantized fermion fable
+along the hidden coordinate x0 of the primordial gravitational field, and a Kohn-Sham (DFT) treatment
+=====================================================================================================
+
+Date: 2026-09-24.  Repository: C:/Users/nsh/Documents/8-dim/Pre-Universe_14SEP26-77 (nothing committed).
+Specification: DESIGN-FERMION-FABLE.md (rev. 1, sections 1-3) as overridden by
+DESIGN-REV2-ADOPTED-CORRECTIONS.md (rev. 2: A.4 "Boundary conditions", B.4 (X2)), plus the
+orchestrator's instructions of 2026-09-24 (full 16-component labelling; covariant wall family P = T0 Q).
+Units: H = 1 everywhere in the numerics (hbar = c = 1).  a4 is frozen to a constant and set to 0 in
+the numerics (so K_inf = k); V_hid = 1/H^3 (hidden coordinate volume).  Every number below was
+produced by a run listed in section 1; its log is named next to it.  Nothing is quoted from the
+reviewer's probes without having been recomputed.
+
+CONTENTS
+  1. Files and commands
+  2. The derivation (waveguide_derivation.wls -> waveguide_derivation.log)
+  3. Numerical method and validation (waveguide.py)
+  4. Tables: thresholds, dispersion, edge band, theta family, wavefunctions, convergence
+  5. Mathematica cross-check (waveguide_check.wls)
+  6. Density functional theory: ground and first excited states
+  7. Reviewer claims: confirmed / refuted / refined
+  8. What did not work, caveats, open points
+
+
+-----------------------------------------------------------------------------------------------------
+1. FILES AND COMMANDS
+-----------------------------------------------------------------------------------------------------
+Created (all under fable-cosmology/fermion/):
+  waveguide_derivation.wls      Wolfram derivation, loads notebook Input cells 1..117, 94 PASS/FAIL checks
+  waveguide_derivation.log      its output
+  waveguide.py                  documented module + CLI (single-particle solver, tables, validation,
+                                16x16 cross-check, Kohn-Sham engine, figures)
+  waveguide_check.wls           independent Mathematica cross-check (NDSolve at 30 digits; 16x16 with
+                                NDSolve at K = 3, 8 and Magnus/MatrixExp at K = 80; 11 checks)
+  waveguide_REPORT.txt          this report
+  dev/waveguide_T16.json        T16[0..8], sigma16, block basis U exported by waveguide_derivation.wls
+  dev/waveguide_levels_reference.csv   levels + thresholds read by waveguide_check.wls
+  dev/waveguide_thresholds.csv, waveguide_dispersion_same_m1.csv, waveguide_dispersion_opposite_m1.csv,
+      waveguide_edge_m1.csv, waveguide_theta_K3.csv, waveguide_theta_K80.csv, waveguide_convergence.csv,
+      waveguide_wavefunctions.csv, waveguide_ks_same.csv, waveguide_ks_opposite_lam-0.01.csv,
+      waveguide_ks_opposite_lam-10.0.csv, waveguide_ks_strong.csv          (tables / profiles)
+  dev/waveguide_fig_dispersion.png, waveguide_fig_thresholds.png, waveguide_fig_theta.png,
+      waveguide_fig_wavefunctions.png, waveguide_fig_ks_same.png, waveguide_fig_ks_opposite.png,
+      waveguide_fig_ks_strong.png                                          (development figures)
+  dev/waveguide_Zfit.py         Z -> infinity extrapolation of the KS ground state (output waveguide_run_Zfit.log)
+  dev/waveguide_run_*.log       the captured output of every command below
+
+Commands (Git Bash, from fable-cosmology/fermion; PY = ../.venv/Scripts/python.exe):
+  wolframscript -file waveguide_derivation.wls > waveguide_derivation.log        (~3.5 min; 94/94 PASS)
+  $PY waveguide.py validate      > dev/waveguide_run_validate.log                 (45 s; 64/64 PASS)
+  $PY waveguide.py threshold     > dev/waveguide_run_threshold.log                (13 s)
+  $PY waveguide.py figures       > dev/waveguide_run_figures.log                  (dispersion, edge, theta,
+                                                                                    wavefunctions; ~25 s)
+  $PY waveguide.py convergence   > dev/waveguide_run_convergence.log              (18 s)
+  $PY waveguide.py reference     > dev/waveguide_run_reference.log                (7 s)
+  wolframscript -file waveguide_check.wls > dev/waveguide_run_check.log           (40 s; 11/11 PASS)
+  $PY waveguide.py dft           > dev/waveguide_run_dft.log                      (9.3 min)
+  $PY waveguide.py dft --scenario strong > dev/waveguide_run_dft_strong.log       (10.9 min; exploratory)
+  $PY waveguide.py dft --scenario bulk   > dev/waveguide_run_dft_bulk.log         (1 s; homogeneous self-binding)
+  $PY waveguide.py dft --scenario convergence > dev/waveguide_run_dft_convergence.log  (12.1 min)
+  $PY waveguide.py levels --K 80 --m 1 --wall same > dev/waveguide_run_levels_K80.log   (1.4 s)
+      (irrep -i: -79.987308552047, -78.144249332428, +70.985307229908, +79.371495779094;
+       irrep +i: -79.371495779091, -70.985307229895, +78.144249332427, +79.987308552047 -- the om -> -om
+       symmetry S = A U (-A) between the two irreps, to 1e-11)
+Also available: $PY waveguide.py all (everything except the exploratory dft scenarios).
+
+Rules: nothing committed or pushed; all my file names start with "waveguide".  ONE SIDE EFFECT TO REPORT:
+loading notebook cells 1..117 executes two DumpSave cells of Part II (claude-fable/cells_part3.wl lines 235,
+248) that rewrite claude-fable/claude-fable_Einstein-Rosen-2-Planes-eLa.mx and -eLazt.mx.  My earlier
+derivation runs therefore rewrote those two files (last at 21:26:09); git shows them modified.  Their
+CONTENT is unchanged: loading the committed blobs and the current files gives eLa === eLa and
+eLazt === eLazt (checked in a separate kernel); only the bytes differ.  I did not revert them (another agent
+works in claude-fable/ and the notebook itself rewrites them on every run).  The final
+waveguide_derivation.wls blocks DumpSave while loading; its last run left both files untouched
+(timestamps checked before and after).  No other file outside fable-cosmology/fermion/ was written
+(the reviewers' probe scripts, claude-fable/runner_header.wl and the notebook are only read).
+
+
+-----------------------------------------------------------------------------------------------------
+2. THE DERIVATION  (waveguide_derivation.wls; log: waveguide_derivation.log; 94 checks, 94 PASS)
+-----------------------------------------------------------------------------------------------------
+Loader: Input cells 1..117 of claude-fable/claude-fable_Einstein-Rosen-2-Planes.nb evaluated with
+claude-fable/runner_header.wl (cfRunCell), working directory claude-fable/.  With that working
+directory the loader raised NO messages and the notebook's own 142 assertions in cells 1..117 all
+passed.  (Run from another directory, 2 Maple-closed-form assertions fail because the Maple converter
+path is relative; that is incidental and does not touch anything used here.)  Only the notebook's own
+objects are used: T16[0..8], sigma16, gammaCurvedCanonical, GammaSpinCanonical, cfDcov16, gCanonical,
+RicciScalarCanonical, eta4488.  DumpSave is blocked while loading (two Part II cells would otherwise
+rewrite claude-fable/*.mx; see section 1).
+
+2.1 The x0-problem (section 1 of the log)
+  - Sum_mu gamma^mu Gamma_mu = -3 H Cot[6Hx0]^2 T16[0] on the canonical frame for ANY a4[H x4] (the a4'
+    terms cancel), and Sum_mu {gamma^mu, Gamma_mu} = 0.
+  - Frozen frame (a4 -> const A4): with Psi = e^{i k x1 - i om x4} Sqrt[Sin 6Hx0] Psi'(x0),
+        (gamma^mu D_mu - m) Psi = Sqrt[Sin] e^{..} [Cot T0 d0 + i k e^{A4} Sin^{1/6} T1 - i om T4 - m] Psi'
+    EXACTLY (PASS); without the Sqrt[Sin] factor the term -3H Cot^2 T0 phi survives (control, PASS).
+  - Proper distance z = -Log[Cos 6Hx0]/(6H): dz/dx0 = Tan = Sqrt[g00]; Cot d/dx0 = d/dz; z -> 0 at the wall
+    (finite distance), z -> infinity as 6Hx0 -> Pi/2; Sin(z) = Sqrt[1 - e^{-12Hz}], Cos(z) = e^{-6Hz}.
+  - Transverse term: k e^{A4} Sin^{1/6} = K(z) = K_inf (1 - e^{-12Hz})^{1/12}, K_inf = k e^{A4}.
+    Near the wall K = K_inf (12Hz)^{1/12} (1 - Hz/2 + ...): K(0) = 0, continuous, K' ~ z^{-11/12} integrable.
+    Far away K = K_inf (1 - e^{-12Hz}/12 + ...): the pocket has width ~1/(12H).
+  - Measure: Sqrt|det g| = Sec[6Hx0] (notebook gCanonical) and Sqrt|g| dx0 = dz/Sin, so
+    Sqrt|g| |Psi|^2 dx0 = |Psi'|^2 dz: the one-particle space of Psi' is L^2(dz).
+  - Curvature: Ricci scalar (a4 frozen) = -3H^2 (55 + 7 Cos 12Hx0) Cot^2 Csc^2, and R z^2 -> -31/24 as
+    z -> 0: a curvature singularity at finite proper distance.
+
+2.2 Hamiltonian form, Krein operator
+  om phi = h phi,  h = -i alz d_z + K(z) alx + m bet,  alz = -T4 T0, alx = -T4 T1, bet = -i T4:
+  alz, alx, bet Hermitian involutions, pairwise anticommuting.  J = -i T0 T1 T2 T3 T4 = -i sigma16 T4 = G
+  (the canonical anticommutator matrix), sigma16 = J bet, J^2 = 1, [J, T0] = [J, T1] = [J, T4] = 0, hence
+  [J, h] = 0; J anticommutes with T5, T6, T7.
+
+2.3 Invariant subspaces and the 2x2 ODEs
+  - T0 = i bet alz, T1 = i bet alx, T4 = i bet: <T0, T1, T4> = <alz, alx, bet>; w3 = alz alx bet has
+    w3^2 = -1 and is central.  dim <alz, alx, bet, J> = 16 (M2 (+) M2 (+) M2 (+) M2), dim of its commutant
+    = 16: each of the four characters (w3, J) = (+-i, +-1) occurs TWICE; joint eigenspaces have
+    dimension 4.  So C^16 = 8 invariant 2-dim blocks: 4 with w3 = -i (J = +1 twice, J = -1 twice) and 4 with
+    w3 = +i.
+  - An explicit orthonormal block basis U (v1 = bet-eigenvector in each character, v2 = +alx v1 for
+    w3 = -i, v2 = -alx v1 for w3 = +i) gives in EVERY block: alz = sigma_y, bet = sigma_z, T0 = sigma_x,
+    J = +-1, sigma16 = J sigma_z, and alx = +sigma_x (w3 = -i) or -sigma_x (w3 = +i).
+  - Block ODEs, with phi = (f, g):
+        irrep w3 = -i:   f' = -K f + (m + om) g,   g' = K g + (m - om) f          (PASS)
+        irrep w3 = +i:   the same with K -> -K, and MIT+ reads f = g               (basis v2 = -alx v1)
+    In the reviewer's basis (v2 = +alx v1) the w3 = +i blocks read f' = K f - (m+om) g, g' = -K g - (m-om) f,
+    i.e. K -> -K AND g -> -g, with T0 = -sigma_x there, so MIT+ reads f = -g.  The reviewer's pair of
+    statements is consistent only in that basis.
+  - Hamiltonian per block: h = -i sigma_y d + (+-K) sigma_x + m sigma_z.
+
+2.4 Wall conditions (section 4 and 4b of the log)
+  - MIT = limit of an infinite outside mass M: decay into z < 0 needs T0 Psi = sign(M) Psi.
+  - T16[0] Psi = eps Psi reads f(0) = eps g(0) in every block (basis above).
+  - Normal current: i Psibar gamma^z Psi = i Psi^dag sigma16 T0 Psi = -Psi^dag J alz Psi (sigma16 T0 = i J alz);
+    per block with J = e: -2 e Im(f* g).
+  - The boundary form u^dag sigma_y u on the line u = (1, c + i d) equals 2d: the maximal isotropic
+    (self-adjoint) block conditions are EXACTLY the real lines f(0) cos th + g(0) sin th = 0, th in [0, Pi);
+    all have zero normal current.
+  - Psibar Psi of a J = e block vector = e (|f|^2 - |g|^2); the Krein-weighted e Psibar Psi = |f|^2 - |g|^2
+    (= phi^dag bet phi); the number density e Psi^ddag G Psi = |f|^2 + |g|^2 >= 0.
+  - MIT+ and MIT- (8-dim each): Psibar Psi = 0 and normal current = 0 for every complex Psi (sigma16 real
+    symmetric, sigma16 T0 real antisymmetric).  For general th the wall value of Psibar Psi is
+    e |g(0)|^2 (tan^2 th - 1): zero only at th = +-Pi/4.
+  - 16-component form of the uniform family: B(vp) = cos vp bet + sin vp T0 (Hermitian involution,
+    [B, J] = 0), B Psi = Psi  <=>  f cos th + g sin th = 0 in every block, vp = 2 th + Pi.  MIT+ = th = -Pi/4
+    (B = +T0), MIT- = th = +Pi/4 (B = -T0).
+  - Covariance: T0 commutes with all 21 generators S_ab of the wall directions x1..x7; bet commutes with
+    the rotations S_ij, S_hh', S_ih but ANTICOMMUTES with the boosts S_i4 and with S_4h.  Hence
+    [B(vp), S_ab] = 0 on Spin(1,3)_{x1..x4}  <=>  cos vp = 0  <=>  MIT+ or MIT-.
+  - Full covariant, J-preserving family (orchestrator item 2, verified): P Psi(0) = Psi(0), P = T0 Q, Q a
+    Hermitian involution in the commutant of Cl(T0..T4), which has dimension 8 (M2 (+) M2) and contains J;
+    its centre is span{1, J}.  For Q = +1, -1, +J, -J and a non-central (mixed) Q: P is a Hermitian involution,
+    commutes with J and with all six S_ab of Spin(1,3)_{x1..x4}, and P Psi = Psi has zero normal current and
+    Psibar Psi = 0 (all PASS).  In the block basis P = sigma_x (x) q: a mixed Q imposes MIT+ on one copy and
+    MIT- on the other copy of a character; Q = +-J imposes MIT+- on the J = +1 blocks and MIT-+ on the J = -1
+    blocks.  Charge conjugation Psi -> Psi^* (T16 real; it maps (K, om) -> (-K, -om)) sends P to T0 Q^*, and
+    J^* = -J: only Q = +-1 give a real P.  So: flavour symmetry (Q central: +-1, +-J) AND charge conjugation
+    select Q = +-1, the uniform MIT walls.  That is the condition used below (both signs are computed).  A
+    mixed Q gives the union of an MIT+ sector (no low levels) and an MIT- sector (in-gap edge band) with
+    halved multiplicities.  Without J-preservation there are further covariant walls, e.g.
+    P = T0 exp(i vt T0 T5) = cos vt T0 + i sin vt T5 (Hermitian involution, covariant, zero current,
+    [P, J] != 0 for sin vt != 0; PASS).  The th-family is scanned only as an explicitly symmetry-breaking
+    family.
+
+2.5 Symmetries and degeneracy count (section 5 of the log)
+  - R = T1 T2 (rotation by Pi in the (x1,x2) plane) is unitary, commutes with T0, T4, bet, J, anticommutes
+    with T1 and with w3: it maps (K, om) -> (-K, om) with the same wall condition and exchanges the irreps.
+  - Complex conjugation maps (K, om) -> (-K, -om) and B(vp) -> B(Pi - vp): it preserves exactly the MIT walls.
+  - Swap map: (f, g) solves the w3 = -i ODE at (K, om) iff (g, f) solves it at (-K, -om); th -> Pi/2 - th.
+  CONSEQUENCE: with MIT walls the 16-component spectrum at transverse momentum K is
+        S(K) = A(K) (+) (-A(K)),   A(K) = levels of the w3 = -i block ODE with f(0) = eps g(0),
+  symmetric under om -> -om; A(K) occurs in the 4 w3 = -i blocks, -A(K) in the 4 w3 = +i blocks.
+  DEGENERACY: a positive level is 4-fold per transverse momentum vector (2 blocks with J = +1 and 2 with
+  J = -1 of ONE irrep); it is 8-fold only if om and -om both lie in A(K) (e.g. for a well far from the wall,
+  where the parity z -> -z of the full-line problem restores it; the strong-coupling KS run in 6.4 shows
+  the two branches nearly degenerate).  In the homogeneous gas every momentum carries 8 positive-energy
+  states; at the wall these split into two 4-fold branches (one per irrep) that are generally NOT degenerate.
+  For the uniform th-family: S_th(K) = A_th(K) (+) A_th(-K), each 4-fold.
+
+2.6 Second-order form, endpoints, Pruefer angle (section 6)
+  f'' = (K^2 - K' + m^2 - om^2) f  (m + om != 0) and g'' = (K^2 + K' + m^2 - om^2) g  (m - om != 0): a
+  supersymmetric pair with superpotential K; for K > 0 the f-channel has the attractive pocket -K'.
+  The coefficient matrix is continuous on [0, infinity): z = 0 is a REGULAR endpoint (limit circle; a wall
+  condition must be chosen); at infinity the eigenvalues are +-kappa, kappa = Sqrt[K_inf^2 + m^2 - om^2]:
+  limit point, continuum |om| >= Sqrt[m^2 + K_inf^2].  Pruefer angle: (f, g) = r (cos p, sin p) gives
+  p' = m cos 2p + K sin 2p - om; the decaying direction at infinity is p_d = (alpha - ArcCos[om/R])/2,
+  alpha = ArcTan[m, K], R = Sqrt[m^2 + K^2] (checked numerically at 40 digits).
+
+2.7 Exact solutions (section 7), used to validate the numerics
+  (a) constant K, MIT- (f = -g): om = -K, phi = e^{-mz}(1, -1) (any K, m > 0);
+  (b) true profile, th = Pi/2 (g(0) = 0): om = m, phi = (exp(-Int_0^z K), 0) for EVERY K_inf > 0 (a flat band);
+      not normalizable for K_inf < 0 (irrep +i);
+  (c) constant K, any th: a level om = -(m cos 2th + K sin 2th) exists iff kappa = m sin 2th - K cos 2th > 0;
+  (d) constant K > 0, m > 0, MIT+ (same-sign): the closed form gives om = K with kappa = -m < 0: NO level;
+  (e) constant K, MIT-: om = -K with kappa = m.
+  Section 8 exports T16, sigma16 and U to dev/waveguide_T16.json (read back identical, PASS).
+
+
+-----------------------------------------------------------------------------------------------------
+3. NUMERICAL METHOD AND VALIDATION  (waveguide.py; dev/waveguide_run_validate.log: 64/64 PASS)
+-----------------------------------------------------------------------------------------------------
+Block problem with K(z) = K_inf s6(z), s6 = (1 - e^{-12Hz})^{1/12}; the irrep is the sign of K_inf.
+  - Pruefer angle p and ln r are integrated; p(0) = th + Pi/2 at the wall.
+  - Asymptotic region: for z >= z_a = 3/H, K(z)/K_inf - 1 < 2e-17, so the decaying solution there is
+    EXACTLY the eigenvector of the constant matrix (angle p_d(om)); no z_max ~ 1/kappa is needed, which
+    makes shallow levels exact.
+  - Mismatch Delta(om) = p_left(z_m) - p_right(z_m); levels <=> Delta = j Pi.  Delta is strictly decreasing
+    in om (dp_left/dom < 0, dp_right/dom > 0), so the number of levels in the gap is exactly
+    #{ j : Delta(+R) < j Pi < Delta(-R) }: a rigorous count that catches shallow levels.
+  - Root search: for each sign of om the decay rate kappa runs over 0 plus an 80-point LOG grid from
+    1e-10 R to R (om = +-Sqrt[R^2 - kappa^2]); Delta is scanned at a fixed matching point (pure backward
+    shooting, stable in both allowed and forbidden regions); every j Pi crossing is refined by brentq in
+    kappa with the matching point in the middle of the classically allowed region next to the wall
+    (om^2 > m^2 + K(z)^2) when it exists, else at z_m = 0.  The number found is compared with the count
+    (a mismatch would print a warning; none occurred in any run).
+  - Integrators: adaptive DOP853 (rtol = atol = 1e-12; the reference) and a batched 4th-order Magnus
+    propagator on a graded grid (geometric near the wall, where K ~ z^{1/12}), used for scans and the
+    Kohn-Sham engine.
+  - Wavefunctions: left and right (p, ln r) solutions matched at z_m, exact exponential tail beyond z_a,
+    normalized Int_0^inf (f^2 + g^2) dz = 1 (Simpson + analytic tail).
+  - Full 16-component check: the 16x16 system Psi' = T0 (m - i K T1 + i om T4) Psi with the notebook's T16
+    (from the JSON), wall P Psi = Psi, integrated by a Magnus/matrix-exponential propagator on the 8-dim
+    subspaces; the number of zero singular values of [Q_left | Q_right] is the multiplicity.
+
+Validation (64 checks, all PASS):
+  V1  constant K, MIT-: single level om = -K; errors 6e-16, 0, 0, 0 (K = 0.3, 3, 20, 80).
+  V2  constant K, 21 cases (K = 0.7, 3, 25; th = -1.3 .. 1.45): the closed form om = -(m cos 2th + K sin 2th)
+      when kappa > 0 (agreement to the printed 12 digits) and NO level when kappa < 0.
+  V3  constant K, same-sign MIT: no level (K = 0.5, 3, 50).
+  V4  true profile, g(0) = 0: om = m is a level for K = 0.5, 3, 80 (|om - m| <= 4.6e-13) and is NOT a level
+      in irrep +i (K = -0.5, -3, -80).
+  V5  Magnus vs DOP853 mismatch Delta: max 2.2e-10 rad (K = 3), 7.5e-9 rad (K = 80).
+  V6  four levels: norm - 1 <= 1.2e-9, wall condition <= 2e-16, and Hellmann-Feynman
+      d om/dm = Int (f^2 - g^2) dz (agreement 3e-8) and d om/dK_inf = Int 2 f g s6 dz (agreement 1e-8):
+      this validates the scalar-density formula used in the Kohn-Sham engine.
+  V7  16x16 with the notebook's T16: every level of A(K) and its negative has multiplicity exactly 4
+      (K = 80 MIT+: +-79.98731, +-78.14425, +-70.98531, +-79.37150; K = 3 MIT-: +-2.93849; K = 40 MIT+:
+      +-39.96656, +-37.21340), non-levels multiplicity 0; the 16x16 locates levels independently to
+      1.3e-7, 3.6e-9, 1.0e-6 (limited by the singular-value floor of the minimization; see also
+      the step-size study: 1e-9 .. 7e-8).
+  V8  the exported block basis U reduces the numerical 16x16 matrix to the 8 block matrices (1e-12).
+  V9  small-K slope of the opposite-sign edge band equals the Hellmann-Feynman closed form
+      om/K_inf -> -(m/6H) B(m/6H, 13/12)  [B = Euler beta]:  -0.980822728 vs -0.980822733 (m = H),
+      -0.989859093 vs -0.989859126 (m = H/2), -0.952353438 vs -0.952353687 (m = 3H) at K = 1e-4.
+      (Derivation: for small K the edge state is the constant-K state sqrt(2m) e^{-mz}(1,-1)/sqrt2 and
+      d om/dK_inf = Int 2fg s6 = -Int 2m e^{-2mz} s6(z) dz = -(m/6H) B(m/6H, 13/12).)
+
+
+-----------------------------------------------------------------------------------------------------
+4. TABLES  (m = H = 1 unless stated; levels are the POSITIVE levels of the full 16-component problem,
+   each 4-fold per transverse momentum vector; irrep -i = block ODE with +K, irrep +i = with -K)
+-----------------------------------------------------------------------------------------------------
+4.1 Thresholds of the same-sign MIT wall (T0 Psi = sign(m) Psi) versus m/H   [dev/waveguide_run_threshold.log]
+    K_c(n) = transverse momentum at which the n-th positive level appears (exact count, bisection 1e-9)
+
+       m/H |   K_c(1)/H   irrep   K_c(1)/m |   K_c(2)/H   irrep   K_c(2)/m
+      0.25 |  3.39259952    -i   13.57040 |  33.87815035    +i  135.51260
+      0.50 |  4.77916520    -i    9.55833 |  33.89177761    +i   67.78356
+      1.00 |  6.70624065    -i    6.70624 |  33.91895851    +i   33.91896
+      2.00 |  9.33759991    -i    4.66880 |  33.97299731    +i   16.98650
+      4.00 | 12.80358979    -i    3.20090 |  34.07956537    +i    8.51989
+      8.00 | 17.04604924    -i    2.13076 |  34.28513351    +i    4.28564
+
+    The first level always appears in irrep -i (the f-channel pocket), with K_c(1) growing roughly like
+    6.7 (m/H)^{1/2} H (ratio 1.33-1.41 per doubling of m); the second level always appears in the OTHER
+    irrep (+i) at K_c(2) = 33.9-34.3 H, almost independent of m (a property of the pocket geometry).
+    Within irrep -i alone the second level appears only at K = 49.540216755 (m = H).
+    Opposite-sign wall (m = H): the edge band exists for every K > 0; further positive levels appear at
+    K = 33.80968834 (irrep -i) and 48.79382020 (irrep +i).
+    Pocket width: K(z)^2/K_inf^2 = 0.875776 (z = 0.05/H), 0.942018 (z = 0.1/H), 0.984275 (z = 0.2/H).
+
+4.2 Dispersion om_n(K), same-sign MIT wall, K in [7, 100] (step 1 in dev/waveguide_dispersion_same_m1.csv;
+    a subset; [R - om] = binding below the continuum R = Sqrt[m^2 + K^2])      [dev/waveguide_run_figures.log]
+
+        K   R            n=0 (irrep -i)          n=1 (irrep +i)          n=2 (irrep -i)       n=3 (irrep +i)   n=4 (-i)
+        7   7.07106781   7.07061457 [4.53e-4]
+        8   8.06225775   8.05383823 [8.42e-3]
+       10  10.04987562   9.99920505 [0.0507]
+       15  15.03329638  14.75649923 [0.277]
+       20  20.02498439  19.39490065 [0.630]
+       30  30.01666204  28.42191687 [1.59]
+       34  34.01470270  31.96226139 [2.05]     34.01469386 [8.8e-6]
+       35  35.01428280  32.84214128 [2.17]     35.01273142 [1.55e-3]
+       40  40.01249805  37.21339774 [2.80]     39.96656027 [0.0459]
+       45  45.01110974  41.54234204 [3.47]     44.86721755 [0.144]
+       50  50.00999900  45.83408535 [4.18]     49.72238768 [0.288]     50.00982259 [1.8e-4]
+       60  60.00833275  54.32136437 [5.69]     59.31765921 [0.691]     59.92357565 [0.0848]
+       70  70.00714249  62.69945891 [7.31]     68.78452539 [1.22]      69.70343138 [0.304]
+       80  80.00624976  70.98530723 [9.02]     78.14424933 [1.86]      79.37149578 [0.635]  79.98730855 [0.0189]
+       90  90.00555538  79.19140301 [10.8]     87.41203324 [2.59]      88.94371640 [1.06]   89.87175394 [0.134]
+      100 100.00499988  87.32733251 [12.7]     96.59932036 [3.41]      98.43212058 [1.57]   99.66483153 [0.340]  99.96879653 [0.0362]
+
+    Band gap at fixed K (bare wall, om_1 - om_0): 2.05243246 (K = 34), 2.75316253 (40), 4.99629484 (60),
+    7.15894210 (80), 9.27198785 (100); self-consistent values in 6.2.  The negative levels are the mirror
+    images (-om, other irrep).
+
+4.3 Opposite-sign MIT wall (T0 Psi = -sign(m) Psi): the in-gap edge band   [dev/waveguide_run_figures.log]
+    The 16-component spectrum is A(K) U -A(K); the edge level of A(K) is negative (irrep -i), its mirror
+    +|om| is the positive edge level (irrep +i); each 4-fold.  "edge" = the most deeply bound level of that
+    branch.
+          K        R            edge |om|      |om|/K      other levels of A(K)
+        0.02     1.000200     0.01961645     0.980823
+        0.05     1.001249     0.04904112     0.980822
+        0.10     1.004988     0.09808212     0.980821
+        0.20     1.019804     0.19616333     0.980817
+        0.50     1.118034     0.49039245     0.980785
+        1.00     1.414214     0.98067175     0.980672
+        2.00     2.236068     1.96044884     0.980224
+        3.00     3.162278     2.93849068     0.979497
+        5.00     5.099020     4.88652808     0.977306
+       10.00    10.049876     9.69024420     0.969024
+       20.00    20.024984    18.99601285     0.949801
+       40.00    40.012498    36.76546650     0.919137     +39.96502503
+       80.00    80.006250    70.51329445     0.881416     -79.34976798, +78.13838408, +79.98693128
+      100.00   100.005000    86.85053394     0.868505     -99.96594804, -98.40417959, +96.59256297, +99.66348757
+    K -> 0: |om|/K -> (m/6H) B(m/6H, 13/12) = 0.9808227327 (m = H), exact (V9).  The edge band is gapless and
+    lies INSIDE the bulk gap |om| < m for K < ~1.02 m: massless fermions bound to the wall, 4 positive states
+    per transverse momentum (one irrep), with a small negative scalar density (Int(f^2 - g^2) = -0.0498 at
+    K = 3).  At K >> m the opposite-sign and same-sign spectra approach each other (K = 80: 70.513/78.138/
+    79.350/79.987 vs 70.985/78.144/79.371/79.987): there the wall's mass sign matters little.
+    Further positive levels of the opposite-sign wall appear at K = 33.80968834 (irrep -i) and 48.79382020 (+i).
+
+4.4 The uniform self-adjoint family f(0) cos th + g(0) sin th = 0 (symmetry breaking except th = +-Pi/4)
+    16-component levels: irrep -i = A_th(K), irrep +i = A_th(-K), each 4-fold   [dev/waveguide_run_figures.log]
+    K = 3 (continuum |om| >= 3.162278):
+       th/Pi   irrep -i        irrep +i
+      -0.5000  1.0 (flat band om = m)   -
+      -0.4583  1.709437        -
+      -0.4167  2.312488        -
+      -0.3750  2.772742        -
+      -0.3333  3.062167        -
+      -0.2917  3.16227 (at the continuum edge)   -
+      -0.2500  -               -             <- MIT+ (same-sign): no level
+      -0.2083  -               -3.16227
+      -0.1667  -               -3.062167
+      -0.1250  -               -2.772742
+      -0.0833  -               -2.312488
+      -0.0417  -               -1.709437
+       0.0000  -               -1.0
+       0.0417  -               -0.227137
+       0.0833  -               0.561957
+       0.1250  -               1.318489
+       0.1667  -               1.994844
+       0.2083  -3.139421       2.547300
+       0.2500  -2.938491       2.938491     <- MIT- (opposite-sign)
+       0.2917  -2.547300       3.139421
+       0.3333  -1.994844       -
+       0.3750  -1.318489       -
+       0.4167  -0.561957       -
+       0.4583  0.227137        -
+    The levels sweep the WHOLE gap (-R, R) as th varies (they reach the continuum near th = -0.29 Pi and
+    +0.21 Pi); the swap map is visible (A_th(-K) = -A_{Pi/2-th}(K)).
+    K = 80 (continuum 80.006250), selected rows (all 24 in dev/waveguide_theta_K80.csv):
+      th = -Pi/2 (g(0)=0): -i: -80.004288, -78.510895, 1.0, 78.510895, 80.004288 | +i: -79.940098, -77.591327, 77.591327, 79.940098
+      th = -Pi/4 (MIT+):   -i: -79.987309, -78.144249, 70.985307, 79.371496   | +i: -79.371496, -70.985307, 78.144249, 79.987309
+      th = 0 (f(0)=0):     -i: -79.940098, -77.591327, 77.591327, 79.940098   | +i: -80.004288, -78.510895, -1.0, 78.510895, 80.004288
+      th = +Pi/4 (MIT-):   -i: -79.349768, -70.513294, 78.138384, 79.986931   | +i: -79.986931, -78.138384, 70.513294, 79.349768
+    The lowest positive level at K = 80 moves from om = m = 1 (th = -Pi/2) to 70.985 (MIT+) and 70.513 (MIT-);
+    the dependence on th is strong: the wall condition, not the pocket, sets the low end of the spectrum.
+
+4.5 Wavefunctions (normalized in L^2(dz); dev/waveguide_wavefunctions.csv, waveguide_fig_wavefunctions.png)
+    K = 80 n=0 (-i) om = 70.9853072299: norm 0.999999999816, Int(f^2-g^2) = 0.24150473, f and g nodeless.
+    K = 80 n=1 (+i) om = 78.1442493324: norm 0.999999998828, Int(f^2-g^2) = 0.01572127, g has 1 node.
+    K = 80 n=2 (-i) om = 79.3714957791: norm 1.000000000801, Int(f^2-g^2) = 0.02345024, f and g 1 node each.
+    K = 3 opposite-sign edge (+i) om = +2.9384906770: norm 0.999999999999, Int(f^2-g^2) = -0.04980562 (the
+    edge state has a small NEGATIVE scalar density: f ~ -g).  Wall conditions satisfied to 1e-16.
+    Flat band th = Pi/2, K = 3: |f - exp(-Int K)/norm| <= 9.6e-9, g = 0 exactly.
+    The K = 80 states live within z < 0.4/H (decay rates kappa = 36.9, 17.2, 10.1).
+
+4.6 Convergence (dev/waveguide_run_convergence.log; variations of the level, reference DOP853 1e-12,
+    z_a = 3/H, matching in the middle of the allowed region)
+                                    matching point   rtol 1e-9..1e-13   z_a 2..6    kappa grid   Magnus h=2e-3/5e-4
+    K=80  n=0  om=70.985307229908   <= 8.7e-11       <= 1.0e-8          <= 3.8e-12  <= 5.6e-12   4.3e-9 / 1.8e-9
+    K=80  A=-78.144249332428        <= 2.4e-12       <= 1.3e-9          <= 1.0e-12  <= 9.8e-13   3.3e-8 / 6.7e-11
+    K=80  A=+79.371495779094        <= 1.0e-11       <= 1.4e-9          <= 8.1e-13  <= 5.3e-13   1.3e-9 / 1.5e-10
+    K=8   om=8.053838227897         <= 3.1e-12       <= 2.5e-10         <= 2.9e-13  <= 1.8e-14   2.8e-11 / 2.5e-12
+    K=6.72 om=6.793996343033 (kappa = 3.7e-3)  <= 2.4e-14   <= 1.2e-12  <= 1.2e-14  0            2.3e-13 / 2.1e-14
+    K=3 MIT- om=-2.938490676957     <= 3.3e-12       <= 9.9e-10         <= 1.4e-13  <= 8.9e-14   3.9e-11 / 5.7e-12
+    (matching points: z_m = 0, 0.25 z_t, 0.5 z_t, 0.9 z_t and 0.02/H; z_t = end of the allowed region.)
+    The reference levels are accurate to ~1e-10 (tolerance-limited).
+
+
+-----------------------------------------------------------------------------------------------------
+5. MATHEMATICA CROSS-CHECK  (waveguide_check.wls; dev/waveguide_run_check.log)
+-----------------------------------------------------------------------------------------------------
+Independent of waveguide.py in language, integrator (NDSolve at WorkingPrecision 30 instead of DOP853 /
+Magnus in double precision), eigenvalue condition (normalized 2x2 Wronskian of left and right solutions,
+FindRoot with Brent's method, instead of the Pruefer angle) and asymptotic data (NullSpace of the constant
+matrix at z_a = 3).  The Python value only sets the bracket [w0 - 1e-3 R, w0 + 1e-3 R].
+
+1. Levels (matching point z_m = 0.02/H):
+   case                                   waveguide.py         Mathematica                  |diff|
+   same-sign K=80 n=0 (irrep -i)          70.985307229908      70.98530722995475448906      4.68e-11
+   same-sign K=80 n=1 (irrep +i)          78.1442493324274     78.14424933243057439331      3.17e-12
+   same-sign K=80 n=2 (irrep -i)          79.3714957790936     79.37149577909911904082      5.51e-12
+   same-sign K=80 n=3 (irrep +i)          79.9873085520475     79.98730855204863978335      1.15e-12
+   same-sign K=8 shallow (irrep -i)       8.05383822789729     8.053838227898042799445      7.53e-13
+   same-sign K=40 n=1 (irrep +i)          39.9665602657784     39.96656026577953705636      1.14e-12
+   opposite-sign K=3 edge (irrep -i)      -2.93849067695725    -2.938490676960405133909     3.16e-12
+   opposite-sign K=3 edge (irrep +i)      2.9384906769572      2.938490676960405133909      3.21e-12
+   g(0)=0 K=3 flat band (irrep -i)        1.                   1.000000000000000000000      0
+   theta=1.0 K=3 (irrep -i)               -2.21043470304386    -2.210434703050103980776     6.24e-12
+   same-sign m=4 K=20 (irrep -i)          20.1427411133772     20.14274111338139405878      4.20e-12
+   PASS all 11 agree to better than 1e-6 (max 4.68e-11); PASS better than 1e-9; PASS flat band om = m to 1e-20.
+2. Full 16-component system (T16 from the JSON, which reproduces {T16[a],T16[b]} = 2 eta_ab: PASS),
+   singular values of [Q_L | Q_R] at the Mathematica level om and at om +- dw:
+   opposite-sign K=3 edge, om = 2.938490676960405 [NDSolve, 25 digits]: 4 singular values 2.16e-18, the 5th
+     0.881; at om +- 1e-6 the smallest is 3.21e-7                                                     PASS
+   same-sign K=8 shallow, om = 8.053838227898043 [NDSolve, 25 digits]: 4 x 7.74e-16, 5th 0.797; at +-1e-6:
+     1.11e-6                                                                                          PASS
+   same-sign K=80 n=1 (irrep +i), om = 78.14424933243057 [Magnus/MatrixExp, h = 5e-4]: 4 x 1.46e-9, 5th 0.442;
+     at +-1e-5: 2.19e-6                                                                               PASS
+   same-sign K=80 n=0 (irrep -i), om = 70.98530722995475 [Magnus/MatrixExp]: 4 x 6.08e-9, 5th 0.327; at +-1e-5:
+     3.32e-7, 3.45e-7                                                                                 PASS
+   same-sign K=80 n=2 (irrep -i), om = 79.37149577909912 [Magnus/MatrixExp]: 4 x 1.48e-8, 5th 0.468; at +-1e-5:
+     1.09e-5                                                                                          PASS
+   Criterion: exactly 4 singular values below 1e-3 x the 5th, rising at least 10-fold at om +- dw.
+   For K = 80 NDSolve on the 16x8 matrix system did not finish within 30 minutes (at 20-digit and at machine
+   precision), so there the 16x16 check uses an independently written Magnus/MatrixExp propagator (machine
+   precision) -- independent of the Python code, but the same class of method as waveguide.py's full16.
+3. Thresholds (independently written Pruefer NDSolve at 30 digits, at the continuum edge om = R where the
+   decaying direction is the double fixed point p = alpha/2):
+   K_c(1) = 6.70624065181 (m = 1, same-sign, irrep -i): Delta(R)/Pi = +4.85e-8 at K_c (1 - 1e-6) and -4.85e-8 at
+     K_c (1 + 1e-6): an integer is crossed                                                            PASS
+   K_c(2) = 33.9189585083 (irrep +i, block ODE with -K): Delta(R)/Pi = +2.93e-6 / -2.93e-6              PASS
+   Summary: 11 checks, 11 PASS, 0 FAIL, no messages (the one harmless NDSolveValue::precw of the flat band,
+   where m - om cancels to ~1e-42, is suppressed for that case only and documented in the script).
+
+
+-----------------------------------------------------------------------------------------------------
+6. DENSITY FUNCTIONAL THEORY: GROUND AND FIRST EXCITED STATES  (dev/waveguide_run_dft.log,
+   dev/waveguide_run_dft_strong.log)
+-----------------------------------------------------------------------------------------------------
+6.0 Setting (derived in section 2; implemented in waveguide.py section 11)
+  Functional per 8-volume: W(sigma) = m0 sigma + (lam/2) sigma^2, mean field m(z) = W'(sigma(z)) = m0 + lam sigma(z),
+  m0 = 1 H.  lam < 0 is attractive; in the homogeneous gas the gap equation m = m0 + lam sigma_KS(m) has a
+  unique root because sigma_KS is increasing in m.
+  How the hidden volume enters: the admissible modes are zero modes along x5..x7, normalized over the
+  hidden COORDINATE volume V_hid; the 8-density per proper 7-volume carries 1/V_hid.  Choice: V_hid = 1/H^3
+  (so lam also stands for the effective 5D coupling lam/V_hid).  With a4 = 0, the transverse coordinate
+  volume equals the asymptotic proper one; N_s = number per unit coordinate observed 3-volume.
+  Orbitals: for transverse momentum k (any direction; rotated onto x1, the spectrum depends on |k| only)
+  and each positive level of either irrep, 4 degenerate states (2 blocks with J = +1, 2 with J = -1); a
+  "band" is one such level family om_b(k), b = (irrep, Pruefer index).
+  Scalar density of a block orbital: the Fock expectation of Psibar Psi in a J-eigenmode state is the
+  Krein-weighted sum eta_u u^dag sigma16 u = u^dag bet u = |f|^2 - |g|^2 (derived and checked in 2.4);
+  the number density is |f|^2 + |g|^2.  Because the transverse proper volume is q^3 p^3 = 1/Sin(z),
+      sigma(z) = Sin(z) sum_b 4 Int d^3k/(2pi)^3 theta(occupied) (f^2 - g^2)_{b,k}(z),   n(z) likewise with (f^2 + g^2),
+      E/A = sum_occ om + Int (W - sigma W') dz/Sin = sum_occ om + (|lam|/2) Int sigma^2/Sin dz,
+  with Int d^3k/(2pi)^3 = (1/2pi^2) Int k^2 dk.  No-sea (the Dirac sea of negative levels is not in sigma),
+  E_xc neglected.  Occupations: common Fermi level mu with N_s = sum_b (4/6pi^2)(kF_b^3 - k_lo,b^3); band
+  thresholds k_lo refined by bisection on Delta(R(k), k) = j Pi; sigma from 16-point Gauss-Legendre in k
+  per occupied interval with the orbitals computed at the nodes; Anderson mixing (5 steps, 0.5).
+  Checks built in: N(check) = Int n dz/Sin (+ exact tails) reproduces N_s to 1e-8 in every iteration.
+
+6.1 The author's mass term W = m0 sigma (lam = 0; m0 = -2M)
+  The action is bilinear: the theory is FREE, the single-particle levels of section 4 are the EXACT spectrum
+  and every many-body eigenstate is a Slater determinant of exact modes; no self-consistency is needed.
+  Consequences [dev/waveguide_run_dft.log, DFT-a]:
+  - same-sign wall: there is NO bound positive level for K < K_c(1) = 6.70624 (checked at K = 0, 1, 3, 6, 6.7:
+    none; 7.070615 at K = 7, 9.999205 at K = 10).  Every wall level lies above m0 by more than
+    Sqrt[m0^2 + K_c^2] - m0 = 5.78 m0, while the bulk continuum starts at m0 (k -> 0).  The N_s-fermion ground
+    state of the free theory therefore has NO wall-localized fermions (they occupy bulk continuum states,
+    in the half-infinite geometry at vanishing density near the wall).  The wall levels are excited states.
+  - opposite-sign wall: the gapless edge band (|om| ~= 0.98 K) lies below m0 for K < ~1.02 m0; the free
+    ground state of N_s <= (4/6pi^2) (1.02)^3 ~= 0.072 H^3 fermions fills it up to mu <= m0 (a genuine wall-
+    bound massless 3+1-dimensional Fermi sea); beyond that, particles spill into the bulk.
+
+6.2 Same-sign MIT wall, attractive W: the wall-band sector  (lam = -0.01 H^-3, N_s = 100 H^3, m0 = 1)
+  Parameters: N_s = 100 fills the bare n = 0 band from K_c(1) = 6.706 to kF = 12.12 (only n = 0 occupied;
+  n = 1 starts at 33.92); lam = -0.01 gives a mass depression of ~24% at the density maximum, i.e. a clearly
+  non-perturbative but not extreme mean field.  Grid: Z = 30/H, h = 0.003/H near the wall, 0.02/H beyond 4/H;
+  k-grid 41 points on [0, 20] (81 on [0, 40] for the Delta-SCF).
+  GROUND STATE (converged, 9 iterations, max |m_new - m| = 1.5e-10; numbers at Z = 30/H, the Z -> infinity
+  extrapolation is in 6.5: E/A -> 936.46-936.53, mu -> 11.692, k_lo -> 5.439):
+    E/A          = 937.2277360325 H^4   (sum of occupied om = 936.0540086871, interaction Int(W - sigma W') = 1.1737273454)
+    E/N          = 9.37227736 H         mu = 11.6958993131 H
+    occupations  : band n = 0 (irrep -i, j = 0) holds all N_s: k in [5.45898483, 11.80021359]; band bottom
+                   om = 5.54982120 at the self-consistent threshold k_lo = 5.45898 (bare threshold 6.70624:
+                   the attractive mean field binds the band down to lower k); band n = 1 (irrep +i) empty.
+    profiles (dev/waveguide_ks_same.csv, dev/waveguide_fig_ks_same.png):
+         z      sigma(z)       m(z)            n(z)
+      0.000     0.000000     1.000000000       0.000000     (sigma = n = 0 at the wall: Sin(0) = 0 and MIT+)
+      0.010     2.584085     0.974159148      56.902076
+      0.050    13.750811     0.862491890     114.070435
+      0.101    21.403238     0.785967615     133.999504
+      0.167    23.845616     0.761543845     130.887745     <- sigma max / m min
+      0.251    22.015712     0.779842881     113.186975
+      0.401    16.357943     0.836420568      80.825928
+      0.599    10.586511     0.894134889      51.567476
+      1.001     4.674761     0.953252390      22.842977
+      2.000     1.046931     0.989530691       5.348363
+      5.000     0.134231     0.998657689       0.726873
+     10.000     0.031997     0.999680033       0.176357
+     30.000     0.003626     0.999963741       0.020122     (tail from orbitals near the threshold)
+  VARIATIONAL CHECK (Walecka functional Omega[m] = sum_occ om[m] + Int (m - m0)^2/(2|lam|) dz/Sin, which
+  equals E at the self-consistent m): along m = m0 + s (m_sc - m0),
+      s = 0.98: 938.1963767831 (mu 11.70187354, k_lo 5.48498827)
+      s = 1.00: 937.2277359473 (mu 11.69589931, k_lo 5.45898482)      = E/A to 9e-8
+      s = 1.02: 936.2641446367 (mu 11.68995989, k_lo 5.43292750)
+  d Omega/ds = -48.305804: the fixed point is NOT stationary.  The slope is exactly the threshold term
+  (4/2pi^2) k_lo^2 (-dk_lo/ds) (R(k_lo) - mu) = -48.306186 (dk_lo/ds = -1.301519, R(k_lo) = 5.549821): a
+  deeper well pulls new bound states out of the continuum at the band bottom (energy ~5.55) and they
+  replace Fermi-surface states (energy mu = 11.70).  In other words the wall-band sector is not closed
+  under the variation, because its band bottom is a continuum threshold lying BELOW mu.
+  STABILITY: mu - m0 = 10.696 > 0: bulk continuum states (om >= Sqrt[m0^2 + k^2] >= m0) lie below mu.
+  VERDICT: the self-consistency CONVERGES, and the result is the self-consistent wall-band configuration
+  (every orbital a true bound state at its own k), but it is neither the global ground state of N_s
+  fermions nor a variational minimum within the sector.  For the same-sign wall at this coupling the
+  true KS ground state has no wall layer (as in 6.1).
+  BAND GAP AT FIXED k in the self-consistent potential (om_1 - om_0, n = 1 in irrep +i):
+      k = 34: 31.9275941 (-i), 34.01272808 (+i): gap 2.08513398
+      k = 40: 37.18156096, 39.96180573: gap 2.78024477
+      k = 60: 54.29712547, 59.32080892 (+ 59.92180405, -i): gap 5.02368345
+      k = 80: 70.96611705, 78.15097504 (+ 79.36671172, 79.98438125): gap 7.18485799
+    (bare wall: 2.05243246, 2.75316253, 4.99629484, 7.15894210).
+  FIRST EXCITED STATE (Delta-SCF, fraction x of N_s in band n = 1, the rest in n = 0, each band filled from
+  its bottom = the lowest configuration with these occupations; all converged to 1e-9):
+      x      E/A              Delta E/A        Delta E per promoted fermion   n = 1 occupied k-shell
+    0.01   957.9790646375   20.7513286050    20.75132861                    [31.97547734, 31.98030315] (n = 0: [5.47080840, 11.76721762])
+    0.05   1041.8217858764  104.5940498439   20.91880997                    [32.07928081, 32.10323967] (n = 0: [5.51731024, 11.63328106])
+    0.10   1148.4782948320  211.2505587995   21.12505588                    [32.20392156, 32.25143447] (n = 0: [5.57388942, 11.46128772])
+    0.20   1367.8210883907  430.5933523582   21.52966762                    [32.43837998, 32.53190545] (n = 0: [5.68334009, 11.10079920])
+  The lowest Delta-SCF excited state is the x -> 0+ limit: Delta E per promoted fermion -> ~20.75 H (x = 0.01),
+  close to (bottom of band n = 1: om = Sqrt[1 + 31.975^2] = 31.99 at k_lo = 31.975) - (top of n = 0: 11.63)
+  = 20.36, the remaining 0.4 being the mean-field rearrangement; it grows slowly with x (Pauli filling of the thin
+  n = 1 shell and the weakening of the well: fewer fermions in the n = 0 band near the wall lower sigma and
+  raise m, see dev/waveguide_fig_ks_same.png for x = 0.1).  Intra-band particle-hole
+  excitations of n = 0 are gapless.
+
+6.3 Opposite-sign MIT wall: the edge band  (m0 = 1, N_s = 0.05 H^3)
+  The edge band (irrep +i, the positive mirror of the edge level) is the lowest positive band and starts at
+  the Dirac point om = 0, k = 0: no threshold.  N_s = 0.05 fills it to kF = 0.90459 with mu < m0: EVERY state
+  below mu is a bound wall state, so this is a genuine ground state of N_s fermions (no bulk state is lower).
+                        lam = -0.01 H^-3                    lam = -10 H^-3
+    iterations          3 (max|dm| < 1e-10)                 6 (max|dm| < 1e-10)
+    E/A                 0.033268937058 H^4                  0.033267529405 H^4
+    E/N                 0.66537874 H                        0.66535059 H
+    mu                  0.8871343842 H                      0.8870591549 H
+    occupation          band n = 0 (+i): k in [0, 0.90459393], all of N_s
+    sigma(z)            in [-7.964e-4, 0]                   in [-7.986e-4, 0]    (NEGATIVE: f ~ -g for edge states)
+    m(z)                in [1, 1.00000796]                  in [1, 1.00798557]  (the attraction RAISES m near the wall)
+    Walecka check       slope -1.2e-14, curvature +5.6e-13  slope +2.0e-13, curvature +5.6e-10
+                        -> stationary and a MINIMUM: a variationally consistent KS ground state.
+    profile (lam = -10; dev/waveguide_ks_opposite_lam-10.0.csv):
+       z      sigma          m              n
+      0.05   -4.777e-4     1.0047766      6.154e-2
+      0.20   -7.899e-4     1.0078986      6.443e-2
+      0.50   -4.772e-4     1.0047724      3.670e-2
+      1.00   -1.737e-4     1.0017367      1.333e-2
+      2.00   -2.306e-5     1.0002306      1.772e-3
+      4.00   -4.049e-7     1.0000040      3.124e-5
+  E/N = 0.6654 is the massless value (3/4) v kF with v = 0.9807 (v kF = 0.887 = mu): the wall fermions are
+  essentially massless; the self-consistent correction is tiny because their scalar density is small and
+  of the opposite sign.
+  FIRST EXCITED STATE: there is no bound band n = 1 at the occupied momenta: the next positive bands of the
+  opposite-sign wall appear only at K = 33.80968834 (irrep -i) and 48.79382020 (irrep +i).  The lowest
+  excitations are gapless intra-band particle-hole pairs (Delta E -> 0) and promotion into the bulk
+  continuum, which costs at least m0 - mu = 0.113 H and unbinds the fermion.  A Delta-SCF with a finite
+  fraction in a bound band n = 1 would require k >= 33.81, at om - mu >= ~32.9 H.  Band gap at fixed k (bare
+  opposite-sign wall): 3.19955853 at k = 40 (39.96502503 - 36.76546650), 7.62508963 at k = 80.
+
+6.4 Strong attraction, same-sign wall (EXPLORATORY; lam = -100 H^-3, N_s = 0.03 H^3)
+  Question: can an attractive functional bind a genuinely stable layer (mu < m0) AT the same-sign wall?
+  Homogeneous bulk matter (4 spatial dimensions, 8 states per 4-momentum; `waveguide.py dft --scenario bulk`,
+  dev/waveguide_run_dft_bulk.log) is self-bound only for |lam| between 60 and 80 H^-3 or more: min over kF of
+  E/n - m0 = +0.000033 (at the lowest density, i.e. unbound) for lam = -0.01 ... -60, but -0.038261 (lam = -80),
+  -0.072213 (lam = -100; kF = 0.8575, m* = 0.3550, n = 0.01369) and -0.175598 (lam = -200).  So at the
+  coupling of 6.2 (lam = -0.01) no self-bound layer can exist anywhere.  Run: lam = -100, N_s = 0.03,
+  initial m(z) = m0 - 0.6 exp(-((z - 1.5)/0.8)^2), linear/Anderson mixing 0.3, 60 iterations.
+  RESULT: self-consistency FAILED (not converged after 60 iterations; max|m_new - m| wandered between
+  6.6e-3 and 0.71, last 1.7e-2).  What was obtained:
+    - the layer IS bound: mu = 0.8796 H, mu - m0 = -0.1204 H (below the bulk continuum); E/A = 0.02888 H^4,
+      E/N = 0.963 H; the last profile has m_min = 0.266 at z = 3.87 and sigma_max = 7.40e-3 at z = 3.67;
+    - the two irreps are occupied almost equally (0.015004 / 0.014996 of N_s, kF = 0.60562 / 0.60551): away
+      from the wall the two 4-fold branches become degenerate, i.e. 8 states per momentum as in the
+      homogeneous gas (the degeneracy statement of 2.5);
+    - the layer centre z_c drifts OUTWARD: 2.07 (it. 1) -> 2.5 (it. 5-19) -> 3.0-3.3 (it. 20-30) -> 3.4-3.8
+      (it. 35-60).
+  WHY: a rigid-shift diagnostic (the final well moved to other centres, Walecka functional evaluated;
+  an upper bound on the energy of a layer there) gives
+        z_c:    0.6         1.0         1.5         2.0         3.0         4.0         6.0
+      Omega: 0.0318696   0.0307616   0.0297897   0.0292337   0.0288107   0.0287167   0.0286926
+        mu:  0.991323    0.945921    0.911118    0.893095    0.880229    0.877453    0.876745
+  Omega decreases monotonically with the distance from the wall: the same-sign wall REPELS the layer
+  (MIT+ acts like a hard wall; near it the transverse proper volume 1/Sin dilutes sigma), and the energy
+  becomes flat far away (translational quasi-zero mode).  The self-consistent layer therefore has no
+  stationary position at finite distance: it detaches into the bulk and the fixed-point iteration drifts
+  with it.  There is no wall-bound KS ground state for the same-sign wall at this coupling either.
+
+6.5 Numerical convergence of the Kohn-Sham results  [dev/waveguide_run_dft_convergence.log]
+  Same-sign ground state (6.2), variations of one numerical parameter at a time:
+      variation                  E/A              mu              sigma_max      k_lo
+      reference (Z = 30/H)       937.2277360325   11.6958993131   23.84561550    5.45898483
+      h_near 0.003 -> 0.0015     -1.46e-6         -1.1e-8         +3.9e-7        -3.4e-8
+      Gauss-Legendre 16 -> 24    +3.47e-5         +1.9e-7         +2.6e-6        +9.4e-7
+      k-grid 41 -> 81 points     +4e-12           +2.5e-7         +1e-13         +1e-13
+      Z = 45                     937.0584450153   11.6949851508   23.83311908    5.45442112
+      Z = 60                     936.9667674502   11.6944902486   23.82635668    5.45194762
+      Z = 90                     936.8657621832   11.6939451167   23.81891000    5.44922075
+      Z = 135                    936.7810220222   11.6934878718   23.81266409    5.44693161
+  The grid, quadrature and k-grid are converged to <= 4e-5 in E/A.  The truncation of the mass profile at Z
+  (m = m0 beyond Z) is NOT negligible and converges slowly: the orbitals near the band threshold have
+  kappa ~ (k - k_lo) and produce a density tail sigma(z) = 3.22/z^2 (fitted exponent -1.998 on z in [5, 30]),
+  i.e. a self-consistent inverse-square tail m - m0 = -0.032/z^2 that slightly lowers the band threshold.
+  A fit X(Z) = X_inf + a Z^-p (dev/waveguide_Zfit.py -> dev/waveguide_run_Zfit.log; p = 0.56-0.67, i.e. a
+  subcritical inverse-square tail) gives the extrapolated values
+      E/A(Z -> inf) = 936.46-936.53   (936.527 +- 0.026 with all five Z; 936.459 without Z = 30)
+      mu            = 11.6918-11.6921,   sigma_max = 23.789-23.794,   k_lo = 5.438-5.440.
+  So the Z = 30 numbers quoted in 6.2 carry a truncation error of 0.07% in E/A (0.7 of 937), 0.03% in mu,
+  0.2% in sigma_max and 0.4% in k_lo; the qualitative conclusions (and the Walecka threshold analysis) are
+  unaffected.  The Delta-SCF runs use the same Z = 30 and were not re-extrapolated (their Delta E is a
+  difference at equal Z).
+  Opposite-sign ground state (6.3, lam = -10): Z = 45, h_near = 0.0015 and n_gl = 24 change E/A by at most
+  1.6e-12 and mu by 4.4e-11: fully converged (the edge band has no threshold and no long tail).
+
+
+-----------------------------------------------------------------------------------------------------
+7. REVIEWER CLAIMS: CONFIRMED / REFUTED / REFINED
+-----------------------------------------------------------------------------------------------------
+Source of the claims: the task statement (the reviewer's probe/dft/ work), DFT-7/8/9/13 in
+review_new.txt, DESIGN-REV2 B.4 (X2), and the orchestrator's message of 2026-09-24.  m = H = 1 unless stated.
+
+ 1. Reduction of the 16-component x0-problem to 2x2 blocks.                                   CONFIRMED
+    (symbolic, notebook matrices: 8 invariant blocks, 4 per irrep w3 = -+i, each irrep with J = +1 twice
+    and J = -1 twice; dim<alz,alx,bet,J> = 16, commutant 16; numeric reduction of the 16x16 matrix 1e-12.)
+ 2. ODE g' = K g + (m - om) f, f' = -K f + (m + om) g in irrep w3 = -i.                            CONFIRMED
+ 3. "K -> -K for the other irrep" together with "MIT+ : f = g in irrep -i, f = -g in irrep +i".
+    CONFIRMED WITH A BASIS CAVEAT: in the basis v2 = -alx v1 the +i ODE is literally K -> -K and MIT+ is
+    f = g; in the reviewer's basis v2 = +alx v1 the +i ODE is K -> -K AND g -> -g (T0 = -sigma_x) and MIT+
+    is f = -g.  Combining the literal K -> -K ODE with f = -g would impose MIT- in irrep +i.
+ 4. K(z) = K_inf (1 - e^{-12Hz})^{1/12}, K_inf = k e^{a4}; rescaling Psi = Sqrt[Sin] Psi' removes the
+    connection exactly; Cot d_x0 = d_z with z = -ln Cos/(6H).                                     CONFIRMED
+ 5. z = 0 regular (limit circle, a condition must be chosen), z -> infinity limit point.          CONFIRMED
+    (plus: R z^2 -> -31/24, a curvature singularity at finite proper distance.)
+ 6. The two Lorentz-covariant wall conditions are T16[0] Psi = +-Psi.
+    CONFIRMED within the uniform family B(vp) = cos vp bet + sin vp T0 (only cos vp = 0 is covariant);
+    REFINED (orchestrator item 2, verified): the complete covariant J-preserving family is P = T0 Q with Q
+    any Hermitian involution in the 8-dim commutant of Cl(T0..T4); all have zero normal current and
+    Psibar Psi = 0.  Flavour symmetry (Q central: +-1, +-J) plus charge conjugation (P real) select Q = +-1.
+    Non-J-preserving covariant walls also exist (T0 exp(i vt T0 T5)).
+ 7. MIT gives zero normal J-current and Psibar Psi = 0 at the wall; every f cos th + g sin th = 0 has zero
+    current; only th = +-Pi/4 gives Psibar Psi = 0.                                               CONFIRMED
+ 8. Same-sign MIT: no bound state at H = m = 1, K = 3.                                          CONFIRMED
+    (exact count 0 in both irreps.)
+ 9. First same-sign level at K_inf ~ 6.71 H (m = H).        CONFIRMED: K_c(1) = 6.70624065 H (irrep -i).
+10. "n = 0 and n = 1 at K = 80: 70.98531 and 79.37150".
+    n = 0 CONFIRMED: 70.985307229908 (Mathematica 70.98530722995; 16x16 multiplicity 4).
+    n = 1 REFUTED: in the full 16-component problem the positive levels at K = 80 are 70.98531 (-i),
+    78.14425 (+i), 79.37150 (-i), 79.98731 (+i), each 4-fold (16x16 shooting in Python and in Mathematica).
+    79.37150 is n = 2; it is the second level of irrep -i only.  The first excited level is
+    78.144249332 (irrep +i).  (The orchestrator's corrected statement is thereby CONFIRMED.)
+11. "a second positive level (n = 1) only near K_inf ~ 80" (DFT-7) and the orchestrator's "between K = 40
+    and 80".   REFUTED: K_c(2) = 33.91895851 H (irrep +i), with almost no m-dependence (33.88-34.29 for
+    m/H = 0.25..8).  At K = 40 it is already bound by 0.0459.  Within irrep -i alone the second level
+    appears at K = 49.540216755.
+12. The spectrum at fixed K is symmetric under om -> -om (orchestrator).                          CONFIRMED
+    (symbolic: rotation R and charge conjugation; numeric: 16x16 multiplicities at +-om.)
+13. Opposite-sign MIT: one edge level per block, +-2.93849068 at K = 3.
+    CONFIRMED: -+2.938490676957 (Mathematica 2.938490676960405; 16x16 multiplicity 4).
+14. Gapless in-gap edge band om ~= -+0.98 K.
+    CONFIRMED for K <~ 3 (|om|/K = 0.980823 as K -> 0, exactly (m/6H) B(m/6H, 13/12) = 0.9808227327;
+    0.979497 at K = 3).  REFINED: the ratio falls for larger K (0.969 at 10, 0.950 at 20, 0.919 at 40,
+    0.881 at 80, 0.869 at 100), and additional levels appear at K = 33.81 (-i) and 48.79 (+i).
+15. Validation om = -K for constant K with f = -g.        CONFIRMED (errors <= 6e-16) and GENERALIZED:
+    for constant K and any th, om = -(m cos 2th + K sin 2th) iff kappa = m sin 2th - K cos 2th > 0.
+16. Validation om = m for g(0) = 0.   CONFIRMED as an exact flat band for every K_inf > 0 in irrep -i
+    (|om - m| <= 4.6e-13); REFINED: it is not a level of irrep +i.
+17. "For K = 3 the th-family gives levels from -3.06 to +3.06" (DFT-8).
+    REFINED: +-3.062167 is the value at th = -+Pi/3 on a 12-15 point grid; the levels sweep the whole gap
+    and reach the continuum +-3.162278 (e.g. 3.16227 at th = -0.2917 Pi).
+18. "K^2 S^{1/3} reaches 94% of K^2 by z = 0.1/H" (DFT-7).    CONFIRMED: 0.942018 at z = 0.1/H.
+19. "A uniform om grid missed the shallow level 8.05384 at K = 8, 0.008 below threshold" (DFT-13).
+    CONFIRMED that the level exists: 8.053838227897, 0.00842 below R = 8.062258 (found by the kappa grid
+    and the exact count).  The failure of a uniform om grid itself was not re-tested.
+20. "Matching at a fixed z_m = 0.3 lost the level -70.985 at K = -80" (DFT-13).   NOT RE-TESTED (the
+    method here matches in the allowed region or by pure backward shooting; the convergence table shows
+    z_m-independence to 1e-10 for z_m in [0, 0.9 z_t] and 0.02/H).
+21. "At K = 80 a DOP853 backward integration from L = 0.8 stalled; use L ~ 0.5-0.7 with the asymptotic
+    basis at K(L)" (orchestrator).   NOT NEEDED here: the backward integration starts at z_a = 3/H, where
+    K(z) = K_inf to 2e-17, with the exact decaying eigenvector; it did not stall (K up to 100) and the
+    level is z_a-independent (z_a = 2..6: <= 4e-12).
+22. Design rev. 1 "for k != 0 the wall region is a potential pocket: bound states below
+    Sqrt[m^2 + k^2 e^{2a4}]" (refuted by DFT-7).   The refutation is CONFIRMED: no same-sign level below
+    K = 6.70624 H; for the opposite-sign wall the level is a boundary (edge) state, present for every K.
+23. "For the mass term the theory is FREE and the levels are exact" (DFT-9).   CONFIRMED (bilinear
+    action; section 6.1).
+24. "DFT-9: moving one quantum changes sigma by O(1/area) = 0; define the problem per transverse area".
+    CONFIRMED and implemented (section 6); the Delta-SCF uses finite fractions of N_s.
+25. Reviewer's "8 states per momentum as in the homogeneous gas" (task hint).   REFINED: per transverse
+    momentum a wall band carries 4 states (one irrep, J = +1 and -1 twice); the 8 of the homogeneous gas
+    split at the wall into two generally non-degenerate 4-fold branches (they become degenerate for a
+    layer far from the wall: 6.4).
+
+
+-----------------------------------------------------------------------------------------------------
+8. WHAT DID NOT WORK, CAVEATS, OPEN POINTS
+-----------------------------------------------------------------------------------------------------
+What did not work / was not achieved:
+  - Side effect (section 1): before I noticed, five derivation runs rewrote claude-fable/...-eLa.mx and
+    -eLazt.mx through the notebook's own DumpSave cells.  Content verified identical to the committed
+    version; not reverted; the final script blocks DumpSave.
+  - Same-sign wall, wall-bound sector (6.2): the Kohn-Sham iteration CONVERGES as a fixed point, but the
+    result is not a variational ground state: (i) mu = 11.70 H > m0, so bulk continuum states lie below
+    the Fermi level (the global KS ground state has no wall layer at this coupling); (ii) even within the
+    wall-bound sector the Walecka functional is not stationary (d Omega/ds = -48.3), because the band
+    bottom is a threshold where the band merges into the continuum below mu.  The numbers are reported as
+    the self-consistent wall-band configuration, with this qualification.
+  - Strong attraction (6.4, exploratory): a genuinely bound layer exists (mu < m0) but the iteration did
+    NOT converge; see 6.4 for what was obtained and why.
+  - The first Mathematica run printed NDSolveValue::precw (FindRoot handed NDSolve an om at exactly the
+    working precision); fixed by giving the inputs 20 (levels) and 10 (16x16) extra digits; the flat-band
+    case, where m - om cancels to ~1e-42, keeps one harmless warning, suppressed there only (documented).
+  - NDSolve on the 16x8 matrix system at K = 80 did not finish in 30 min (20 digits and machine precision);
+    the Mathematica 16x16 check at K = 80 uses a Magnus/MatrixExp propagator instead (section 5).
+  - Two reruns were needed because of my own bugs, found by the checks: a Magnus grid that was too
+    coarse near the wall (errors 6e-5 rad; fixed by geometric grading to z = 0.05/H), trapezoid
+    normalization (1e-5; replaced by Simpson), a wrong edge-branch identification at K >= 80 (fixed),
+    a grid mismatch in the band-gap step, and shell-escaping of "\n" in two patches.
+  - The notebook was rebuilt by another agent during this session (172 -> 217 Input cells); cells
+    1..117 still reproduce every object used (94/94 checks and the notebook's own 142 assertions in
+    cells 1..117 pass on the current notebook).  In one intermediate run (machine heavily loaded) the loader reported a message from notebook cell 88
+    whose text that version of the script did not print; in the final run (the log shipped) no cell raised
+    a message.  It was not identified.
+
+Caveats (physics):
+  - a4 is frozen (fixed x4, adiabatic); with a4 varying in x4 the plane wave e^{-i om x4} is not exact and
+    the momentum redshifts as K_inf = k e^{a4}.  All numerics use a4 = 0.
+  - Zero modes along x5..x7 (admissible sector) and along x2, x3 (the transverse momentum is rotated onto
+    x1; the spectrum depends on |k| only).  V_hid = 1/H^3 enters only through sigma (and lam_4 = lam/V_hid).
+  - The wall condition is a choice (self-adjoint extension); the results depend strongly on it (4.4).
+    The covariant, flavour- and C-symmetric choices are MIT+ and MIT-; which one is "same-sign" depends on
+    sign(m) (m = -2M for the author's mass term), so both are physically possible.
+  - No-sea approximation (vacuum polarization of the negative-energy levels neglected / absorbed into W),
+    E_xc neglected (Hartree mean field), local functional m(z) = W'(sigma(z)).
+  - The Delta-SCF excited states are stationary configurations with constrained occupations, not
+    eigenstates of an exact many-body Hamiltonian.
+
+Open points (not done):
+  - A grand-canonical treatment of the same-sign wall with a bulk fable density (then the wall bands
+    at k > K_c are surface states of a filled bulk) was outside the specification and not done.
+  - A constrained (position-fixed) KS iteration for the strong-coupling layer, to map E(z_c) self-
+    consistently, was not done; only the rigid-shift upper bound of 6.4 was computed.
