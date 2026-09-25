@@ -6,7 +6,11 @@
 cfHere = DirectoryName[ExpandFileName[$InputFileName]];
 om = 3/10; orr = 84/10^6; n0 = -7; n1 = 0; npts = 701;
 grid = Table[n0 + (n1 - n0) k/(npts - 1), {k, 0, npts - 1}];
-fmt[x_] := N[x];   (* machine numbers: Export writes them with 16 significant digits *)
+(* machine numbers: Export writes them with 16 significant digits.  The Quiet is needed because
+   Model B's H column at an exact N is an exact expression whose term Exp[-s/s1] (s ~ 1.3e9 at
+   N = -7) underflows when N[] takes it to machine precision; the value is unaffected, but
+   without the Quiet the run printed three General::munfl messages and a General::stop. *)
+fmt[x_] := Quiet[N[x], General::munfl];
 
 (* ---------------------------------------------------------------- Model A: exp, lambda = 1, V0 as normalised by the solver *)
 v0A = SetPrecision[2.6871520526047146, 30]; lam = 1;   (* the solver's normalised V0, at the working precision *)
