@@ -33,7 +33,23 @@ witness that must evaluate to an actual number (19 of them).
 | IV | 18–20 | **new** — three further ways of bridging curved indices to flat tangent indices, a spin connection derived for each, and a component-by-component comparison with the canonical one. Two of the three are the canonical connection in a different gauge and are labelled as such; the third is a different connection with octonionic torsion |
 | V | 21–22 | **new** — the **fable-5.1 bridge**: the Weitzenböck (teleparallel) connection in which the canonical frame itself is parallel. Zero spin connection and zero curvature in that frame; the canonical spin connection is proved to be minus the contortion of its torsion; `R == −T + B` in closed form; the curved Dirac equation of the model is proved equivalent to a connection-free one by an exact rescaling of the spinor. Then a master comparison of all five connections |
 
+| VI | 23–25 | **new** — two quintessence-like fields on the pre-universe: **fableScalar**, a real scalar, and **fable**, a real 16-component spinor with a self-interaction `V(Ψᵀσ₁₆Ψ)`. Their Lagrangians, energy–momentum tensors, field equations, energy densities, pressures and equations of state are defined and verified symbolically (conservation on shell, the fidelity of the spinor to the author's own `La`, dust for the author's mass term, the absence of Hubble friction on the pre-universe, the phantom-crossing mechanism of the spinor); the numerical cosmology is in [`fable-cosmology/`](fable-cosmology/) |
+
 A vielbein here is simply an 8-dimensional vierbein.
+
+### fable-cosmology — the numerical side
+
+[`fable-cosmology/`](fable-cosmology/) holds the solver `fable_cosmo` (pure-Rust SUNDIALS 7.8.0
+CVODE, taken as a library from the author's rustSolveIt repositories), four self-contained Jupyter
+notebooks (the scalar in FLRW and on the Unite CPL background; the spinor in FLRW; both fields on
+the pre-universe itself; the dark-matter / dark-energy synthesis), the results they write, the
+Mathematica reference integrations, the paper `latex/fable_cosmology.pdf`, and a README with the
+complete student instructions. Setup and reproduction are two scripts:
+
+```bash
+bash fable-cosmology/setup.sh       # Linux, macOS, Git Bash on Windows  (or: powershell -ExecutionPolicy Bypass -File fable-cosmology\setup.ps1)
+bash fable-cosmology/run_all.sh     # solver tests, every notebook executed, the eight-requirement check, the PDF
+```
 
 ### The five spin connections
 
@@ -122,6 +138,8 @@ written.
 | [PROVENANCE-11](PROVENANCE-11-REVIEW-AND-REFACTOR-OF-THE-OPUS-SOLUTION.md) | the review of everything above: 24 confirmed findings, what was changed, the rebuild, run, render check and push |
 | [PROVENANCE-12](PROVENANCE-12-FABLE-5.1-BRIDGE-COMPARED.md) | the fable-5.1 bridge, compared to the canonical spin connection |
 | [STUDENT-GUIDE](STUDENT-GUIDE-FABLE-5.1-BRIDGE.md) | the fable-5.1 bridge explained from the ground up, and how to use it |
+| [PROVENANCE-13](PROVENANCE-13-FABLE-COSMOLOGY.md) | fableScalar and fable: the fields, the review of their design, the solver, the notebooks, Part VI, the paper, and the fresh-clone verification |
+| [fable-cosmology/README](fable-cosmology/README.md) | the student instructions for the numerical cosmology, complete on their own |
 
 ## Fidelity to the original
 

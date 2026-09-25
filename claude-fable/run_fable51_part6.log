@@ -1,0 +1,657 @@
+evaluating 172 Input cells straight out of the .nb
+CopyRight (C) 2022, Patrick L. Nash, under the General Public License.
+Please cite this work, and this web page, if you use it.
+Refactored for claude-fable_Einstein-Rosen-2-Planes.nb; Wolfram Language 15.0.1 for Microsoft Windows (64-bit) (July 2, 2026)
+CELL 1  t=0.000 s
+CELL 2  t=0.000 s
+CELL 3  t=0.000 s
+CELL 4  t=0.000 s
+CELL 5  t=0.000 s
+CELL 6  t=0.000 s
+CELL 7  t=0.000 s
+CELL 8  t=0.002 s
+  PASS  eta4488 . eta4488 == ID8
+  PASS  eta4488 is symmetric
+  PASS  signature of eta4488 is (4,4)
+CELL 9  t=0.000 s
+CELL 10  t=0.001 s
+CELL 11  t=0.000 s
+CELL 12  t=0.007 s
+CELL 13  t=0.000 s
+  PASS  s4by4 is self-dual
+  PASS  t4by4 is anti-self-dual
+  PASS  s4by4 and t4by4 are antisymmetric
+  PASS  the two su(2) factors commute
+CELL 14  t=0.001 s
+  PASS  st[J,K] is symmetric
+CELL 15  t=0.000 s
+  PASS  sigma . sigma == ID8
+  PASS  sigma is symmetric
+  PASS  Tr[sigma] == 0
+CELL 16  t=0.000 s
+  PASS  blocks 1-3 (built from s4by4) are antisymmetric
+  PASS  blocks 4-6 (built from t4by4) are symmetric
+CELL 17  t=0.000 s
+CELL 18  t=0.000 s
+  PASS  (1/2)(tau[A].taubar[B] + tau[B].taubar[A]) == eta4488[[A+1,B+1]] ID8
+CELL 19  t=0.001 s
+  PASS  sigma == tau[1].tau[2].tau[3]
+  PASS  sigma == tau[4].tau[5].tau[6].tau[7]
+  PASS  tau[1]...tau[7] == tau[0] == ID8
+  PASS  sigma . taubar[A] == Transpose[sigma . tau[A]]
+  PASS  -eta4488[[A+1,A+1]] tau[A] == Transpose[tau[A]] for A = 1..7
+CELL 20  t=0.000 s
+  PASS  Omega == tau[4].tau[5].tau[6]
+CELL 21  t=0.000 s
+CELL 22  t=0.000 s
+  PASS  {T16[A], T16[B]}/2 == eta4488[[A+1,B+1]] ID16
+CELL 23  t=0.002 s
+  PASS  sigma16 == ArrayFlatten[{{-sigma,0},{0,sigma}}]
+  PASS  sigma16 . T16[A] is antisymmetric for A = 0..7
+  PASS  T16[8] == sigma16 . T16[4].T16[5].T16[6].T16[7]
+CELL 24  t=0.000 s
+  PASS  sigma16 . covariantDiffMatrix is symmetric
+CELL 25  t=0.000 s
+  PASS  PL + PR == ID16
+  PASS  PL is idempotent
+  PASS  PR is idempotent
+  PASS  PL . PR == PR . PL == 0
+  PASS  PL projects onto the upper (type-1) components, PR onto the lower (type-2) components
+CELL 26  t=0.002 s
+  PASS  SAB is antisymmetric in its two flat indices
+  PASS  sigma16 . SAB is antisymmetric
+  PASS  sigma16 is symmetric and sigma16 . sigma16 == ID16
+  PASS  T16[8] commutes with every SAB: the chiral halves are each Spin(4,4)-invariant
+CELL 27  t=0.051 s
+  PASS  [SAB,SAB] closes on the so(4,4) algebra
+  [0.448 s]  so(4,4) commutators over 28 x 28 index pairs
+CELL 28  t=0.448 s
+  PASS  [SAB, T16] reproduces the vector representation
+  [0.203 s]  vector transformation law of the gammas
+CELL 29  t=0.203 s
+  [0.001 s]  build the 256-element basis of the 16x16 algebra
+CELL 30  t=0.004 s
+  PASS  base16[[93]] is sigma16
+  PASS  base16[[255]] is the chirality operator T16[8]
+  PASS  base16[[256]] is the identity
+CELL 31  t=0.000 s
+  PASS  Tr[M.M]/16 is +1 or -1 for every basis element
+CELL 32  t=0.011 s
+  PASS  136 basis elements have Tr[M.M] > 0
+  PASS  120 basis elements have Tr[M.M] < 0
+CELL 33  t=0.911 s
+  PASS  symmetric basis elements number 16*17/2 = 136
+  PASS  antisymmetric basis elements number 16*15/2 = 120
+  PASS  Tr[M.M] > 0 exactly when M is symmetric
+  PASS  Tr[M.M] < 0 exactly when M is antisymmetric
+CELL 34  t=0.001 s
+  [0.003 s]  find sign-duplicate basis elements
+CELL 35  t=0.003 s
+  PASS  the 8x8 basis has 64 elements
+  PASS  the 64 elements are distinct
+CELL 36  t=0.000 s
+  PASS  (1/8) Tr[bas64[A].bas64[B]] == eta64[[A,B]]
+  [0.008 s]  orthogonality of the 64-element trace form
+CELL 37  t=0.008 s
+  PASS  symmetric 8x8 basis elements number 36
+  PASS  antisymmetric 8x8 basis elements number 28
+CELL 38  t=0.000 s
+  PASS  g44 == diag(1,1,1,-1)
+  PASS  gamma4[[5]] == -t4by4[3]
+CELL 39  t=0.000 s
+  PASS  {gamma4[h], gamma4[k]} == 2 g44[[h,k]] ID4  for h,k = 1..4
+  PASS  {gamma4[h], gamma4[k]} == 2 eta4488[[1+h,1+k]] ID4  for h,k = 1..5
+CELL 40  t=0.000 s
+  PASS  epsilon4 is antisymmetric
+  PASS  epsilon4 . gamma4[A] is symmetric for A = 1..4
+  PASS  epsilon4 . gamma4[5] is ANTIsymmetric
+  PASS  epsilon4 . epsilon4 == -ID4
+  PASS  epsilon4 . S44 is symmetric
+CELL 41  t=0.001 s
+  PASS  [S44,S44] closes on the so(3,1) algebra
+  PASS  [S44, gamma4] reproduces the vector representation
+CELL 42  t=0.007 s
+  PASS  (1/2)(sigma22[A] sigma22bar[B] + sigma22[B] sigma22bar[A]) == eta2244[[A,B]] ID2
+  PASS  the 4x4 basis has 16 elements
+  PASS  the 16 elements are linearly independent
+CELL 43  t=0.002 s
+  PASS  the 4x4 basis splits 10 symmetric + 6 antisymmetric
+CELL 44  t=0.000 s
+  PASS  unit is pinned to the author's spinor {1/Sqrt[2],0,0,0,1/Sqrt[2],0,0,0} -- the row order of Eigensystem is not relied on silently
+  PASS  each uEig row is sigma-normalized to +/-1
+  PASS  unit is sigma-normalized to +1
+CELL 45  t=0.006 s
+  PASS  triVecToSpin . triSpinToVec == ID8
+  PASS  triSpinToVec . triVecToSpin == ID8
+  PASS  triSpinToVec == Transpose[ eta_AA tau[A].unit ]  (the original's closed form)
+CELL 46  t=0.002 s
+  PASS  etaTri is symmetric
+  PASS  etaTri has signature (4,4)
+  PASS  triVecToSpin transports etaTri back to eta4488
+  PASS  THE TRIALITY METRIC IS EXACTLY THE SPINOR METRIC:  etaTri == sigma
+CELL 47  t=0.002 s
+  [0.003 s]  split-octonion structure constants in the spinor basis
+  [0.029 s]  split-octonion structure constants in the vector basis
+CELL 48  t=0.032 s
+CELL 49  t=0.000 s
+  PASS  eA[1] is a two-sided identity for the vector-basis product
+CELL 50  t=0.000 s
+  PASS  <eA, eB> composition is compatible with eta (basis-unit norm form)
+CELL 51  t=0.003 s
+  PASS  m_{ABC} restricted to imaginary directions is totally antisymmetric
+CELL 52  t=0.001 s
+CELL 53  t=0.000 s
+CELL 54  t=0.000 s
+ConvertMapleToMathematicaV2 loaded successfully!  BUT, WARNING:  DO NOT USE IF YOU WANT A CORRECT RESULT!
+EtoExp.wl loaded.  BUT, WARNING:  DO NOT USE IF YOU WANT A CORRECT RESULT!
+CELL 55  t=0.004 s
+  PASS  Psi16 is the direct sum of the type-1 and type-2 spinors
+CELL 56  t=0.000 s
+CELL 57  t=0.000 s
+  [0.054 s]  evaluate the Lagrangian La[]
+CELL 58  t=0.054 s
+  PASS  Psi16 . sigma16 . T16[alpha] . Psi16 == 0 identically (antisymmetric form)
+  PASS  the kinetic term equals minus its transpose, exactly
+CELL 59  t=0.002 s
+  PASS  La[] == its conjugate form when the coefficients match
+CELL 60  t=0.002 s
+CELL 61  t=0.000 s
+  [0.122 s]  Euler-Lagrange equations eLa = eL[La, 1]
+  PASS  there are sixteen field equations
+CELL 62  t=0.122 s
+CELL 63  t=0.000 s
+  [0.000 s]  partition the 16 components into coupled blocks
+  PASS  the coupled blocks partition all sixteen components
+  PASS  there are four blocks of four
+CELL 64  t=0.000 s
+wrote C:\Users\nsh\Documents\8-dim\Pre-Universe_14SEP26-77\claude-fable\claude-fable_Einstein-Rosen-2-Planes-eLa.mx
+CELL 65  t=0.001 s
+  [0.123 s]  change of chart: eLazt = (1/(2H)) eLa in the (z,t) coordinates
+wrote C:\Users\nsh\Documents\8-dim\Pre-Universe_14SEP26-77\claude-fable\claude-fable_Einstein-Rosen-2-Planes-eLazt.mx
+CELL 66  t=0.124 s
+CELL 67  t=0.000 s
+  [0.079 s]  solve the 16 equations for the t-derivatives
+  PASS  all sixteen t-derivatives are determined
+CELL 68  t=0.079 s
+  PASS  the relabelling is a bijection of the sixteen components
+CELL 69  t=0.001 s
+  [0.147 s]  relabel the equations
+  [0.105 s]  solve the relabelled system for the t-derivatives
+  PASS  the system splits into four blocks of four equations
+CELL 70  t=0.253 s
+  PASS  each 4x4 block is closed in its own four components
+CELL 71  t=0.000 s
+  block 1: returned unevaluated
+  block 2: returned unevaluated
+  block 3: returned unevaluated
+  block 4: returned unevaluated
+  [0.040 s]  DSolve on the four blocks
+CELL 72  t=0.040 s
+CELL 73  t=0.000 s
+  PASS  all sixteen components have a closed form
+CELL 74  t=0.092 s
+  PASS  there are sixteen pure-function rules
+CELL 75  t=0.001 s
+  [0.594 s]  substitute the closed forms back into the four blocks
+  PASS  THE MAPLE CLOSED FORMS SOLVE ALL SIXTEEN EQUATIONS
+CELL 76  t=0.594 s
+  [1.118 s]  Psi16 with the closed forms substituted
+CELL 77  t=1.119 s
+  PASS  the yZ coefficient matrix is the identity
+  PASS  ORTHOGONAL: Transpose[S] . S == ID16
+  PASS  ORTHOGONAL: S . Transpose[S] == ID16
+  PASS  but NOT a O(8,8) transformation: it does not preserve sigma16
+  PASS  and NOT a direct sum: it mixes type-1 with type-2
+CELL 78  t=0.000 s
+CELL 79  t=0.001 s
+  PASS  the yZ split at 8 is NOT the type-1/type-2 split
+  PASS  the first relabelled block holds four type-1 and four type-2 components
+  EXPECTED MESSAGE  FullSimplify::time may fire on the bilinears; the 3-second budget
+                    set in Section 1 is the original notebook's, and a budget that is
+                    reached still returns a correct, merely less-simplified, result.
+  [16.062 s]  bilinear psi . sigma16 . psi
+  [0.223 s]  bilinear psi1 . sigma . psi1
+  [0.237 s]  bilinear psi2 . sigma . psi2
+  [28.481 s]  bilinear psi2 . psi1
+  [27.829 s]  bilinear psi2 . sigma . psi1
+  PASS  psi . sigma16 . psi == psi2.sigma.psi2 - psi1.sigma.psi1
+  PASS  sigma16 alone is SYMMETRIC, so psi . sigma16 . psi is not forced to vanish
+  PASS  and for this solution it does NOT vanish: it is not the zero expression
+CELL 80  t=73.334 s
+  EXPECTED MESSAGES  Solve::ifun and Solve::svars: the light-cone conditions are
+                     transcendental and leave a family of solutions, not a unique one.
+  PASS  the light-cone-constant condition has solutions
+CELL 81  t=0.235 s
+  PASS  on the branch C2 = -C1, C4 = -C3 the two norms are independent of ztadv and ztret
+CELL 82  t=0.136 s
+  [1.326 s]  Psi16ab  (M -> H Mab Sqrt[C1 C3])
+  [0.636 s]  Psi16aa  (M -> H Sqrt[C1 C3])
+  [0.032 s]  Psi16x0ONLY  (C3 -> C1)
+CELL 83  t=1.995 s
+CELL 84  t=0.000 s
+CELL 85  t=1.715 s
+  PASS  both triality vectors have eight components
+  PASS  vectorFormOfType2 == psi2 contracted on the SPINOR index of triVecToSpin
+  PASS  triVecToSpin and triSpinToVec really are mutually inverse
+CELL 86  t=8.641 s
+  PASS  sevenPlane2 is annihilated by vectorFormOfType2
+  PASS  sevenPlane1 is annihilated by vectorFormOfType1
+CELL 87  t=7.492 s
+  EXPECTED MESSAGE  Solve::svars: two 7-planes fix only two of the eight components,
+                    leaving the six free parameters of M6.
+  [22.936 s]  intersect the two 7-planes
+  [0.582 s]  M6 in advanced / retarded coordinates
+  PASS  M6 is a non-empty solution set
+  PASS  M6 has six free parameters
+CELL 88  t=23.518 s
+CELL 89  t=0.000 s
+  PASS  cfResolution[unit]: the closed-form bridge equals the matrix inverse
+  PASS  cfResolution[unit]: the two bridges are mutually inverse
+  PASS  cfResolution[unit] reproduces triVecToSpin
+CELL 90  t=0.005 s
+CELL 91  t=0.000 s
+  NOTE  a4 is an undefined scalar function inherited from the original notebook
+        The canonical frame field below contains Exp[-a4[H x4]] and Exp[+a4[H x4]].  The original notebook never gives a4 a definition; it appears only inside the recorded value of the frame field.  We therefore carry a4 through symbolically and we do NOT invent a value for it.  Every result in Parts III and IV is valid for an arbitrary differentiable a4.  The same applies to la, which occurs only inside the assumption ssX of Section 2.
+CELL 92  t=0.000 s
+CELL 93  t=0.000 s
+CELL 94  t=0.005 s
+CELL 95  t=0.000 s
+CELL 96  t=0.019 s
+  PASS  CANONICAL [structural]: frame . coframe == ID8  (certifies only that the frame is invertible)
+  PASS  CANONICAL [definition]: g == frame . eta4488 . Transpose[frame]  (bridge [d]; this IS how g was defined, so it cannot fail)
+  PASS  CANONICAL [has content]: g == diag(Tan[6 H x0]^2, q^2, q^2, q^2, -1, -p^2, -p^2, -p^2), the stated line element
+  PASS  CANONICAL [has content]: Diagonal[g] == Diagonal[eta4488] * Diagonal[frame]^2 exactly
+  PASS  CANONICAL [has content]: g has signature (4,4), GIVEN a4 real and 0 < 6 H x0 < Pi/2
+  PASS  Inverse[g] == Transpose[coframe] . eta4488 . coframe
+  PASS  g is symmetric
+CELL 97  t=0.104 s
+  PASS  the metric is non-degenerate
+CELL 98  t=0.008 s
+CELL 99  t=0.000 s
+CELL 100  t=0.000 s
+  [0.492 s]  generalized Christoffel symbols of the 4+4 metric
+  PASS  Gamma is symmetric in its two lower indices (torsion-free affine connection)
+CELL 101  t=0.493 s
+CELL 102  t=0.001 s
+CELL 103  t=0.000 s
+CELL 104  t=0.000 s
+  [0.481 s]  canonical spin connection omega[mu]^a_b from the vielbein postulate
+CELL 105  t=0.483 s
+  PASS  CANONICAL [solver regression]: vielbein postulate residual is zero
+  PASS  CANONICAL [structural]: torsion vanishes
+  PASS  CANONICAL [has content]: omega[mu,a,b] == -omega[mu,b,a]  (metric compatibility)
+CELL 106  t=0.014 s
+  [3.792 s]  independent derivation of omega from the frame alone
+  PASS  INDEPENDENT CHECK: the frame-only derivation reproduces omegaCanonical exactly
+  PASS  INDEPENDENT CHECK: and it is antisymmetric in its two raised flat indices
+CELL 107  t=3.797 s
+CELL 108  t=0.001 s
+  [0.927 s]  curvature 2-form of the canonical spin connection
+  PASS  CANONICAL: curvature is antisymmetric in the two spacetime indices
+CELL 109  t=0.933 s
+  [0.560 s]  Ricci scalar of the canonical connection
+CELL 110  t=0.561 s
+  [0.268 s]  16x16 spin-connection matrices Gamma^spin[mu]
+CELL 111  t=0.268 s
+  PASS  [definition] (1/8) omega [gamma^a, gamma^b] == (1/2) omega SAB  (SAB is defined as (1/4)[gamma,gamma], so this cannot fail)
+  PASS  [has content] the spinor connection is compatible with omega: [Gamma^spin_mu, gamma^a] + omega_mu^a_b gamma^b == 0
+  PASS  [control] with the opposite sign the compatibility check FAILS (witnessed): the sign is fixed by the vielbein postulate, not free
+CELL 112  t=0.191 s
+  PASS  Gamma^spin[mu] is block diagonal: it never mixes type-1 with type-2
+CELL 113  t=0.002 s
+  PASS  the type-1 block is (1/8) omega (taubar^a tau^b - taubar^b tau^a)
+  PASS  the type-2 block is (1/8) omega (tau^a taubar^b - tau^b taubar^a)
+CELL 114  t=0.011 s
+  PASS  Dcov16 on the direct sum is the direct sum of Dcov1 and Dcov2
+CELL 115  t=0.003 s
+  PASS  {gammaCurved[mu], gammaCurved[nu]} == 2 gInv[mu,nu] ID16
+  PASS  [has content] and therefore the curved Dirac matrices are covariantly constant: D_mu gammaCurved^nu == 0
+CELL 116  t=0.253 s
+  PASS  [definition] Dcov[mu] Psi16 - D[Psi16, x_mu] == Gamma^spin[mu] . Psi16
+  PASS  in the six directions on which Psi16 does not depend, Dcov Psi16 is purely the connection term
+  PASS  the connection term does not vanish on Psi16: the connection matrices themselves are non-zero (witnessed)
+  [0.002 s]  the curved-space Dirac operator applied to Psi16
+CELL 117  t=0.026 s
+  PASS  Lambda is in O(4,4): Lambda . eta . Transpose[Lambda] == eta
+  PASS  Lambda is NOT in O(8): it is a genuine boost, not a rotation
+  PASS  Lambda == MatrixExp[theta K] with K the (0,4) boost generator
+CELL 118  t=0.006 s
+  PASS  BRIDGE 1 reproduces the SAME curved metric g
+  PASS  BRIDGE 1 frame really is different from the canonical frame
+CELL 119  t=0.029 s
+  [0.674 s]  BRIDGE 1 spin connection
+  PASS  BRIDGE 1: vielbein postulate holds identically
+  PASS  BRIDGE 1: omega[mu,a,b] == -omega[mu,b,a]
+  PASS  BRIDGE 1: torsion still vanishes
+CELL 120  t=0.738 s
+  PASS  the slot-test frame is genuinely not symmetric
+  [0.799 s]  vielbein-postulate solver on the non-symmetric frame
+  [3.969 s]  frame-only formula on the non-symmetric frame
+  PASS  INDEPENDENT CHECK on a non-symmetric frame: the two solvers agree, so the curved/flat slots are placed correctly in both
+  PASS  and the result is the canonical connection conjugated by the constant boost, as the gauge law demands
+CELL 121  t=4.848 s
+  PASS  COMPARISON 1: omegaBoost == M omegaCanonical Inverse[M] - D[M,x_mu] Inverse[M]
+  PASS  COMPARISON 1: the WHOLE difference is the inhomogeneous gauge term
+CELL 122  t=0.091 s
+  PASS  COMPARISON 1: the difference equals -D[theta, x_mu] * (boost generator)
+CELL 123  t=0.000 s
+  [1.628 s]  BRIDGE 1 curvature 2-form
+  PASS  COMPARISON 1: curvature transforms covariantly, R' == M R Inverse[M]
+  [0.392 s]  BRIDGE 1 Ricci scalar
+  PASS  COMPARISON 1: BRIDGE 1 has the SAME Ricci scalar as the canonical frame
+CELL 124  t=2.038 s
+  PASS  BRIDGE 1 spin lift: Inverse[S] . S == ID16
+  PASS  BRIDGE 1 spin lift: S preserves the spinor metric, Transpose[S] . sigma16 . S == sigma16
+  PASS  BRIDGE 1 spin lift [has content]: Inverse[S] . gamma^a . S == Lambda^a_b gamma^b  (S is the spin lift of Lambda)
+  [0.396 s]  BRIDGE 1 16x16 spin-connection matrices
+  PASS  COMPARISON 1 at the spinor level [THE GAUGE LAW]: Gamma'_mu == S Gamma_mu Inverse[S] - D[S,x_mu] Inverse[S]
+  PASS  COMPARISON 1 at the spinor level: the inhomogeneous term is -D[theta,x_mu] SAB[[1,5]], the spin image of -D[theta,x_mu] K
+  PASS  COMPARISON 1 at the spinor level: and that is exactly cfSpinMatrix applied to the vector difference deltaBoost
+  PASS  BRIDGE 1 [has content]: D'_mu (S psi) == S D_mu psi for a generic spinor -- one covariant derivative, two gauges
+  PASS  BRIDGE 1: the curved Dirac matrices of the boosted frame are S gamma^mu Inverse[S]
+  PASS  BRIDGE 1: so the Dirac operator is one operator in two gauges, Dirac'[S psi] == S Dirac[psi]
+CELL 125  t=1.842 s
+  PASS  U is an involution: U . U == ID8
+  PASS  U is symmetric
+  PASS  THE NULL TANGENT METRIC IS EXACTLY THE SPINOR METRIC sigma
+  PASS  etaNull is symmetric and squares to ID8
+  PASS  all eight frame directions are null: etaNull has zero diagonal
+CELL 126  t=0.001 s
+  PASS  BRIDGE 2 reproduces the SAME curved metric g
+CELL 127  t=0.052 s
+  [0.634 s]  BRIDGE 2 spin connection
+  PASS  BRIDGE 2: vielbein postulate holds identically
+  PASS  BRIDGE 2: omega[mu,a,b] == -omega[mu,b,a] with indices lowered by etaNull
+  PASS  BRIDGE 2: torsion vanishes
+CELL 128  t=0.715 s
+  PASS  COMPARISON 2: omegaNull == U . omegaCanonical . U exactly
+  PASS  COMPARISON 2: the inhomogeneous gauge term is ZERO because U is constant
+CELL 129  t=0.051 s
+  [1.343 s]  BRIDGE 2 curvature 2-form
+  PASS  COMPARISON 2: R_null == U . R_canonical . U
+  [0.168 s]  BRIDGE 2 Ricci scalar
+  PASS  COMPARISON 2: BRIDGE 2 has the SAME Ricci scalar as the canonical frame
+CELL 130  t=1.549 s
+  PASS  the triality bridge is Euclidean-orthogonal: Transpose[P] == Inverse[P]
+  PASS  but it is NOT in O(4,4): P . eta4488 . Transpose[P] != eta4488 (it carries eta4488 to sigma)
+  PASS  BRIDGE 3 reproduces the SAME curved metric g
+  PASS  the triality tangent metric is sigma
+CELL 131  t=0.022 s
+  PASS  the antisymmetrized structure constants are totally antisymmetric
+  PASS  they agree with mLower on the seven imaginary directions
+  [0.284 s]  transport the skew structure constants to the spinor basis
+  PASS  mSkewSpin is totally antisymmetric
+CELL 132  t=0.287 s
+  [0.399 s]  BRIDGE 3 Levi-Civita part
+  PASS  BRIDGE 3 (lambda=0): vielbein postulate holds identically
+  PASS  BRIDGE 3 (lambda=0): omega[mu,a,b] == -omega[mu,b,a]
+  PASS  BRIDGE 3 (lambda=0) is the constant triality conjugate of the canonical connection
+CELL 133  t=0.416 s
+  PASS  BRIDGE 3: omegaOct[mu,a,b] == -omegaOct[mu,b,a]  (still metric compatible)
+  PASS  BRIDGE 3: at lambda = 0 it reduces to the Levi-Civita connection
+CELL 134  t=0.279 s
+  [0.228 s]  BRIDGE 3 torsion 2-form
+  PASS  BRIDGE 3: torsion vanishes at lambda = 0
+  PASS  BRIDGE 3: torsion is NOT zero for lambda != 0
+  [0.339 s]  BRIDGE 3 torsion with all indices flat
+  PASS  BRIDGE 3: the flat torsion T[a,b,c] is TOTALLY ANTISYMMETRIC
+  PASS  BRIDGE 3: T[a,b,c] == -2 lambda mSkewSpin[a,b,c]
+CELL 135  t=0.577 s
+  PASS  COMPARISON 3: omegaOct - (triality conjugate of omegaCanonical) == contortion
+  PASS  COMPARISON 3: the difference is linear in lambda and vanishes at lambda = 0
+CELL 136  t=0.100 s
+  [5.041 s]  BRIDGE 3 curvature 2-form
+  PASS  BRIDGE 3: at lambda = 0 the curvature is the triality conjugate of the canonical curvature
+  PASS  BRIDGE 3 [has content]: the curvature DOES depend on lambda (witnessed)
+  PASS  BRIDGE 3: the lambda-dependence is a polynomial of degree exactly two
+  PASS  BRIDGE 3: the lambda^1 term is the Levi-Civita covariant exterior derivative of the contortion, dK + [omegaTriLC, K]
+  PASS  BRIDGE 3: the lambda^2 term is [K_mu, K_nu], the contortion commuted with itself
+  [1.524 s]  BRIDGE 3 Ricci scalar
+  PASS  BRIDGE 3: at lambda = 0 the Ricci scalar is the canonical one
+  PASS  BRIDGE 3 [THE RESULT]: R(omegaOct) - R(canonical) == -(1/4) T_{abc} T^{abc}, a constant shift set by the torsion alone
+  PASS  BRIDGE 3: equivalently -lambda^2 (mSkew . mSkew), with mSkew . mSkew == 42, so the shift is exactly -42 lambda^2
+CELL 137  t=7.620 s
+  PASS  THE TRIALITY DIRAC MATRICES OBEY THE sigma CLIFFORD RELATION: {T16Tri[a],T16Tri[b]} == 2 sigma[[a,b]] ID16
+  PASS  they are NOT the vector-frame Dirac matrices, so the distinction is real
+CELL 138  t=0.037 s
+  [0.741 s]  BRIDGE 3 16x16 spin-connection matrices
+  [0.464 s]  BRIDGE 3 extra spinor coupling from the torsion
+  PASS  at lambda = 0 the Bridge 3 spinor connection equals the canonical one
+  PASS  the extra spinor coupling vanishes at lambda = 0
+  PASS  the extra spinor coupling is non-zero for lambda != 0
+  PASS  the extra spinor coupling is still block diagonal (type-1 + type-2 preserved)
+CELL 139  t=1.220 s
+  [0.017 s]  fable-5.1: Weitzenboeck affine connection Gamma^W = e_a^rho d_mu e_nu^a
+  PASS  FABLE-5.1 [definition]: the frame is parallel  --  nabla^W e == 0 for all eight frame vectors
+  PASS  FABLE-5.1 [has content]: Gamma^W is metric compatible, nabla^W g == 0
+  PASS  FABLE-5.1 [has content]: Gamma^W is NOT symmetric in its lower indices -- it has torsion
+  PASS  FABLE-5.1 [has content]: Gamma^W is NOT the Levi-Civita connection
+CELL 140  t=0.032 s
+  [0.385 s]  fable-5.1 spin connection from the vielbein postulate, with Gamma^W
+  PASS  FABLE-5.1 [solver regression]: vielbein postulate residual is zero
+  PASS  FABLE-5.1 [THE RESULT]: the spin connection in the canonical frame is IDENTICALLY ZERO
+  PASS  FABLE-5.1: trivially antisymmetric, so trivially metric compatible
+CELL 141  t=0.395 s
+  [0.159 s]  fable-5.1 torsion 2-form  T^a_{mu nu} = d_mu e_nu^a - d_nu e_mu^a
+  PASS  FABLE-5.1 [has content]: the torsion is NOT zero
+  PASS  FABLE-5.1: T^rho_{mu nu} == Gamma^W[rho,mu,nu] - Gamma^W[rho,nu,mu]  (torsion is the antisymmetric part of Gamma^W)
+  [0.050 s]  fable-5.1 curvature 2-form
+  PASS  FABLE-5.1 [THE RESULT]: the curvature is IDENTICALLY ZERO -- a flat connection on a curved metric
+CELL 142  t=0.239 s
+  PASS  COMPARISON F [has content]: Gamma^W - Gamma^LC == (1/2)(T_{rmn} + T_{mrn} + T_{nrm}) with the index raised, the contortion formula
+  PASS  COMPARISON F [THE RESULT]: omegaCanonical == - contortion(fable-5.1 torsion), pulled back to flat indices, exactly
+  PASS  COMPARISON F: so omegaCanonical - omegaFable51 is a TENSOR, not a gauge term (omegaFable51 == 0)
+CELL 143  t=0.458 s
+  PASS  FABLE-5.1 torsion vector T[mu] = T[nu,nu,mu] is a GRADIENT: T[mu] == D[Log[Sin[6 H x0]], x[mu]]
+  PASS  FABLE-5.1 torsion vector has exactly one non-zero component, 6 H Cot[6 H x0] along x0
+  PASS  FABLE-5.1: the AXIAL (totally antisymmetric) part of the torsion vanishes -- the complement of Bridge 3
+  PASS  FABLE-5.1: the torsion itself does not vanish, so the tensor part carries the rest
+CELL 144  t=0.293 s
+  PASS  FABLE-5.1: det g == Sec[6 H x0]^2  (positive, as signature 4+4 requires)
+  [0.955 s]  fable-5.1 torsion scalar T
+  [0.122 s]  fable-5.1 boundary term B = (2/sqrt g) d_mu(sqrt g T^mu)
+  PASS  COMPARISON F [THE RESULT]: R == -T + B  --  the teleparallel equivalent of GR, in closed form for this geometry
+  PASS  FABLE-5.1: T is not zero and B is not zero -- neither side is trivial
+CELL 145  t=1.266 s
+  [0.017 s]  gamma^mu Gamma^spin[mu], the connection part of the canonical Dirac operator
+  PASS  FABLE-5.1 [THE RESULT]: gamma^mu Gamma^spin[mu] == -(1/2) T[mu] gamma^mu, one vector term
+  PASS  FABLE-5.1: equivalently -(1/2) D[Log[Sin[6 H x0]], x_mu] gamma^mu
+  PASS  FABLE-5.1 [THE RESULT]: DiracCanonical[ Sqrt[Sin[6Hx0]] Psi' ] == Sqrt[Sin[6Hx0]] DiracFable51[Psi'], for a generic Psi'
+  PASS  FABLE-5.1: the rescaling is NOT a no-op -- the two Dirac operators differ on the constant spinor
+CELL 146  t=0.107 s
+  [0.001 s]  the connection term of the Dirac Lagrangian, for a generic spinor
+  PASS  FABLE-5.1 [THE RESULT]: Psi^T sigma16 gamma^mu Gamma^spin[mu] Psi == 0 for EVERY Psi -- the spin connection drops out of the Lagrangian
+  PASS  FABLE-5.1: the reason is Section 11's identity, Psi^T sigma16 T16[a] Psi == 0 (sigma16 T16[a] antisymmetric)
+  PASS  FABLE-5.1: but the connection term does NOT drop out of the Dirac OPERATOR (it is -(1/2) T[mu] gamma^mu, non-zero)
+  PASS  FABLE-5.1: the author-form helper applied to Psi16 IS Section 11's La[] (the two are the same expression)
+  PASS  FABLE-5.1: the covariant Lagrangian with frame -> ID8 and volume factor -> 1 IS the author's La of Section 11, term for term
+  PASS  FABLE-5.1: with the real frame and volume factor it is NOT the author's La -- witnessed on the constant spinor e1 + e5 (at M = 1)
+  PASS  FABLE-5.1: and the covariant Lagrangian has NO connection term to omit -- its kinetic term is already the fable-5.1 one
+CELL 147  t=0.045 s
+  EXPECTED MESSAGE  Simplify::time may fire while solving the vielbein postulate in the
+                    boosted frame; the 1-second budget is Section 1's, and a budget that
+                    is reached still returns a correct, merely less-simplified, result.
+  [0.407 s]  fable-5.1 spin connection in Bridge 1's boosted frame
+  PASS  FABLE-5.1 in the boosted frame: vielbein postulate residual is zero
+  PASS  FABLE-5.1 in the boosted frame [THE RESULT]: omega == -D[M,x_mu] Inverse[M], pure gauge and nothing else
+  PASS  FABLE-5.1 in the boosted frame: the lemma's prediction itself satisfies the vielbein postulate with Gamma^W
+  PASS  FABLE-5.1 in the boosted frame: the curvature is STILL identically zero
+  PASS  and Bridge 1's inhomogeneous term of Section 18 IS this object: deltaBoost == omegaFable51Boost
+  PASS  so omegaBoost == (canonical, conjugated) + (fable-5.1 in the boosted frame)
+CELL 148  t=0.469 s
+CELL 149  t=0.000 s
+CELL 150  t=0.001 s
+CELL 151  t=0.000 s
+identities accepted on numerical evidence alone : 0   (stage 3 returned True)
+non-vanishing witnesses                         : 19   (cfNonZeroWitnessQ found a probe point at which every entry is a
+                                                     number and one of them is non-zero: a complete proof of non-vanishing)
+  PASS  no identity in this notebook was accepted on numerical evidence alone
+Assertions run: 250   passed: 250   failed: 0
+CELL 152  t=0.000 s
+  PASS  HELPER [definition]: cfEulerLagrange on the oscillator L = f'^2/2 - f^2/2 gives -f'' - f
+  PASS  HELPER [solver regression]: cfCovariantDivergence of the metric itself vanishes (metric compatibility of Section 16's Gamma; a wrong index slot in the helper fails this)
+CELL 153  t=0.010 s
+  PASS  FABLESCALAR [definition]: the x4 kinetic term of Lhat is +(1/2) phidot^2, because g^{44} == -1
+  PASS  FABLESCALAR [definition]: T_{mu nu} is symmetric
+  PASS  FABLESCALAR [has content]: the Hilbert prescription T_{mu mu} = -(2/Sqrt[g]) d(Sqrt[g] Lhat)/dg^{mu mu} reproduces d_mu phi d_mu phi + g_{mu mu} Lhat on a general diagonal metric
+  PASS  FABLESCALAR [has content]: the Euler-Lagrange expression of Sqrt[g] Lhat is Sqrt[g] (box phi - V'(phi)): the field equation is box phi == V'(phi)
+  PASS  FABLESCALAR [has content]: on the pre-universe, box phi == -phidotdot + Cos[6Hx0] d_0(Sec[6Hx0] Cot[6Hx0]^2 d_0 phi) + (1/q^2)(d_1^2 + d_2^2 + d_3^2) phi - (1/p^2)(d_5^2 + d_6^2 + d_7^2) phi
+CELL 154  t=0.019 s
+  [0.019 s]  nabla^mu T_{mu nu} of fableScalar, for a generic phi(x0, ..., x7)
+  PASS  FABLESCALAR [THE RESULT]: OFF-SHELL identity  nabla^mu T_{mu nu} == (box phi - V'(phi)) d_nu phi  for a generic phi of all eight coordinates
+  PASS  FABLESCALAR [definition]: the substitution rule solves the field equation, box phi - V' == 0 under it
+  PASS  FABLESCALAR [THE RESULT]: nabla^mu T_{mu nu} == 0 ON SHELL, in all eight components, by substitution of the field equation
+  PASS  FABLESCALAR [control]: off shell the divergence does NOT vanish -- witnessed on phi = x0 + x4^2 with V = phi^2, which is not a solution
+  PASS  FABLESCALAR [has content]: trace T^mu_mu == -3 (d phi)^2 - 8 V(phi)
+CELL 155  t=0.234 s
+  PASS  FABLESCALAR [definition]: rho == KE + PE + G0 - G5
+  PASS  FABLESCALAR [definition]: P_1 == KE - PE - G0 + G5,  and P_2 == P_3 == P_1 (homogeneous on the observed sheet)
+  PASS  FABLESCALAR [has content]: along the hidden direction P_0 == KE - PE + G0 + G5 -- the x0 gradient is pressure-like there, not tension-like
+  PASS  FABLESCALAR [THE RESULT]: the null energy condition rho + P_1 == 2 KE holds IDENTICALLY, for every phi(x0, x4, x5) and every V
+  PASS  FABLESCALAR [THE RESULT]: w + 1 == 2 KE / rho, so w >= -1 wherever rho > 0: fableScalar cannot cross the phantom divide with positive energy density
+  PASS  FABLESCALAR [has content]: the usual quintessence formulas are the G0 = G5 = 0 case: for phi(x4), rho == KE + V and P_1 == KE - V
+  PASS  FABLESCALAR [has content]: for phi(x0, x4) rho == KE + V + G0 with KE and G0 manifestly squares -- rho > 0 is guaranteed for V >= 0 there (the hypothesis used below)
+  PASS  FABLESCALAR [has content]: the -G5 sector -- for phi(x5) alone with V = 0, rho == -G5 exactly, and G5 is not zero (witnessed on phi = x5^2): that sector has rho < 0 and is EXCLUDED from every statement about w
+CELL 156  t=0.010 s
+  PASS  FABLESCALAR [THE RESULT]: for phi = phi(x4) the field equation is phi'' == -V'(phi): NO HUBBLE FRICTION on the pre-universe
+  PASS  FABLESCALAR [has content]: the reason -- Sqrt[g] g^{44} == -Sec[6 H x0], independent of x4 (and of x1, x2, x3)
+  PASS  FABLESCALAR [THE RESULT]: rho = KE + V is conserved along x4 on shell: d rho/dx4 == 0 under phi'' -> -V'(phi)
+  PASS  FABLESCALAR [control]: with a friction term added by hand, phi'' -> -3 Hf phi' - V', the same rho obeys d rho/dx4 == -3 Hf phi'^2 == -3 Hf (rho + P): the Friedmann continuity equation, absent here
+  PASS  FABLESCALAR [has content]: phi = A Cos[m x4] solves phi'' == -V'(phi) for V = m^2 phi^2/2, exactly
+  PASS  FABLESCALAR [THE RESULT]: on that solution w == -Cos[2 m x4] exactly -- it oscillates between -1 and +1 -- while rho == A^2 m^2/2 is constant
+  PASS  FABLESCALAR [THE RESULT]: the average of w over one period is 0 -- coherent oscillations in a quadratic potential are DUST (the virial theorem <w> = (n-1)/(n+1) at n = 1)
+CELL 157  t=0.241 s
+  PASS  FABLESCALAR [has content]: for phi = phi(x0) and V = 0 the field equation is Cos[6 H x0] d_0( Sec[6 H x0] Cot[6 H x0]^2 phi'(x0) ) == 0
+  PASS  FABLESCALAR [has content]: phi'(x0) = C Sin[6 H x0]^2 / Cos[6 H x0] solves it for every constant C
+  PASS  FABLESCALAR [has content]: on the static profile G0 == C^2 Sin[6 H x0]^2 / 2 -- independent of x4 and of x1, x2, x3: constant for the observer at fixed x0
+  PASS  FABLESCALAR [THE RESULT]: rho == G0 and P_1 == -G0, so w == -1 EXACTLY on the observed sheet: a static x0 gradient is a cosmological constant for the observer
+  PASS  FABLESCALAR [has content]: but along the hidden direction P_0 == +G0 == +rho -- in eight dimensions this is an anisotropic stress, not a Lambda term
+  PASS  FABLESCALAR [has content]: that energy density is not zero -- witnessed at C = 1
+CELL 158  t=0.137 s
+  PASS  FABLESCALAR [has content]: Sqrt[det g_8] == q^3 * (Tan[6 H x0] p^3): observed 3-volume density times hidden 4-volume density
+  PASS  FABLESCALAR [has content]: the 8-volume element is independent of x4: d(q^3 p^3)/dx4 == 0
+  PASS  FABLESCALAR [has content]: the hidden 4-volume density scales as Exp[+3 a4[H x4]] and the observed 3-volume as Exp[-3 a4[H x4]]: Vhid Exp[-3 a4] and q^3 Exp[+3 a4] are x4-independent
+CELL 159  t=0.001 s
+  [0.026 s]  NDSolve of the 4-dimensional reference Model A (exp, lambda = 1, frozen start at N = -7)
+  PASS  MODEL A [definition]: 701 rows from N = -7 to 0, and w(N0) == -1 exactly at the frozen start
+  PASS  MODEL A [fidelity]: Omega_phi(a = 1) == 1 - Om - Or to 1e-8 -- NDSolve reproduces the solver's shooting normalisation of V0
+  PASS  MODEL A [has content]: w never goes below -1 on the run (the null energy condition, numerically)
+  PASS  MODEL A [has content]: dw/dN > 0 at every step: the exp field with a frozen start THAWS (read off the sign of dw/dN, not assumed)
+  Model A (exp):  w(a=1) = -0.84336380393119807161565215673175432748`20.   phi(a=1) = 0.32821970216023549562987967421522760181`20.   t(a=1) = 0.94718438477039854939286969091330248689`20.   H(a=1) = 1.0000000000887259984064545608343448522`20.
+  reference C:\Users\nsh\Documents\8-dim\Pre-Universe_14SEP26-77\claude-fable\..\fable-cosmology\reference\mathematica_scalar_exp.csv
+  rows: 701;  max |difference| per column {N, a, t, phi, phidot, H, w}: {0., 1.1102230246251565*^-16, 0., 0., 0., 0., 0.}
+  PASS  MODEL A [fidelity]: the reference CSV has the expected header and the same 701 values of N
+  PASS  MODEL A [fidelity]: w agrees with fable-cosmology/reference/mathematica_scalar_exp.csv at EVERY row to 1e-9
+  PASS  MODEL A [fidelity]: so do t, phi, phidot and H, to 1e-9
+CELL 160  t=4.226 s
+  PASS  FABLE [definition]: s = Psi^T sigma16 Psi is a genuine scalar with content: on the constant spinor e1 + e5, s == -2
+  PASS  FABLE [has content]: Lhat with the covariant derivative == Lhat with the partial derivative, for the generic Psi(x0, x4) (Part V's theorem, re-asserted here)
+  PASS  FABLE [fidelity]: with V = -(2M/H) s, frame -> ID8 and Sqrt[g] -> 1, on the model's Psi16, the Lagrangian helper IS the author's La[] of Section 11
+  PASS  FABLE [fidelity]: and its Euler-Lagrange equations, formed with the author's own eL operator, ARE the sixteen equations eLa of Section 12
+  PASS  FABLE [solver regression]: the new helper cfEulerLagrange reproduces eLa too
+CELL 161  t=0.131 s
+  [0.004 s]  Euler-Lagrange equations of fable by explicit variation of Sqrt[g] Lhat, generic V(s)
+  PASS  FABLE [THE RESULT]: the Euler-Lagrange equations by explicit variation == Sqrt[g] [ (2/H)(A^mu d_mu Psi + (1/2) D Psi) - 2 V'(s) sigma16 Psi ]
+  PASS  FABLE [has content]: A^mu = sigma16 gamma^mu is antisymmetric and sigma16 is symmetric -- the structure that makes the variation close
+  PASS  FABLE [has content]: in general (1/Sqrt[g]) d_mu(Sqrt[g] gamma^mu) == [gamma^mu, Gamma^spin_mu]  (covariant constancy of gamma^mu, Section 17)
+  PASS  FABLE [has content]: the HYPOTHESIS that makes it a product -- the anticommutator {gamma^mu, Gamma^spin_mu} == 0 on the canonical frame (no totally antisymmetric part of the connection)
+  PASS  FABLE [has content]: hence (1/2)(1/Sqrt[g]) d_mu(Sqrt[g] gamma^mu) == gamma^mu Gamma^spin_mu, and on this geometry == -3 H Cot[6 H x0]^2 T16[0]
+  PASS  FABLE [THE RESULT]: EL == Sqrt[g] (2/H) sigma16 . ( gamma^mu D_mu Psi - H V'(s) Psi ): the field equation of fable is EXACTLY the Levi-Civita covariant Dirac equation  gamma^mu D_mu Psi == H V'(s) Psi
+  PASS  FABLE [has content]: the connection term does not vanish on an x0-independent spinor -- witnessed on the constant spinor e1: a spinor homogeneous in everything but x4 is NOT a solution
+CELL 162  t=0.097 s
+  PASS  FABLE [definition]: under Psi = Sqrt[Sin[6 H x0]] Psi', s == Sin[6 H x0] Psi'^T sigma16 Psi'
+  PASS  FABLE [THE RESULT]: (gamma^mu D_mu - H V'(s)) [Sqrt[Sin[6 H x0]] Psi'] == Sqrt[Sin[6 H x0]] (gamma^mu d_mu Psi' - H V'(s) Psi') for a GENERIC Psi'(x0, x4): the rescaling removes the connection term exactly
+  PASS  FABLE [has content]: (gamma^4)^2 == -ID16, so gamma^4 d_4 Psi' == H V'(s) Psi' is solved by d_4 Psi' == -H V'(s) gamma^4 Psi'
+  PASS  FABLE [has content]: for Psi' = Psi'(x4) the field equation reduces to Sqrt[Sin[6 H x0]] (gamma^4 d_4 Psi' - H V'(s) Psi'), s = Sin[6 H x0] Psi'^T sigma16 Psi'
+  PASS  FABLE [has content]: the reduced equation still depends on x0 through V'(Sin[6 H x0] s'): for a NONLINEAR V a Psi'(x4) alone is not a solution -- witnessed with V = s^2 on Psi' = e1 + e5
+  PASS  FABLE [has content]: for the mass term V = -(2M/H) s, V' is constant and Psi'(x4) IS an exact solution
+CELL 163  t=0.058 s
+  PASS  FABLE [definition]: T_cov is symmetric by construction
+  PASS  FABLE [has content]: the diagonal of T_cov equals the diagonal of the partial-derivative tensor, for the generic Psi(x0, x4): rho and every pressure are the same in both
+  PASS  FABLE [has content]: but the two tensors DIFFER off the diagonal -- witnessed on the (x3, x4) component T[[4,5]], a momentum density along the observed sheet, for the constant spinor e1 + e13 and V = s^2
+CELL 164  t=0.109 s
+  PASS  FABLE [definition]: F solves the field equation for d_4 Psi: gamma^4 F + gamma^0 d_0 Psi + (1/2) divG Psi - H V'(s) Psi == 0
+  PASS  FABLE [definition]: cfOnShell leaves no x4-derivative of the field in rho
+  PASS  FABLE [THE RESULT]: on shell, Lhat == s V'(s) - V(s)
+  PASS  FABLE [THE RESULT]: on shell, rho == V(s) + K_h,   K_h = -(1/H) Psi^T sigma16 gamma^0 d_0 Psi
+  PASS  FABLE [THE RESULT]: on shell, P_1 == s V'(s) - V(s),  and P_2 == P_3 == P_1
+  PASS  FABLE [has content]: on shell, K_Psi == s V'(s) + K_h -- the x4 kinetic bilinear is fixed by the potential and the hidden one
+  PASS  FABLE [has content]: K_h == 0 for Psi = Sqrt[Sin[6 H x0]] Psi'(x4)  (d_0 Psi is proportional to Psi, and Psi^T sigma16 gamma^0 Psi == 0)
+  PASS  FABLE [THE RESULT]: so for those solutions rho == V(s), hence w == s V'(s)/V(s) - 1, and rho > 0 requires V(s) > 0
+  PASS  FABLE [THE RESULT]: on shell, ds/dx4 == 2 Psi^T sigma16 gamma^4 gamma^0 d_0 Psi for a generic Psi(x0, x4)
+  PASS  FABLE [has content]: the two other terms of d_4 Psi drop out because sigma16 gamma^4 and sigma16 gamma^4 gamma^0 are ANTISYMMETRIC
+  PASS  FABLE [control]: that bilinear is NOT identically zero for an x0-dependent Psi -- witnessed on Psi = e1 + x0 e2: 'ds/dx4 == 0 for generic Psi(x0, x4)' would be FALSE
+  PASS  FABLE [THE RESULT]: for Psi = Sqrt[Sin[6 H x0]] Psi'(x4) it vanishes: s is CONSTANT IN x4 -- no dilution on the pre-universe
+  PASS  FABLE [THE RESULT]: the same from the reduced equation: ds'/dx4 == 0 on shell for Psi'(x4), because Psi'^T sigma16 gamma^4 Psi' == 0
+CELL 165  t=0.044 s
+  [0.160 s]  nabla^mu T_{mu nu} of the covariant tensor of fable, generic Psi(x0, x4)
+  PASS  FABLE [THE RESULT]: nabla^mu T_{mu nu} == 0 ON SHELL in all eight components, for a generic Psi(x0, x4) -- the covariant tensor is the conserved one
+CELL 166  t=0.842 s
+  PASS  FABLE [THE RESULT]: the author's mass term V = -(2M/H) s is DUST: on shell P_1 == 0 identically and rho == -(2M/H) s  (w == 0, exactly)
+  PASS  FABLE [has content]: that density is not zero -- witnessed on Psi' = e1 + e5 at M = 1 (rho = (2M/H) * 2 Sin[6 H x0] there)
+  PASS  FABLE [has content]: the closed forms of w_Psi(s) = s V'(s)/V(s) - 1 for the six potentials of the numerical work (mass, lambda-mass, power, hilltop, lorentz, expdamp)
+  PASS  FABLE [THE RESULT]: mass -> w == 0 (dust);  V = lam s^n alone -> w == n - 1 (accelerating for n < 2/3, phantom for n < 0);  n = 0.236 -> w == -0.764 exactly
+  PASS  FABLE [THE RESULT]: w + 1 == s V'/V vanishes where V' does, with V > 0 there: lorentz and expdamp cross w = -1 at s = s1, hilltop at s = s* -- the phantom divide is crossed with no wrong-sign kinetic term
+  PASS  FABLE [has content]: lorentz and expdamp are bounded below by V0 > 0 for s >= 0 (rho > 0 on the whole history), and w < -1 for s > s1 (the past), w > -1 for 0 < s < s1 (the present)
+  PASS  FABLE [has content]: the limits -- lorentz and expdamp: w -> -1 both as s -> infinity and as s -> 0;  lambda-mass: w -> 0 (dust) as s -> infinity and -> -1 (Lambda) as s -> 0
+  PASS  FABLE [has content]: expdamp with (V0, m, s1) = (1.566, 0.839, 2.21) at s = 1 (today) gives w == -0.8608, Unite's w0 = -0.861 to three decimals
+CELL 167  t=0.052 s
+  PASS  FLRW [definition]: the reference frame does not mention a4, and the canonical frame is untouched
+  [0.385 s]  FLRW: spin connection from the vielbein postulate, same solver as Sections 16-21
+  PASS  FLRW [solver regression]: vielbein postulate residual is zero
+  PASS  FLRW [has content]: omega is antisymmetric (metric compatible)
+  PASS  FLRW [THE RESULT]: gamma^mu Gamma^spin_mu == (3/2) (a'/a) gamma^4 -- the Hubble term of the FLRW Dirac equation
+  PASS  FLRW [definition]: the rule solves gamma^mu D_mu Psi == H V'(s) Psi for d_4 Psi
+  PASS  FLRW [THE RESULT]: d(a^3 s)/dx4 == 0 on shell, for EVERY V: s = s0 a^-3, the dust dilution law, and w_Psi(a) = s V'(s)/V(s) - 1 on it
+  PASS  FLRW [control]: without the Hubble term, d(a^3 s)/dx4 == 3 (a'/a) a^3 s instead (i.e. ds/dx4 == 0, the pre-universe law): the dilution IS the Hubble term
+CELL 168  t=0.777 s
+  [1.125 s]  NDSolve of the 4-dimensional reference Model B (expdamp; only the cosmic time needs integrating, s = Exp[-3 N] is exact)
+  PASS  MODEL B [definition]: 701 rows from N = -7 to 0, s(0) == 1 and rho_Psi(0) == V(1) == 1.566 + 0.839 Exp[-1/2.21]
+  PASS  MODEL B [THE RESULT]: w <= -1 at every grid point with s > s1 and w > -1 at every grid point with s < s1: the crossing is at s = s1, a = s1^(-1/3) = 0.7677
+  PASS  MODEL B [has content]: a genuine phantom phase: min w = -1.302 (to 0.001) at a = 0.543, and w(a = 1) = -0.8608
+  PASS  MODEL B [has content]: V(s) > 0 at every row -- rho_Psi > 0 on the whole history
+  Model B (expdamp):  w(a=1) = -0.86084564037764806560795392619028548152`20.   min w = -1.30209881490918676547015655743122703056`20. at N = -0.61 (a = 0.54335086907449978711266408781657974806`20.)   t(a=1) = 0.96433642136311524576147498023448633382`20.   H(a=1) = 0.99998205003431888956547950340514648567`20.
+  reference C:\Users\nsh\Documents\8-dim\Pre-Universe_14SEP26-77\claude-fable\..\fable-cosmology\reference\mathematica_spinor_expdamp.csv
+  rows: 701;  max |difference| per column {N, a, t, s, H, rho_Psi, w_Psi}: {0., 1.1102230246251565*^-16, 0., 0., 1.4551915228366852*^-11, 0., 0.}
+  PASS  MODEL B [fidelity]: the reference CSV has the expected header and the same 701 values of N
+  PASS  MODEL B [fidelity]: w agrees with fable-cosmology/reference/mathematica_spinor_expdamp.csv at EVERY row to 1e-9
+  PASS  MODEL B [fidelity]: so do t, H and rho_Psi, to 1e-9 (s differs only by the file's 16-digit rounding of numbers of order 1e9)
+CELL 169  t=1.275 s
+CELL 170  t=0.000 s
+  PASS  KINEMATIC [definition]: ln q == -a4[H x4] + const(x0):  D[Log[q], x4] == -H a4'[H x4] == H_obs
+  PASS  KINEMATIC [has content]: the second sheet contracts at exactly the opposite rate:  D[Log[p], x4] == +H a4'[H x4] == -H_obs
+  PASS  KINEMATIC [has content]: H_obs > 0 exactly when a4' < 0 (and H_obs < 0 when a4' > 0) -- the sign HYPOTHESIS of this Part, stated, not derived
+  PASS  VOLUME [has content]: the reduced density rho_4 = Vhid rho_8 is NOT separately conserved:  d rho_4/dx4 + 3 H_obs (rho_4 + P_4) == 3 H_obs P_4, for every w
+  PASS  VOLUME [has content]: equivalently d rho_4/dx4 == -3 H_obs rho_4: rho_4 falls as a^-3 for EVERY w -- a volume effect, the same for a cosmological constant as for dust
+  PASS  VOLUME [has content]: while the locally measured density rho_8 = T_44 of phi(x4) is exactly constant in x4 (Section 23, on shell)
+  PASS  PART VI [control]: a4 is STILL UNDEFINED -- nothing in Part VI gave it a value; and the FLRW scale factor aF never entered the canonical frame
+CELL 171  t=0.003 s
+identities accepted on numerical evidence alone : 0   (stage 3 returned True)
+non-vanishing witnesses                         : 27   (cfNonZeroWitnessQ found a probe point at which every entry is a
+                                                     number and one of them is non-zero: a complete proof of non-vanishing)
+  PASS  no identity in this notebook was accepted on numerical evidence alone
+Assertions run: 358   passed: 358   failed: 0
+CELL 172  t=0.000 s
+==================== RUN SUMMARY ====================
+cells evaluated : 172
+total seconds   : 162.534
+cells w/ msgs   : 0
+---- slowest cells ----
+  cell 80  73.334 s
+  cell 88  23.518 s
+  cell 86  8.641 s
+  cell 137  7.620 s
+  cell 87  7.492 s
+  cell 121  4.848 s
+  cell 160  4.226 s
+  cell 107  3.797 s
+  cell 124  2.038 s
+  cell 83  1.995 s
+  cell 125  1.842 s
+  cell 85  1.715 s
+==================== ASSERTIONS ====================
+assertions run  : 358
+passed          : 358
+FAILED          : 0
+====================================================
+RUN-DONE

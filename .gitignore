@@ -222,3 +222,21 @@ Untitled*
 #     paper.log
 #
 # rather than reintroducing a blanket.
+
+# -----------------------------------------------------------------------------
+# 4.  fable-cosmology (added 2026-09-16)
+#
+#     The platform clone of the rustSolveIt engine, the Python virtual
+#     environment and cargo's build directory are all recreated by
+#     fable-cosmology/setup.* from the commands on that page; none of them
+#     is a deliverable.  Jupyter's checkpoint copies are litter.
+# -----------------------------------------------------------------------------
+fable-cosmology/rust/vendor/
+fable-cosmology/.venv/
+fable-cosmology/rust/fable_cosmo/target/
+.ipynb_checkpoints/
+
+# the LaTeX build logs of the fable-cosmology paper, scoped by name as section 3 advises
+fable-cosmology/latex/fable_cosmology.log
+fable-cosmology/latex/latexmk.log
+fable-cosmology/latex/fable_cosmology.synctex.gz
