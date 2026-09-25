@@ -183,7 +183,7 @@ impl Spec {
             Spec::NoFable | Spec::Direct { .. } => "none",
             Spec::Mass { .. } | Spec::Explicit { .. } => "ln kF0 (the fable number density)",
             Spec::LambdaMass { .. } | Spec::ExpDamp { .. } | Spec::Lorentz { .. } | Spec::Quadratic { .. } => "V0 (kF0 fixed by eps(m_today, kF0) = omega_dm)",
-            Spec::Power { .. } => "U_t = (1 - nu) lam sigma_t^nu (kF0 fixed by eps(m_today, kF0) = omega_dm)",
+            Spec::Power { .. } => "ln U_t, U_t = (1 - nu) lam sigma_t^nu > 0 (kF0 fixed by eps(m_today, kF0) = omega_dm)",
         }
     }
 
@@ -214,7 +214,10 @@ impl Spec {
     /// The fable realized from the shooting variable x (ln kF0 for mass/explicit, the amplitude
     /// otherwise).
     pub fn realize(&self, x: f64, sel: Selection) -> Result<Option<FableSpec>, String> {
-        let fs = |pot: Potential, kf0: f64| Ok(Some(FableSpec { pot, kf0, sel }));
+        let fs = |pot: Potential, kf0: f64| {
+            pot.validate()?;
+            Ok(Some(FableSpec { pot, kf0, sel }))
+        };
         match *self {
             Spec::NoFable => Ok(None),
             Spec::Direct { ref pot, kf0 } => fs(pot.clone(), kf0),
@@ -230,7 +233,7 @@ impl Spec {
                         if !(nu > 0.0 && nu < 1.0) {
                             return Err(format!("power: nu = {nu} must lie in (0, 1) for the split parametrization (use explicit/--no-shoot otherwise)"));
                         }
-                        let lam = x / ((1.0 - nu) * st.powf(nu));
+                        let lam = x.exp() / ((1.0 - nu) * st.powf(nu));
                         Potential::Power { m0: m_today - nu * lam * st.powf(nu - 1.0), lam, nu }
                     }
                     Spec::ExpDamp { m_today, xt, .. } => {
@@ -273,7 +276,13 @@ impl Spec {
                 let f0 = self.realize(0.0, sel)?.unwrap();
                 let u0 = f0.pot.u(sea.sigma);
                 let x = match self {
-                    Spec::Power { .. } => target - sea.eps,
+                    Spec::Power { .. } => {
+                        let ut = target - sea.eps;
+                        if !(ut > 0.0) {
+                            return Err(format!("power: the closure needs U_t = {ut:e} > 0 (omega_dm too large)"));
+                        }
+                        ut.ln()
+                    }
                     _ => target - sea.eps - u0,
                 };
                 Ok((x, format!("kF0 = {kf0:.15e} from eps(m_today, kF0) = {}; amplitude by the affine closure", self.omega_dm())))
@@ -386,7 +395,7 @@ fn shoot_x(spec: &Spec, cfg: &Config, lnv_i: f64, x_guess: f64, log: &mut Vec<St
             }
         }
     };
-    let step0 = if spec.shoots_kf0() { 0.1 } else { (0.1 * x_guess.abs()).max(0.02) };
+    let step0 = if spec.shoots_kf0() || matches!(spec, Spec::Power { .. }) { 0.1 } else { (0.1 * x_guess.abs()).max(0.02) };
     let mut a = x_guess;
     let mut fa = g(a, &mut evals, stats, &mut last_err);
     if fa == 0.0 {
@@ -572,6 +581,15 @@ pub fn run(cfg: &Config, spec: &Spec, u: &Units) -> Result<RunOutput, String> {
     // ---- the output integration
     let (x_start, x_end) = if cfg.direction == Direction::Forward { (n0, 0.0) } else { (0.0, n0) };
     let (xs, ys): (Vec<f64>, Vec<Vec<f64>>) = if four_d {
+        // pre-check along the output grid: the gap must be solvable and rho_hat > 0
+        for k in 0..cfg.points {
+            let n = n0 * (1.0 - k as f64 / (cfg.points - 1) as f64);
+            let c = model.composition(n, 0.0).map_err(|e| format!("at N = {n:.6}: {e}"))?;
+            if !(c.rho > 0.0) {
+                let mf = c.mf.map(|m| format!("m_eff = {:e}, sigma8 = {:e}, rho_f = {:e} (U = {:e})", m.m, m.sigma8, m.rho, m.u)).unwrap_or_default();
+                return Err(format!("rho_hat = {:e} <= 0 at N = {n:.6} (a = {:.4e}): the Kohn-Sham ground state has negative energy there ({mf}); H_A^2 = rho_hat is impossible", c.rho, n.exp()));
+            }
+        }
         let c0 = model.composition(x_start, 0.0)?;
         let t0 = if cfg.direction == Direction::Forward { 0.5 / c0.rho.sqrt() } else { 0.0 };
         // integrated variable tau = t/A^2 (see models::unscale)
@@ -590,7 +608,7 @@ pub fn run(cfg: &Config, spec: &Spec, u: &Units) -> Result<RunOutput, String> {
         (tr.x, ys)
     } else {
         let y0 = forward_initial(&model, n0, lnb_i, lnc_i)?;
-        let tr = integrate_8d(&model, cfg, &y0, x_start, x_end, cfg.points)?;
+        let tr = integrate_8d(&model, cfg, &y0, x_start, x_end, cfg.points).map_err(|e| format!("{e} (rerun with the environment variable FABLE_DEBUG=1 to see the failing right-hand-side evaluations)"))?;
         stats.add(&tr.stats);
         (tr.x, tr.y)
     };
@@ -628,20 +646,54 @@ pub fn run(cfg: &Config, spec: &Spec, u: &Units) -> Result<RunOutput, String> {
     ));
     if fable.is_some() {
         let kfm = out.col("kF_over_m");
+        // matter-radiation equality with today's rest-mass dust: a_eq = Omega_r0/(Omega_b0 + m_t n_t)
+        let dust0 = today[col_index("m_eff")].abs() * today[col_index("n_f")];
+        let a_eq = cfg.omega_r0 / (cfg.omega_b0 + dust0);
         match crossing(&ns, &kfm, 1.0) {
             Some(nnr) => {
                 let anr = nnr.exp();
-                let class = if anr > 1e-4 { "HOT (non-relativistic only after a = 1e-4, z < 1e4)" } else if anr > 1e-8 { "WARM (non-relativistic between a = 1e-8 and 1e-4)" } else { "COLD (non-relativistic before a = 1e-8)" };
-                log.push(format!("a_nr (kF = |m_eff|) = {anr:.6e} (z_nr = {:.4e}): {class}", 1.0 / anr - 1.0));
+                // design review DFT-11 criteria: hot if a_nr > a_eq; cold-like if a_nr < ~1e-6
+                let class = if anr > a_eq { "HOT (non-relativistic only after matter-radiation equality)" } else if anr > 1e-6 { "WARM / not hot (a_nr between 1e-6 and a_eq)" } else { "COLD-LIKE (a_nr < 1e-6)" };
+                log.push(format!("a_nr (kF = |m_eff|) = {anr:.6e} (z_nr = {:.4e}), a_eq = {a_eq:.4e}: {class}", 1.0 / anr - 1.0));
+                let amax = (1e-10f64).min(0.01 * anr);
+                if cfg.a_start > amax {
+                    log.push(format!("WARNING: a_start = {:e} > min(1e-10, 0.01 a_nr) = {amax:e} (design review: the interval should start deep in the ultra-relativistic radiation era)", cfg.a_start));
+                }
             }
             None => log.push(format!("a_nr: kF/|m_eff| never crosses 1 on [a_start, 1] (from {:.3e} to {:.3e})", kfm[0], kfm[kfm.len() - 1])),
         }
         let k0 = kfm[0];
         if k0 < 10.0 {
-            log.push(format!("WARNING: the fable is NOT ultra-relativistic at a_start (kF/|m| = {k0:.3e}); m_eff above ~1 MeV at a_start = 1e-12"));
+            log.push(format!("WARNING: the fable is NOT ultra-relativistic at a_start (kF/|m| = {k0:.3e}; needs kF0/a_start > m)"));
         } else {
             log.push(format!("the fable is ultra-relativistic at a_start: kF/|m_eff| = {k0:.3e}"));
         }
+        let neff = out.col("N_eff_extra");
+        let at = |a: f64| -> f64 {
+            let x = a.ln();
+            for k in 1..ns.len() {
+                if (ns[k - 1] - x) * (ns[k] - x) <= 0.0 {
+                    let f = (x - ns[k - 1]) / (ns[k] - ns[k - 1]);
+                    return neff[k - 1] + f * (neff[k] - neff[k - 1]);
+                }
+            }
+            f64::NAN
+        };
+        log.push(format!("Delta N_eff (fable energy density in units of one massless neutrino species): at BBN (a = {:.4e}, T = 1 MeV) = {:.6e}, at recombination (a = {:.4e}) = {:.6e}", u.a_bbn, at(u.a_bbn), u.a_rec, at(u.a_rec)));
+    }
+    if four_d || frozen {
+        let ps = out.col("P_stab");
+        let (pmin, pmax) = ps.iter().fold((f64::INFINITY, f64::NEG_INFINITY), |a, &b| (a.0.min(b), a.1.max(b)));
+        log.push(format!("stabilizer: P_stab = -F_hidden/2 ranges over [{pmin:.4e}, {pmax:.4e}] (today {:.6e}); it is a Lagrange multiplier with zero energy density and violates the null energy condition along x0 wherever dust is present (rho + P_C = -rho_dust/2)", today[col_index("P_stab")]));
+    }
+    if four_d {
+        // t(A=1) by an independent quadrature: t = t(a_start) + Int_{N0}^{0} dN / H_A(N)
+        let h = |n: f64| model.composition(n, 0.0).map(|c| c.rho.sqrt()).unwrap_or(f64::NAN);
+        let n_lo = ns[0];
+        let (q, qerr) = crate::numerics::integrate_gk(|n| 1.0 / h(n), n_lo, 0.0, &[-20.0, -15.0, -10.0, -8.0, -6.0, -4.0, -2.0, -1.0], 0.0, 1e-13, 20000);
+        let t0q = 0.5 / h(n_lo) + q;
+        let tc = today[col_index("t")];
+        log.push(format!("t(A=1) cross-check: CVODE {tc:.15e} vs Gauss-Kronrod quadrature {t0q:.15e} (rel. diff {:.2e}, quadrature error estimate {qerr:.1e})", (tc - t0q).abs() / t0q));
     }
     if matches!(spec, Spec::Mass { .. }) && (four_d || frozen) {
         log.push(format!("NOTE: W = m0 sigma alone (no V0): the closure forces Omega_f0 = 1 - Omega_b0 - Omega_r0 = {target_today:.6}: an Einstein-de Sitter-like universe (q0 = {:.4}, +1/2 for pure dust)", today[col_index("q_dec")]));
@@ -669,13 +721,14 @@ pub fn run(cfg: &Config, spec: &Spec, u: &Units) -> Result<RunOutput, String> {
         "units: hbar = c = 1, H0 = 1 (t in 1/H0), densities per 7-volume in rho_c0 = 3 H0^2 M_pl^2, masses and kF in E_c = rho_c0^(1/4) (m_eff_eV, kF_eV in eV)".into(),
         "v = B^3 C/(B^3 C)(A=1) (B = C = 1 today in every run); G_ratio = 1/v = G_4(t)/G_4(today); kappa_4,0 = kappa_8/V_h,0; a sigma^2 coupling lam_8 = lam_4 V_h,0".into(),
         "n_f = n/v and sigma = sigma_KS/v per 7-volume; kF_over_m = kF/|m_eff| (inf when m_eff = 0)".into(),
-        "constraint_residual = (S - 3 rho_hat)/max(3 rho_hat, 3 H_A^2), S = 3H_A^2 + 3H_B^2 + 9H_A H_B + 3H_A H_C + 3H_B H_C".into(),
+        "constraint_residual = (S - kappa rho)/(3 H_A^2) = (S - 3 rho_hat)/(3 H_A^2), S = 3H_A^2 + 3H_B^2 + 9H_A H_B + 3H_A H_C + 3H_B H_C".into(),
         "Omega_X = rho_X/H_A^2; Omega_sum = rho_hat/H_A^2 = 1 + (3H_B^2 + 9H_A H_B + 3H_A H_C + 3H_B H_C)/(3H_A^2) (1 in fable4d)".into(),
         "rho_qp = eps/v (quasiparticles), w_qp = w_DM_intrinsic = P/eps; rho_U = W - sigma W' (condensate, an 8D vacuum energy: P_hid_f = -rho_U); the DM/DE split is a convention".into(),
         "w_DM_eff = w_DM - sigma_KS (dm/dN)/(3 eps_KS) (eps' + 3 H_A (eps + P) = sigma m'); Q = sigma8 dm_eff/dt (energy exchange condensate -> quasiparticles per 7-volume; = n dm/dt in the non-relativistic limit)".into(),
         "rho_dust0 = m_eff(A=1) n_f(A=1) (rest-mass dust today); rho_DE_eff = rho_f - rho_dust0 A^-3 v(1)/v, w_DE_eff = P_obs_f/rho_DE_eff".into(),
         "rho_DE_inf = H_A^2 - Omega_r0 A^-4 - Omega_b0 A^-3 - rho_dust0 A^-3 (observer-inferred), w_DE_inf = -1 - (1/3) d ln rho_DE_inf/d ln A".into(),
-        "F_hidden = rho - 3 P_obs + 2 P_hid (all sources; dH_B/dt + H_B Theta = F/2); P_stab = -F_hidden/2 (the zero-energy stabilizing hidden stress; 0 in unstabilized fable8d)".into(),
+        "F_hidden = rho - 3 P_obs + 2 P_hid (all sources; dH_B/dt + H_B Theta = F/2); P_stab = -F_hidden/2 = the zero-energy stabilizing hidden stress of fable4d, a LAGRANGE MULTIPLIER (not a derived stress) that violates the null energy condition along x0 when dust is present (rho + P_C = -rho_dust/2); 0 in unstabilized fable8d".into(),
+        "vac_over_rhoc = DeltaE_vac(m_eff; M = m_eff(A=1))/v: the renormalized one-loop Dirac-sea energy (relativistic Hartree, Chin 1977) that the no-sea functional drops; reported, not included in the dynamics".into(),
         "cs2_adiabatic = (dP_obs_f/dN)/(drho_f/dN) along the solution (analytic, with the differentiated gap equation); N_eff_extra = rho_f / rho_nu(1 species), rho_nu1 = Omega_nu1_0 A^-4/v".into(),
         "q_dec = -1 - (dH_A/dt)/H_A^2; gap_roots = number of gap roots found (1 where uniqueness is proven); branch = sign of m_eff; gap_residual = (m - W'(sigma))/scale; dm_dN = d m_eff/dN".into(),
         "g_*(T) is not followed: rho_r = Omega_r0 A^-4/v at all times (misstates rho_r A^4 by up to a factor ~0.39 at the earliest times)".into(),

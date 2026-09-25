@@ -282,7 +282,7 @@ pub fn mean_field_at(pot: &Potential, m: f64, kf: f64, v: f64) -> MeanField {
     let w = pot.w(sigma8);
     let dw = pot.dw(sigma8);
     let d2w = pot.d2w(sigma8);
-    let u = w - sigma8 * dw;
+    let u = pot.u(sigma8); // analytic W - sigma8 W'
     let rho_qp = sea.eps / v;
     let p_qp = sea.p / v;
     let scale = m.abs().max(dw.abs()).max(kf).max(f64::MIN_POSITIVE);
@@ -348,10 +348,16 @@ pub fn gap_roots_scan(pot: &Potential, kf: f64, v: f64, lo: f64, hi: f64) -> Res
         ms.push(0.0);
     }
     if pot.nonneg_domain() {
-        ms.retain(|&m| m > 0.0);
-        if ms.is_empty() || ms[0] > lo.max(0.0) * 1.000_001 + 1e-300 {
-            // keep a point close to the lower end for the power law
-            ms.insert(0, (lo.max(0.0) + 1e-12 * hi.abs()).max(1e-300));
+        // sigma >= 0 only (m > 0): add a log-spaced sub-grid from kF 1e-24 up to the first
+        // asinh point, where W' ~ sigma^(nu-1) varies fastest
+        ms.retain(|&m| m > 0.0 && m >= lo);
+        let top = ms.first().copied().unwrap_or(hi);
+        let bottom = (scale * 1e-24).max(lo).max(1e-300);
+        if top > bottom {
+            let k = 120;
+            for i in 0..k {
+                ms.push(bottom * (top / bottom).powf(i as f64 / k as f64));
+            }
         }
     }
     ms.sort_by(|a, b| a.partial_cmp(b).unwrap());
@@ -460,6 +466,33 @@ pub fn ks_functional(pot: &Potential, sigma8: f64, kf: f64, v: f64) -> Result<f6
     let (m, _) = brent(f, lo, hi, 0.0, 400)?;
     let sea = fermi_sea(m, kf);
     Ok((sea.eps - m * sea.sigma) / v + pot.w(sigma8))
+}
+
+/// The auxiliary-field (Walecka) functional of design review DFT-1, per 7-volume, for W with
+/// W' strictly monotone (W'' != 0): `Omega_n(m) = eps(m)/v + F(m)`, `F(m) = W(sigma_m) - m sigma_m`,
+/// `W'(sigma_m) = m`.  dOmega/dm = (sigma_KS/v - sigma_m), so its stationary points are the gap
+/// roots and Omega(m*) = rho_8; for concave W (attractive) it is minimized there.
+pub fn walecka_functional(pot: &Potential, m: f64, kf: f64, v: f64, sigma_lo: f64, sigma_hi: f64) -> Result<f64, String> {
+    let (sm, _) = brent(|s| pot.dw(s) - m, sigma_lo, sigma_hi, 0.0, 400)?;
+    Ok(fermi_sea(m, kf).eps / v + pot.w(sm) - m * sm)
+}
+
+/// The renormalized one-loop Dirac-sea energy that the no-sea functional drops (relativistic
+/// Hartree approximation, Chin 1977), per 3-volume, for g states per momentum and reference mass
+/// M (counterterms through m^4, so that it vanishes like (m - M)^5 at m = M):
+/// `DeltaE_vac(m) = -(g/(16 pi^2)) [m^4 ln(m/M) + M^3 (M - m) - (7/2) M^2 (M - m)^2
+///                  + (13/3) M (M - m)^3 - (25/12) (M - m)^4]`  (|m| and |M| are used: the sea
+/// energy is even in m).  Design review DFT-4: for mass-varying W it cannot be absorbed into W
+/// without changing the gap equation; the solver reports it (column vac_over_rhoc), it does not
+/// include it in the dynamics.
+pub fn vacuum_energy(m: f64, mref: f64) -> f64 {
+    let (m, mm) = (m.abs(), mref.abs());
+    if mm == 0.0 {
+        return 0.0;
+    }
+    let d = mm - m;
+    let log_term = if m > 0.0 { m.powi(4) * (m / mm).ln() } else { 0.0 };
+    -(G_FABLE / (16.0 * PI * PI)) * (log_term + mm.powi(3) * d - 3.5 * mm * mm * d * d + 13.0 / 3.0 * mm * d.powi(3) - 25.0 / 12.0 * d.powi(4))
 }
 
 /// Derivatives of the self-consistent fable along a trajectory: kF = kF0 e^(-N) and
@@ -709,6 +742,108 @@ mod tests {
         let g0 = solve_gap(&pq, kf, 1.0, Selection::Lowest).unwrap();
         let gp = solve_gap(&pq, kf, 1.0, Selection::Positive).unwrap();
         assert!(g0.m == 0.0 && gp.m > 0.0 && gp.rho > g0.rho, "m* = {}, rho(m*) = {}, rho(0) = {}", gp.m, gp.rho, g0.rho);
+    }
+
+    #[test]
+    fn quadrature_at_the_review_points_and_switch_continuity() {
+        // design review DFT-12 points, including x = 1e-8, 1e-5 and both sides of 0.25
+        for &x in &[1e-8, 1e-5, 1e-3, 0.1, 0.2499, 0.25, 1.0, 10.0, 1e3] {
+            for &m in &[1.0f64, -2.0] {
+                let kf = x * m.abs();
+                let fs = fermi_sea(m, kf);
+                let (s, e, p, _) = quad(m, kf);
+                let worst = rel(fs.sigma, s).max(rel(fs.eps, e)).max(rel(fs.p, p));
+                assert!(worst < 1e-12, "x = {x}, m = {m}: worst rel {worst:e}");
+            }
+        }
+    }
+
+    #[test]
+    fn nonrelativistic_classical_limit_of_the_mean_field() {
+        // DFT-5: kF << |m|:  sigma = sgn(m) n [1 - (3/10) kF^2/m^2],
+        // rho = W(sgn(m) n) + (3/10) n kF^2/|m|,  P_obs = [sigma W' - W] + n kF^2/(5|m|),
+        // P_hid = sigma W' - W.  Self-consistency forces sgn(sigma) = sgn(W').
+        let pot = Potential::Power { m0: 1.0, lam: 1e-6, nu: 0.236 }; // m_eff ~ 1, x = kF/m ~ 1e-2
+        for &kf in &[1e-2, 3e-2] {
+            let mf = solve_gap(&pot, kf, 1.0, Selection::Lowest).unwrap();
+            let (m, n) = (mf.m, mf.sea.n);
+            let x2 = (kf / m).powi(2);
+            assert!(rel(mf.sigma8, n * (1.0 - 0.3 * x2)) < 1e-3 * x2);
+            let rho_nr = pot.w(n) + 0.3 * n * kf * kf / m;
+            assert!((mf.rho - rho_nr).abs() < 1e-2 * 0.3 * n * kf * kf / m, "rho {} vs {rho_nr}", mf.rho);
+            let pobs_nr = -pot.u(mf.sigma8) + n * kf * kf / (5.0 * m);
+            assert!((mf.p_obs - pobs_nr).abs() < 1e-2 * n * kf * kf / (5.0 * m));
+            assert!((mf.p_hid + pot.u(mf.sigma8)).abs() < 1e-15 * pot.u(mf.sigma8).abs());
+            assert!(mf.sigma8.signum() == pot.dw(mf.sigma8).signum());
+            // rho = 3 P_KS/v + W(sigma8) at the self-consistent point (eps - m sigma = 3P exactly)
+            assert!(rel(mf.rho, 3.0 * mf.p_qp + mf.w) < 1e-14);
+        }
+    }
+
+    #[test]
+    fn no_phantom_crossing_rho_plus_p_obs_is_nonnegative() {
+        // DFT-6: rho + P_obs = wF n/v >= 0, so w_f >= -1 wherever rho > 0 (every potential, every kF)
+        for pot in pots() {
+            for &kf in &[1e-4, 1e-2, 0.3, 3.0, 300.0] {
+                let mf = solve_gap(&pot, kf, 1.0, Selection::Lowest).unwrap();
+                assert!(mf.rho + mf.p_obs >= 0.0, "{pot:?} kF = {kf}");
+                if mf.rho > 0.0 {
+                    assert!(mf.p_obs / mf.rho >= -1.0 - 1e-15);
+                }
+            }
+        }
+    }
+
+    #[test]
+    fn root_counts_three_for_strong_repulsion_one_for_concave_w() {
+        // DFT-2: (m0, lam, kF) = (0.05, 20, 1): three roots
+        let pot = Potential::Quadratic { v0: 0.0, m0: 0.05, lam: 20.0 };
+        let n8 = fermi_sea(0.0, 1.0).n;
+        let roots = gap_roots_scan(&pot, 1.0, 1.0, 0.05 - 20.0 * n8, 0.05 + 20.0 * n8).unwrap();
+        assert_eq!(roots.len(), 3, "roots {roots:?}");
+        // concave W (W'' <= 0): exactly one root on a kF grid, counted by a wide scan
+        let concave = [
+            Potential::Mass { m0: 3.0 },
+            Potential::LambdaMass { v0: 0.2, m0: 3.0 },
+            Potential::Power { m0: 3.0, lam: 0.8, nu: 0.236 },
+            Potential::Power { m0: 0.0, lam: 0.8, nu: 0.5 },
+            Potential::ExpDamp { v0: 0.1, m0: 3.0, s1: 0.05 },
+            Potential::Quadratic { v0: 0.0, m0: 3.0, lam: -20.0 },
+        ];
+        for pot in concave.iter() {
+            for &kf in &[1e-3, 0.03, 0.3, 3.0, 30.0] {
+                let n8 = fermi_sea(0.0, kf).n;
+                let (lo, hi) = if pot.nonneg_domain() { (0.0, 1e12) } else { (-1e3, 1e3) };
+                let roots = gap_roots_scan(pot, kf, 1.0, lo, hi).unwrap();
+                assert_eq!(roots.len(), 1, "{pot:?} kF = {kf} (n8 = {n8:e}): roots {roots:?}");
+                let mf = solve_gap(pot, kf, 1.0, Selection::Lowest).unwrap();
+                assert!(rel(mf.m, roots[0]) < 1e-12);
+            }
+        }
+    }
+
+    #[test]
+    fn walecka_functional_is_minimized_at_the_gap_root() {
+        // DFT-1 test value: W = sigma - 10 sigma^2, kF = 1: m* = 0.211249, rho = 0.121193
+        let pot = Potential::Quadratic { v0: 0.0, m0: 1.0, lam: -20.0 };
+        let mf = solve_gap(&pot, 1.0, 1.0, Selection::Lowest).unwrap();
+        assert!((mf.m - 0.211249).abs() < 5e-7, "m* = {}", mf.m);
+        assert!((mf.rho - 0.121193).abs() < 5e-7, "rho = {}", mf.rho);
+        let om = |m: f64| walecka_functional(&pot, m, 1.0, 1.0, -1e3, 1e3).unwrap();
+        assert!(rel(om(mf.m), mf.rho) < 1e-12);
+        for &dm in &[1e-3, 1e-2, 0.1] {
+            assert!(om(mf.m + dm) > om(mf.m) && om(mf.m - dm) > om(mf.m), "not a minimum at dm = {dm}");
+        }
+    }
+
+    #[test]
+    fn vacuum_energy_vanishes_to_fifth_order_at_the_reference_mass() {
+        let mm = 2.0;
+        assert_eq!(vacuum_energy(mm, mm), 0.0);
+        let (a, b) = (vacuum_energy(mm * 1.01, mm), vacuum_energy(mm * 1.02, mm));
+        // O(d^5): doubling d multiplies it by ~32
+        assert!((b / a - 32.0).abs() < 1.5, "ratio {}", b / a);
+        assert!(vacuum_energy(-1.3, mm) == vacuum_energy(1.3, mm));
     }
 
     #[test]

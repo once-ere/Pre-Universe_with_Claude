@@ -138,9 +138,9 @@ pub fn pair_sum(ha: f64, hb: f64, hc: f64) -> f64 {
     3.0 * ha * ha + 3.0 * hb * hb + 9.0 * ha * hb + 3.0 * ha * hc + 3.0 * hb * hc
 }
 
-/// Relative constraint residual (S - 3 rho_hat) / max(3 rho_hat, 3 H_A^2).
+/// Normalized constraint residual (design review DFT-13): (S - kappa rho)/(3 H_A^2) = (S - 3 rho_hat)/(3 H_A^2).
 pub fn constraint_residual(ha: f64, hb: f64, hc: f64, rho: f64) -> f64 {
-    (pair_sum(ha, hb, hc) - 3.0 * rho) / (3.0 * rho.abs()).max(3.0 * ha * ha)
+    (pair_sum(ha, hb, hc) - 3.0 * rho) / (3.0 * ha * ha)
 }
 
 /// The physical state (ln B, ln C, H_A, H_B, H_C, t) from the integrated one.
@@ -180,7 +180,10 @@ pub fn rhs_fable8d(n: f64, y: &N_Vector, ydot: &N_Vector, ud: &mut Option<Box<dy
     let lnv = if m.freeze_hidden { 0.0 } else { 3.0 * lnb + lnc };
     let c = match m.composition(n, lnv) {
         Ok(c) => c,
-        Err(_) => return 1,
+        Err(e) => {
+            debug_rhs_error(n, lnv, &e);
+            return 1;
+        }
     };
     let (dha, dhb, dhc) = m.dh_dt(&c, ha, hb, hc);
     let mut yd = N_VGetArrayPointer(ydot).expect("ydot");
@@ -198,6 +201,15 @@ pub fn rhs_fable8d(n: f64, y: &N_Vector, ydot: &N_Vector, ud: &mut Option<Box<dy
     0
 }
 
+/// With the environment variable FABLE_DEBUG set, report every failed right-hand-side
+/// evaluation (the gap equation had no admissible root) on stderr.
+pub fn debug_rhs_error(n: f64, lnv: f64, e: &str) {
+    static ON: std::sync::OnceLock<bool> = std::sync::OnceLock::new();
+    if *ON.get_or_init(|| std::env::var_os("FABLE_DEBUG").is_some()) {
+        eprintln!("[FABLE_DEBUG] RHS failed at N = {n:.15e}, ln v = {lnv:.15e}: {e}");
+    }
+}
+
 /// fable4d right-hand side; integrated state y = (tau = t/A^2), H_A = sqrt(rho_hat(N)) with v = 1:
 /// dtau/dN = -2 tau + A^-2/H_A.
 pub fn rhs_fable4d(n: f64, y: &N_Vector, ydot: &N_Vector, ud: &mut Option<Box<dyn Any>>) -> i32 {
@@ -207,9 +219,13 @@ pub fn rhs_fable4d(n: f64, y: &N_Vector, ydot: &N_Vector, ud: &mut Option<Box<dy
     };
     let c = match m.composition(n, 0.0) {
         Ok(c) => c,
-        Err(_) => return 1,
+        Err(e) => {
+            debug_rhs_error(n, 0.0, &e);
+            return 1;
+        }
     };
     if !(c.rho > 0.0) {
+        debug_rhs_error(n, 0.0, &format!("rho = {} <= 0", c.rho));
         return 1;
     }
     let tau = N_VGetArrayPointer(y).expect("y")[0];
@@ -229,12 +245,14 @@ pub fn hidden_driver(c: &Composition) -> f64 {
 
 /// The columns of every output CSV, in order: the required ones, the ones the design review
 /// added, and a few extras.
-pub const COLUMNS: [&str; 46] = [
+pub const COLUMNS: [&str; 47] = [
     "N", "a", "z", "t", "B", "C", "H_A", "H_B", "H_C", "constraint_residual", "rho_r", "rho_b", "rho_f", "P_obs_f", "P_hid_f", "n_f", "sigma", "m_eff", "kF_over_m", "w_f", "rho_qp", "w_qp", "rho_U", "w_DE_eff", "Omega_r", "Omega_b", "Omega_f", "q_dec", "G_ratio", "cs2_adiabatic", "N_eff_extra",
     // added by the design review (E3, E8, E10)
     "P_stab", "Omega_sum", "rho_DE_inf", "w_DE_inf", "w_DM_intrinsic", "w_DM_eff", "Q",
     // extras
     "rho_DE_eff", "F_hidden", "dm_dN", "m_eff_eV", "kF_eV", "gap_roots", "branch", "gap_residual",
+    // design review DFT-4: the renormalized Dirac-sea energy the no-sea functional drops
+    "vac_over_rhoc",
 ];
 
 pub fn col_index(name: &str) -> usize {
@@ -279,11 +297,12 @@ pub fn row(model: &Model, four_d: bool, n: f64, y: &[f64], omega_nu1: f64, e_c_e
     Ok(vec![
         n, a, 1.0 / a - 1.0, t, bb, cc, ha, hb, hc, resid, c.rho_r, c.rho_b, c.rho_f, c.p_obs_f, c.p_hid_f, n8, s8, meff, kfm, w_f, rho_qp, w_qp, rho_u, nan, c.rho_r / h2, c.rho_b / h2, c.rho_f / h2, q, (-lnv).exp(), cs2, c.rho_f / rho_nu1,
         p_stab, omega_sum, nan, nan, w_qp, w_dm_eff, q_ex,
-        nan, f_hidden, dmdn, meff * e_c_ev, kf * e_c_ev, roots, branch, gres,
+        nan, f_hidden, dmdn, meff * e_c_ev, kf * e_c_ev, roots, branch, gres, nan,
     ])
 }
 
 /// Fill the columns that need today's row (A = 1, where v = 1):
+/// * vac_over_rhoc = DeltaE_vac(m_eff(t); M = m_eff(A=1))/v (kohn_sham::vacuum_energy);
 /// * rest-mass dust today: rho_dust0 = m_eff(A=1) n_f(A=1) (a stated constant);
 /// * `rho_DE_eff = rho_f - rho_dust0 A^-3 v(A=1)/v` (the fable minus the rest-mass dust it would
 ///   be with today's mass, scaled as A^-3 v^-1), `w_DE_eff = P_obs_f / rho_DE_eff`;
@@ -292,15 +311,18 @@ pub fn row(model: &Model, four_d: bool, n: f64, y: &[f64], omega_nu1: f64, e_c_e
 ///   `w_DE_inf = -1 - (1/3) d ln rho_DE_inf/d ln A`, with d(H_A^2)/dN = 2 dH_A/dt.
 pub fn fill_today_columns(rows: &mut [Vec<f64>], omega_r0: f64, omega_b0: f64) {
     let (i_n, i_ha, i_q, i_nf, i_m, i_g, i_rhof, i_p) = (col_index("N"), col_index("H_A"), col_index("q_dec"), col_index("n_f"), col_index("m_eff"), col_index("G_ratio"), col_index("rho_f"), col_index("P_obs_f"));
-    let (i_w, i_rde, i_rinf, i_winf) = (col_index("w_DE_eff"), col_index("rho_DE_eff"), col_index("rho_DE_inf"), col_index("w_DE_inf"));
+    let (i_w, i_rde, i_rinf, i_winf, i_vac) = (col_index("w_DE_eff"), col_index("rho_DE_eff"), col_index("rho_DE_inf"), col_index("w_DE_inf"), col_index("vac_over_rhoc"));
     let today = match rows.iter().min_by(|a, b| a[i_n].abs().partial_cmp(&b[i_n].abs()).unwrap()) {
         Some(r) => r.clone(),
         None => return,
     };
     let dust0 = today[i_m].abs() * today[i_nf] / today[i_g]; // m_t n_t v_t (v_t = 1/G_ratio_t = 1)
+    let m_ref = today[i_m];
     for r in rows.iter_mut() {
         let a = r[i_n].exp();
         let v = 1.0 / r[i_g];
+        // DeltaE_vac(m(t); M = m_eff(A=1)) per 7-volume, in rho_c0 (zero for constant m_eff)
+        r[i_vac] = if r[i_nf] > 0.0 { crate::kohn_sham::vacuum_energy(r[i_m], m_ref) / v } else { 0.0 };
         let dust = dust0 * a.powi(-3) / v;
         let rde = r[i_rhof] - dust;
         r[i_rde] = rde;

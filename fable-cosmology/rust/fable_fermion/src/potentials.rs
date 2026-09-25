@@ -97,9 +97,50 @@ impl Potential {
         }
     }
 
-    /// The condensate energy density U = W - sigma W' (the mean-field part of rho; P_hid = -U).
+    /// The condensate energy density U = W - sigma W' (the mean-field part of rho; P_hid = -U),
+    /// written ANALYTICALLY per potential (design review DFT-12: no subtraction of W and sigma W'):
+    /// mass 0; lambda-mass V0; power lam (1 - nu) sigma^nu; expdamp V0 + m0 s1 x^2 e^-x (x = sigma/s1);
+    /// lorentz V0 + 2 m0 sigma u/(1 + u)^2 (u = (sigma/s1)^2); quadratic V0 - lam sigma^2/2.
     pub fn u(&self, s: f64) -> f64 {
-        self.w(s) - s * self.dw(s)
+        match *self {
+            Potential::Mass { .. } => 0.0,
+            Potential::LambdaMass { v0, .. } => v0,
+            Potential::Power { lam, nu, .. } => lam * (1.0 - nu) * s.powf(nu),
+            Potential::ExpDamp { v0, m0, s1 } => {
+                let x = s / s1;
+                v0 + m0 * s1 * x * x * (-x).exp()
+            }
+            Potential::Lorentz { v0, m0, s1 } => {
+                let u = (s / s1) * (s / s1);
+                v0 + 2.0 * m0 * s * u / ((1.0 + u) * (1.0 + u))
+            }
+            Potential::Quadratic { v0, lam, .. } => v0 - 0.5 * lam * s * s,
+        }
+    }
+
+    /// The asserted parameter domains (design review DFT-16): expdamp m0 > 0, s1 > 0; power
+    /// lam > 0, 0 < nu < 1 (m0 of either sign: the uniqueness proof in `gap_plan` does not need
+    /// m0 >= 0, and m0 < 0 only pins sigma8 below (nu lam/|m0|)^(1/(1-nu))); lorentz s1 > 0;
+    /// finite numbers everywhere.  quadratic with lam > 0 is admitted (the gap is then scanned and
+    /// may have several roots; lam < 0 is the provably unique case).
+    pub fn validate(&self) -> Result<(), String> {
+        let bad = |why: &str| Err(format!("{self:?}: {why}"));
+        let finite = match *self {
+            Potential::Mass { m0 } => m0.is_finite(),
+            Potential::LambdaMass { v0, m0 } => v0.is_finite() && m0.is_finite(),
+            Potential::Power { m0, lam, nu } => m0.is_finite() && lam.is_finite() && nu.is_finite(),
+            Potential::ExpDamp { v0, m0, s1 } | Potential::Lorentz { v0, m0, s1 } => v0.is_finite() && m0.is_finite() && s1.is_finite(),
+            Potential::Quadratic { v0, m0, lam } => v0.is_finite() && m0.is_finite() && lam.is_finite(),
+        };
+        if !finite {
+            return bad("non-finite parameter");
+        }
+        match *self {
+            Potential::Power { lam, nu, .. } if !(lam > 0.0 && nu > 0.0 && nu < 1.0) => bad("power needs lam > 0 and 0 < nu < 1"),
+            Potential::ExpDamp { m0, s1, .. } if !(m0 > 0.0 && s1 > 0.0) => bad("expdamp needs m0 > 0 and s1 > 0"),
+            Potential::Lorentz { s1, .. } if !(s1 > 0.0) => bad("lorentz needs s1 > 0"),
+            _ => Ok(()),
+        }
     }
 
     /// Where the roots of `f(m) = m - W'(sigma_KS(m, kF)/v)` lie.  `n8 = n/v` bounds
@@ -216,6 +257,9 @@ mod tests {
                 assert!((n2 - p.d2w(s)).abs() <= 1e-7 * (1.0 + p.d2w(s).abs()), "{p:?} W'' at {s}: {n2} vs {}", p.d2w(s));
                 let nu = fd(&|x| p.u(x), s);
                 assert!((nu + s * p.d2w(s)).abs() <= 1e-7 * (1.0 + (s * p.d2w(s)).abs()), "{p:?} dU/dsigma = -sigma W''");
+                // the analytic U equals W - sigma W'
+                let u_sub = p.w(s) - s * p.dw(s);
+                assert!((p.u(s) - u_sub).abs() <= 1e-14 * (p.w(s).abs() + (s * p.dw(s)).abs()), "{p:?} analytic U at {s}");
             }
         }
     }
