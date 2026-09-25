@@ -1,0 +1,9 @@
+file bytes: 545408
+Head: Notebook
+cells: 384
+style tally: {{Title, 8}, {Subtitle, 1}, {Subsubtitle, 1}, {Text, 123}, {Section, 34}, {Input, 217}}
+input cells with plain-string BoxData: 217
+total input characters: 347187
+input cells that FAIL to parse: {}
+first cell: InputForm[(* --- provenance banner, as in the original notebook ------------------------------------]
+last cell : InputForm[cfAssert["PART VIII [control]: a4 is STILL UNDEFINED -- nothing in Part VIII gave it a val]

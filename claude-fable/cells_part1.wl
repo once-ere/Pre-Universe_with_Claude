@@ -21,6 +21,12 @@ Refactoring, the frame-field / spin-connection chapters and the three bridges of
 prepared with Claude (Anthropic, Opus) at the author's direction, 2026-09-14.
 Review and refactoring of all of that, and the fable-5.1 bridge of Part V:
 prepared with Claude (Anthropic, Fable 5.1) at the author's direction, 2026-09-16.
+The classical fields fableScalar and fable of Part VI: prepared with Claude at the author's
+direction, 2026-09-16, completed 2026-09-24.
+The fermion fable (a complex 16-spinor), its canonical quantization in 4+4 dimensions and its
+energy-momentum tensor operator (Part VII), and fable as a source of the Einstein equations of
+the primordial gravitational field (Part VIII): prepared with Claude (Anthropic, Opus 5.5) at the
+author's direction, 2026-09-24.
 
 WARNING (from the original): syncope, presyncope AHEAD.
 
@@ -74,6 +80,33 @@ Levi-Civita scalar curvature is proved to equal minus the torsion scalar plus a 
 (R == -T + B, in closed form), and at the spinor level the connection-free Dirac operator of
 this bridge is proved equivalent to the canonical one by an exact rescaling of the spinor.
 Section 22 collects all five connections in one table.
+
+PART VI (Sections 23-25) defines two classical fields on the pre-universe: fableScalar, a real
+scalar, and fable, a real COMMUTING 16-component spinor with a self-interaction V(s),
+s = Psi^T sigma16 Psi, whose mass term V = -(2M/H) s reproduces the author's La and eLa.  For each
+it proves the energy-momentum tensor, the field equation, the energy density, the pressures and
+the equation of state, and it checks two 4-dimensional reference models against NDSolve.
+
+PART VII (Sections 26-29) refines fable into a genuine FERMION.  A real Grassmann spinor with the
+author's sigma16 has no dynamics, so fermion fable is a COMPLEX 16-component spinor with
+Psibar = Psi^dagger sigma16.  Part VII writes out its field equations in the primordial
+gravitational field (the canonical frame): the matrix form, all 16 components, the
+split-octonion 8+8 form and the rescaled form.  It quantizes the field canonically in 4+4
+dimensions, which gives an indefinite (8,8) anticommutator, a Krein fundamental symmetry
+J = -i T16[0].T16[1].T16[2].T16[3].T16[4], a positive Fock space exactly when no field mode
+carries momentum along the hidden timelike directions x5..x7, and the Dirac sea.  It builds the
+energy-momentum tensor OPERATOR, with its pressure, density and equations of state, including
+the Kohn-Sham Fermi sea.
+
+PART VIII (Sections 30-33) makes fable a source of the Einstein equations of the primordial
+gravitational field.  It computes the Einstein tensor of the canonical metric and proves that
+the canonical metric needs negative total energy.  It shows that the (0,4) equation singles out
+the author's volume-preserving a4 structure, that the present universe is the asymptotic 8D
+Bianchi-I region, and what the spin connection of the evolving frame is.  It then derives the
+coupled equations of fable's Kohn-Sham ground state and the primordial field: exact
+conservation, the hidden-sheet driver, the frozen-sheet theorem, w >= -1, the classical limit,
+and the stabilized model with its null-energy-violating stress.  Its Mathematica reference runs
+are compared with the Rust solver of fable-cosmology/rust/fable_fermion.
 
 (* ::Section:: *)
 1.  Session setup
