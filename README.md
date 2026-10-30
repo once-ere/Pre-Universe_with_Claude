@@ -198,5 +198,5 @@ Pre-gravityPre-Big_Bang_*.nb  the author's original notebook
 ## Licence
 
 The original work is © 2022 Patrick L. Nash under the GNU General Public License; this
-repository carries that licence forward. Please cite the original work, and this repository, if
+repository carries that license forward. Please cite the original work, and this repository, if
 you use it.
