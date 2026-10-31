@@ -1,5 +1,8 @@
 # Pre-Universe
 
+[Whenever possible, we try to follow ROBERT L. BRYANT , 'SUBMANIFOLDS AND SPECIAL STRUCTURES ON THE OCTONIANS', J. DIFFERENTIAL GEOMETRY 17 (1982) 185-232; any ERRORS ARE DEFINITELY due to ME]
+
+<!-- testing (please ignore):  $\bar{SO(4,4;\mathbb{R})}$ $\overline{SO(4,4;\mathbb{R})}$ $\overline{{SO(4,4;\mathbb{R})}}$ $\overline{[SO(4,4;\mathbb{R})]}$  -->
 
 Let
 $\mathbb{R}^{4,4}$
